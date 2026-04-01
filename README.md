@@ -88,13 +88,6 @@ Open [http://localhost:3000](http://localhost:3000) to access the AK Books dashb
 
 ---
 
-## 🌐 Subdomain Strategy
-Deploy different modules using branch-specific subdomains on `akenterprisegroup.in`:
-- `books.akenterprisegroup.in` (Main Accounting & CRM)
-- `invoices.akenterprisegroup.in` (Dedicated Client Invoice Portal)
-
----
-
 <p align="center">
   Built with ❤️ by <strong>Anas Khan</strong> for <strong>AK Enterprise Group</strong>.
 </p>
