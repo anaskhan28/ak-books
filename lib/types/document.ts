@@ -10,6 +10,7 @@ export interface LineItem {
 
 export interface TemplateProps {
   mode: DocumentMode;
+  isReadOnly?: boolean;
   // state
   items: LineItem[];
   subtotal: number;
