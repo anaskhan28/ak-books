@@ -141,7 +141,7 @@ export async function GET(
     return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
   }
 
-  const quotation = await getQuotation(invoice.quotationId);
+  const quotation = await getQuotation(invoice.quotationId ?? 0);
   const items = quotation?.items ?? [];
 
   const html = buildHTML(invoice, items);
