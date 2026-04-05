@@ -13,13 +13,15 @@ const variants: Record<string, string> = {
   partial: "bg-amber-50 text-amber-700 border-amber-200",
   paid: "bg-emerald-50 text-emerald-700 border-emerald-200",
   overdue: "bg-red-100 text-red-800 border-red-300",
+  cancelled: "bg-gray-100 text-gray-500 border-gray-200",
+  void: "bg-gray-100 text-gray-400 border-gray-200 line-through",
 };
 
 export default function StatusBadge({ status }: { status: string }) {
   const cls = variants[status] ?? "bg-gray-50 text-gray-600 border-gray-200";
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-normal capitalize border ${cls}`}
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[13px] md:text-[11px] font-normal capitalize border ${cls}`}
     >
       {status.replace("-", " ")}
     </span>

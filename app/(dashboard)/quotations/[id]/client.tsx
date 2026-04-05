@@ -11,7 +11,24 @@ import {
   CheckCircle2,
   Loader2,
   Edit2,
+  MoreHorizontal,
+  ChevronDown,
+  Printer,
+  Copy,
+  Trash2,
+  FileText,
+  RefreshCw,
+  Mail,
+  Share,
+  Settings,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import {
   updateQuotation,
   updateQuotationStatus,
@@ -137,7 +154,7 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
   return (
     <div className="max-w-[820px] mx-auto">
       {/* Top bar */}
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+      <div className="flex items-center p-2 justify-between md:mb-4 mb-0 flex-wrap gap-2">
         <div className="flex items-center gap-3">
           <Link
             href="/quotations"
@@ -146,100 +163,141 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
             <ArrowLeft size={14} /> Back
           </Link>
           <span className="text-muted">|</span>
-          <input
-            value={editor.docNumber}
-            onChange={(e) => editor.setDocNumber(e.target.value)}
-            className="text-[15px] font-bold text-muted bg-transparent border-0 border-b border-dashed border-transparent hover:border-gray-300 focus:border-primary focus:outline-none w-[160px]"
-          />
           <span
             className={`px-2 py-0.5 text-[11px] font-semibold rounded-lg ${isSent ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}
           >
             {quotation.status.toUpperCase()}
           </span>
+          <input
+            value={editor.docNumber}
+            readOnly
+            className="text-[15px] font-bold text-foreground bg-transparent border-0 focus:outline-none w-[160px] pointer-events-none"
+          />
+
         </div>
-        <div className="flex gap-2">
-          {isDraft && (
-            <button
-              onClick={handleSend}
-              disabled={sending}
-              className="flex items-center gap-1.5 px-3 py-2 bg-green-600 text-white rounded-xl text-[13px] font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
-            >
-              <Send size={13} /> {sending ? "Sending..." : "Mark Sent"}
-            </button>
-          )}
-          {isSent && (
-            <div className="flex items-center gap-1.5 px-3 py-2 text-green-600 text-[13px] font-semibold">
-              <CheckCircle2 size={14} /> Sent
-            </div>
-          )}
+        <div className="flex justify-end w-full md:w-auto md:items-center gap-1 text-[13px] font-medium text-muted">
           <Link
             href={`/quotations/${quotation.id}/edit`}
-            className="flex items-center gap-1.5 px-4 py-2 border border-border rounded-xl text-[13px] font-medium text-muted hover:text-muted transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-2 py-1.5 hover:bg-slate-100 rounded-md transition-colors"
           >
             <Edit2 size={14} /> Edit
           </Link>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-xl text-[13px] font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50"
-          >
-            <Save size={14} /> {saving ? "Saving..." : "Save"}
-          </button>
-          <button
-            onClick={handleDownloadPDF}
-            disabled={downloading}
-            className="flex items-center gap-1.5 px-4 py-2 border border-border rounded-xl text-[13px] font-medium text-muted hover:text-muted transition-colors disabled:opacity-50"
-          >
-            {downloading ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              <Download size={14} />
-            )}
-            {downloading ? "Generating..." : "Download PDF"}
-          </button>
+
+          <span className="w-px h-4 bg-slate-200 mx-1"></span>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-1.5 px-2 py-1.5 hover:bg-slate-100 rounded-md transition-colors outline-none cursor-pointer">
+              {downloading ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+              PDF/Print <ChevronDown size={14} className="opacity-70" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-[180px]">
+              <DropdownMenuItem onClick={handleDownloadPDF} disabled={downloading}>
+                <FileText size={14} className="mr-2" /> PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDownloadPDF} disabled={downloading}>
+                <Printer size={14} className="mr-2" /> Print
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <span className="w-px h-4 bg-slate-200 mx-1"></span>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center justify-center w-8 h-8 hover:bg-slate-100 rounded-md transition-colors outline-none cursor-pointer">
+              <MoreHorizontal size={14} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[200px]">
+              {isDraft && (
+                <DropdownMenuItem onClick={handleSend} disabled={sending}>
+                  <Mail size={14} className="mr-2" /> Mark As Sent
+                </DropdownMenuItem>
+              )}
+
+              <DropdownMenuItem
+                disabled={quotation.status === "invoiced"}
+                onClick={async () => {
+                  const { generateInvoice } = await import("@/app/actions/invoices");
+                  const invoice = await generateInvoice(quotation.id);
+                  router.push(`/invoices/${invoice.id}`);
+                }}
+              >
+                <FileText size={14} className="mr-2" /> Convert to Invoice
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={async () => {
+                  const { cloneQuotation } = await import("@/app/actions/quotations");
+                  const cloned = await cloneQuotation(quotation.id);
+                  router.push(`/quotations/${cloned.id}`);
+                }}
+              >
+                <Copy size={14} className="mr-2" /> Clone
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={async () => {
+                  if (confirm("Delete this quotation?")) {
+                    const { deleteQuotation } = await import("@/app/actions/quotations");
+                    await deleteQuotation(quotation.id);
+                    router.push("/quotations");
+                  }
+                }}
+              >
+                <Trash2 size={14} className="mr-2" /> Delete
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {/* <DropdownMenuItem>
+                <Settings size={14} className="mr-2 text-muted" /> Quote Preferences
+              </DropdownMenuItem> */}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
       {/* Document */}
-      <div className="bg-white border border-gray-200 shadow-lg rounded-lg overflow-hidden px-8">
-        <div className="border-b border-gray-100">
-          <img src={tplConfig.headerImage} alt="Header" className="w-full" />
+      <div className="w-full flex justify-center overflow-hidden pb-0 md:pb-4 document-readonly">
+        <div
+          className="bg-white border border-gray-200 overflow-hidden px-2 md:px-8 w-full max-w-none origin-top"
+          style={{ zoom: "min(1, calc((100vw - 32px) / 820))" } as any}
+        >
+          <div className="border-b border-gray-100">
+            <img src={tplConfig.headerImage} alt="Header" className="w-full" />
+          </div>
+          <TemplateRenderer
+            generator={tplConfig.generator}
+            mode="quotation"
+            items={editor.items}
+            subtotal={editor.subtotal}
+            clientName={editor.clientName}
+            setClientName={editor.setClientName}
+            clientBranch={editor.clientBranch}
+            setClientBranch={editor.setClientBranch}
+            qtNumber={editor.docNumber}
+            date={editor.date}
+            setDate={editor.setDate}
+            subject={editor.subject}
+            setSubject={editor.setSubject}
+            terms={editor.terms}
+            setTerms={editor.setTerms}
+            accountBankName={editor.accountBankName}
+            setAccountBankName={editor.setAccountBankName}
+            accountNumber={editor.accountNumber}
+            setAccountNumber={editor.setAccountNumber}
+            accountIfsc={editor.accountIfsc}
+            setAccountIfsc={editor.setAccountIfsc}
+            accountHolder={editor.accountHolder}
+            setAccountHolder={editor.setAccountHolder}
+            accountPan={editor.accountPan}
+            setAccountPan={editor.setAccountPan}
+            updateItem={editor.updateItem}
+            handleKeyDown={editor.handleKeyDown}
+            tableRef={editor.tableRef as React.RefObject<HTMLTableElement>}
+            clients={clients}
+            signatureImage={tplConfig.signatureImage}
+            formatINR={formatINR}
+            inputCls={editor.inputCls}
+          />
         </div>
-        <TemplateRenderer
-          generator={tplConfig.generator}
-          mode="quotation"
-          items={editor.items}
-          subtotal={editor.subtotal}
-          clientName={editor.clientName}
-          setClientName={editor.setClientName}
-          clientBranch={editor.clientBranch}
-          setClientBranch={editor.setClientBranch}
-          qtNumber={editor.docNumber}
-          date={editor.date}
-          setDate={editor.setDate}
-          subject={editor.subject}
-          setSubject={editor.setSubject}
-          terms={editor.terms}
-          setTerms={editor.setTerms}
-          accountBankName={editor.accountBankName}
-          setAccountBankName={editor.setAccountBankName}
-          accountNumber={editor.accountNumber}
-          setAccountNumber={editor.setAccountNumber}
-          accountIfsc={editor.accountIfsc}
-          setAccountIfsc={editor.setAccountIfsc}
-          accountHolder={editor.accountHolder}
-          setAccountHolder={editor.setAccountHolder}
-          accountPan={editor.accountPan}
-          setAccountPan={editor.setAccountPan}
-          updateItem={editor.updateItem}
-          handleKeyDown={editor.handleKeyDown}
-          tableRef={editor.tableRef as React.RefObject<HTMLTableElement>}
-          clients={clients}
-          signatureImage={tplConfig.signatureImage}
-          formatINR={formatINR}
-          inputCls={editor.inputCls}
-        />
       </div>
+
       <div className="h-8" />
     </div>
   );

@@ -190,7 +190,7 @@ export default function ProjectDetailClient({
   const scrapSales = scrapList.filter((s) => s.type === "sale");
 
   return (
-    <>
+    <div className="p-2">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3 min-w-0">
@@ -901,7 +901,7 @@ export default function ProjectDetailClient({
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
 

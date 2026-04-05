@@ -47,7 +47,7 @@ export default function NewProjectPage() {
   const labelCls = "block text-[13px] font-medium text-muted mb-1.5";
 
   return (
-    <>
+    <div className="p-2 md:p-0">
       <PageHeader title="New Project" subtitle="Create a new job entry" />
       <form
         onSubmit={handleSubmit}
@@ -139,6 +139,6 @@ export default function NewProjectPage() {
           </button>
         </div>
       </form>
-    </>
+    </div>
   );
 }

@@ -81,67 +81,67 @@ export function AKEnterpriseTemplate({
   return (
     <div className="text-[11px] text-gray-800">
       {/* ── Company info box + doc title ── */}
-      <div className={`flex justify-between items-start p-3 mx-5 mt-3 ${BDR}`}>
+      <div className={`flex justify-between items-start p-3 mx-0 md:mx-5 mt-3 ${BDR}`}>
         <div className="flex flex-col gap-1">
-          <div className="font-bold text-[13px]">AK Enterprises</div>
+          <div className="font-bold text-[10px] md:text-[13px]">AK Enterprises</div>
           {isInvoice && (
-            <div className="text-[10px] text-gray-500">
+            <div className="text-[8px] md:text-[10px] text-gray-500">
               GSTIN 27BAPPK9432C1ZJ
             </div>
           )}
-          <div className="text-[10px] text-gray-500">9892493707</div>
-          <div className="text-[10px] text-gray-500">
+          <div className="text-[8px] md:text-[10px] text-gray-500">9892493707</div>
+          <div className="text-[8px] md:text-[10px] text-gray-500">
             akenterprises.dealers@gmail.com
           </div>
-          <div className="text-[10px] text-gray-500">
+          <div className="text-[8px] md:text-[10px] text-gray-500">
             https://akenterprisegroup.in
           </div>
           {isInvoice && (
-            <div className="text-[10px] text-gray-500">
+            <div className="text-[8px] md:text-[10px] text-gray-500 truncate max-w-[150px] md:max-w-none">
               Shop no 13, Mumbra - Panvel Hwy, near Daighar Police Station,
-              <br />
+              <br className="hidden md:block" />
               Shilphata, Thane, Maharashtra 421204
             </div>
           )}
         </div>
         <div
-          className={`text-[${isInvoice ? "16" : "20"}px] font-${isInvoice ? "bold" : "normal"} text-gray-500`}
+          className={`text-[${isInvoice ? "12" : "15"}px] md:text-[${isInvoice ? "16" : "20"}px] font-${isInvoice ? "bold" : "normal"} text-gray-500`}
         >
           {docTitle}
         </div>
       </div>
 
       {/* ── Meta row: Quote#/Invoice# | Date | Place of Supply ── */}
-      <div className="flex mx-5 border border-t-0 border-gray-400">
-        <div className="flex-1 p-2 border-r border-gray-400">
-          <div className="text-[9px] text-gray-400">
+      <div className="flex mx-0 md:mx-5 border border-t-0 border-gray-400">
+        <div className="flex-1 p-1 md:p-2 border-r border-gray-400">
+          <div className="text-[7px] md:text-[9px] text-gray-400">
             {isInvoice ? "Invoice#" : "Quote"}
           </div>
-          <div className="font-semibold text-[10px] text-gray-600">—</div>
+          <div className="font-semibold text-[8px] md:text-[10px] text-gray-600">—</div>
         </div>
-        <div className="flex-1 p-2 border-r border-gray-400">
-          <div className="text-[9px] text-gray-400">
+        <div className="flex-1 p-1 md:p-2 border-r border-gray-400">
+          <div className="text-[7px] md:text-[9px] text-gray-400">
             {isInvoice ? "Invoice Date" : "Date"}
           </div>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="font-semibold text-[10px] text-gray-700 bg-transparent border-0 focus:outline-none cursor-pointer w-full"
+            className="font-semibold text-[8px] md:text-[10px] text-gray-700 bg-transparent border-0 focus:outline-none cursor-pointer w-full"
           />
         </div>
-        <div className="flex-1 p-2">
-          <div className="text-[9px] text-gray-400">Place Of Supply</div>
-          <div className="font-semibold text-[10px] text-gray-600">
+        <div className="flex-1 p-1 md:p-2">
+          <div className="text-[7px] md:text-[9px] text-gray-400">Place Of Supply</div>
+          <div className="font-semibold text-[8px] md:text-[10px] text-gray-600">
             Maharashtra (27)
           </div>
         </div>
       </div>
 
       {/* ── Address row: To / Consignee ── */}
-      <div className="flex mx-5 border border-t-0 border-gray-400">
-        <div className="flex-1 p-3 border-r border-gray-400">
-          <div className="font-bold text-[11px] mb-2">
+      <div className="flex mx-0 md:mx-5 border border-t-0 border-gray-400">
+        <div className="flex-1 p-2 md:p-3 border-r border-gray-400">
+          <div className="font-bold text-[9px] md:text-[11px] mb-1 md:mb-2">
             {isInvoice ? "Bill To" : "Quotation To"}
           </div>
           {/* Client inputs */}
@@ -150,7 +150,7 @@ export function AKEnterpriseTemplate({
             onChange={(e) => setClientName(e.target.value)}
             placeholder="Client Name"
             list="client-names-ak-enterprises"
-            className="w-full text-[11px] font-semibold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300 placeholder:font-normal mb-1"
+            className="w-full text-[9px] md:text-[11px] font-semibold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300 placeholder:font-normal mb-1"
           />
           <datalist id="client-names-ak-enterprises">
             {clients.map((c) => (
@@ -161,37 +161,43 @@ export function AKEnterpriseTemplate({
             value={clientBranch}
             onChange={(e) => setClientBranch(e.target.value)}
             placeholder="Branch / Address"
-            className="w-full text-[11px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300 mb-0.5"
+            className="w-full text-[9px] md:text-[11px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300 mb-0.5"
           />
-          <div className="text-[10px] text-gray-400 mt-1">India</div>
+          <div className="text-[8px] md:text-[10px] text-gray-400 mt-1">India</div>
           {isInvoice && (
             <input
               placeholder="Client GSTIN"
-              className="w-full text-[10px] text-gray-600 bg-transparent border-0 border-b border-dashed border-gray-300 focus:outline-none py-0.5 placeholder:text-gray-200 mt-1"
+              className="w-full text-[8px] md:text-[10px] text-gray-600 bg-transparent border-0 border-b border-dashed border-gray-300 focus:outline-none py-0.5 placeholder:text-gray-200 mt-1"
             />
           )}
         </div>
-        <div className="flex-1 p-3">
-          <div className="font-bold text-[11px] mb-2">Consignee To</div>
-          <AddressBlock clientName={clientName} clientBranch={clientBranch} />
+        <div className="flex-1 p-2 md:p-3">
+          <div className="font-bold text-[9px] md:text-[11px] mb-1 md:mb-2">Consignee To</div>
+          <div className="md:hidden">
+            <div className="text-[9px] font-semibold">{clientName || "Client Name"}</div>
+            <div className="text-[8px]">{clientBranch}</div>
+          </div>
+          <div className="hidden md:block">
+            <AddressBlock clientName={clientName} clientBranch={clientBranch} />
+          </div>
         </div>
       </div>
 
       {/* ── Subject ── */}
-      <div className="mx-5 border border-t-0 border-gray-400 px-3 py-2">
-        <div className="text-[9px] text-gray-400 mb-1">Subject :</div>
+      <div className="mx-0 md:mx-5 border border-t-0 border-gray-400 px-2 md:px-3 py-1 md:py-2">
+        <div className="text-[7px] md:text-[9px] text-gray-400 mb-0.5 md:mb-1">Subject :</div>
         <input
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           placeholder={isInvoice ? "Shifting Invoice" : "Shifting Quotation"}
-          className="w-full text-[11px] text-gray-800 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300"
+          className="w-full text-[9px] md:text-[11px] text-gray-800 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300"
         />
       </div>
 
       {/* ── Table ── */}
       {isInvoice ? (
         /* Invoice table — 8 columns */
-        <div className="mx-5 border border-t-0 border-gray-400 overflow-x-auto">
+        <div className="mx-0 md:mx-5 border border-t-0 border-gray-400 overflow-x-auto">
           <table ref={tableRef} className="w-full border-collapse text-[10px]">
             <thead className="bg-gray-100">
               {/* GST group header */}
@@ -360,7 +366,7 @@ export function AKEnterpriseTemplate({
         </div>
       ) : (
         /* Quotation table — 5 columns */
-        <div className="mx-5 border border-t-0 border-gray-400">
+        <div className="mx-0 md:mx-5 border border-t-0 border-gray-400 overflow-x-auto">
           <table ref={tableRef} className="w-full border-collapse text-[11px]">
             <thead className="bg-gray-100">
               <tr>
@@ -460,7 +466,7 @@ export function AKEnterpriseTemplate({
       )}
 
       {/* ── Bottom: Notes/Terms/Bank left | Total+Signature right ── */}
-      <div className="flex mx-5 border border-t-0 border-gray-400 min-h-[120px]">
+      <div className="flex mx-0 md:mx-5 border border-t-0 border-gray-400 min-h-[100px] md:min-h-[120px]">
         {/* Left */}
         <div className="flex-1 p-3 border-r border-gray-400">
           {isInvoice ? (
@@ -542,13 +548,13 @@ export function AKEnterpriseTemplate({
               </div>
               <div className="flex justify-between font-bold text-[12px] border-t border-gray-300 pt-1 mb-3">
                 <span>Total</span>
-                <span>₹{formatINR(grandTotal)}</span>
+                <span>{formatINR(grandTotal)}</span>
               </div>
             </>
           ) : (
             <div className="flex justify-between font-bold text-[12px] border-b border-gray-300 pb-2 mb-3">
               <span>Total</span>
-              <span>₹{formatINR(subtotal)}</span>
+              <span>{formatINR(subtotal)}</span>
             </div>
           )}
 

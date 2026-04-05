@@ -27,7 +27,7 @@ export default async function ProjectsPage() {
   });
 
   return (
-    <>
+    <div className="p-2 md:p-0">
       <PageHeader
         title="Projects / Jobs"
         subtitle="Manage all your bank infrastructure projects"
@@ -50,6 +50,6 @@ export default async function ProjectsPage() {
       ) : (
         <ProjectCards cards={cards} />
       )}
-    </>
+    </div>
   );
 }

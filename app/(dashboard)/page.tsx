@@ -103,7 +103,7 @@ export default async function DashboardPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB]  py-2 mb-0">
+    <div className="min-h-screen bg-[#F9FAFB]  p-2 mb-0">
       {/* Zoho Style Page Header */}
 
       <div className="md:hidden mb-6 md:mb-0 grid grid-cols-3 gap-4">

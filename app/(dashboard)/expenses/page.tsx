@@ -74,7 +74,7 @@ export default function ExpensesPage() {
   const labelCls = "block text-[13px] font-medium text-muted mb-1.5";
 
   return (
-    <>
+    <div className="p-2 md:p-0">
       <PageHeader
         title="Expenses"
         subtitle="Track project-wise expenses on the go"
@@ -224,6 +224,6 @@ export default function ExpensesPage() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

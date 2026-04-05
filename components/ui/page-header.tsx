@@ -12,11 +12,11 @@ export default function PageHeader({
   action,
 }: PageHeaderProps) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 animate-fade-in-up">
+    <div className="flex  flex-row items-center justify-between gap-3 mb-3 md:mb-6">
       <div>
-        <h1 className="text-[22px] font-medium text-muted">{title}</h1>
+        <h1 className="text-[22px] font-bold text-foreground">{title}</h1>
         {subtitle && (
-          <p className="text-[13px] text-muted mt-0.5">{subtitle}</p>
+          <p className="hidden md:block text-[13px] text-muted mt-0.5">{subtitle}</p>
         )}
       </div>
       {action && <div className="shrink-0">{action}</div>}

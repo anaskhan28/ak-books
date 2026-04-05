@@ -38,7 +38,7 @@ export function VETemplate({
   return (
     <>
       <div className="w-full border-collapse text-[15px] border-2 border-gray-800 mt-5">
-        <h2 className="text-center text-[18px] font-normal text-black py-1 font-serif underline">
+        <h2 className="text-center text-[14px] md:text-[18px] font-normal text-black py-1 font-serif underline">
           {title}
         </h2>
         <div className="border border-gray-800 w-full" />
@@ -49,8 +49,8 @@ export function VETemplate({
           </p>
         )}
 
-        <div className="px-8 text-[15px] text-gray-500 mb-1">To,</div>
-        <div className="flex justify-between items-start px-8 pb-1">
+        <div className="px-4 md:px-8 text-[12px] md:text-[15px] text-gray-500 mb-1">To,</div>
+        <div className="flex justify-between items-start px-4 md:px-8 pb-1">
           <div className="flex-1 pl-2">
             <div className="mb-1">
               <input
@@ -58,7 +58,7 @@ export function VETemplate({
                 onChange={(e) => setClientName(e.target.value)}
                 placeholder="Client Name"
                 list="client-names-ve"
-                className="w-full text-[13px] font-semibold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 placeholder:font-normal"
+                className="w-full text-[11px] md:text-[13px] font-semibold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 placeholder:font-normal"
               />
               <datalist id="client-names-ve">
                 {clients.map((c) => (
@@ -70,30 +70,31 @@ export function VETemplate({
               value={clientBranch}
               onChange={(e) => setClientBranch(e.target.value)}
               placeholder="Branch"
-              className="w-full text-[15px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300"
+              className="w-full text-[12px] md:text-[15px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300"
             />
           </div>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="text-[13px] font-semibold text-gray-700 bg-transparent border border-dashed border-gray-300 rounded px-2 py-0.5 focus:border-primary focus:outline-none cursor-pointer ml-4"
+            className="text-[10px] md:text-[13px] font-semibold text-gray-700 bg-transparent border border-dashed border-gray-300 rounded px-2 py-0.5 focus:border-primary focus:outline-none cursor-pointer ml-4 shrink-0"
           />
         </div>
 
-        <div className="px-8 pt-2 pb-3 text-center">
-          <span className="text-[15px] text-gray-400 mr-1">Sub:</span>
+        <div className="px-4 md:px-8 pt-2 pb-3 text-center">
+          <span className="text-[12px] md:text-[15px] text-gray-400 mr-1">Sub:</span>
           <input
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="Quotation for Shifting Services"
-            className="text-[13px] font-semibold text-gray-800 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 w-[70%] placeholder:text-gray-300 placeholder:font-normal"
+            className="text-[11px] md:text-[13px] font-semibold text-gray-800 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 w-[70%] placeholder:text-gray-300 placeholder:font-normal"
           />
         </div>
-        <table
-          ref={tableRef}
-          className="w-full border-collapse text-[12px] border border-gray-800"
-        >
+        <div className="overflow-x-auto">
+          <table
+            ref={tableRef}
+            className="w-full border-collapse text-[9px] md:text-[12px] border border-gray-800"
+          >
           <thead>
             <tr>
               <th className="border border-gray-800 font-bold text-center px-2 py-2 w-[4%]">
@@ -143,7 +144,7 @@ export function VETemplate({
                       }}
                       rows={1}
                       placeholder={idx === 0 ? "Type description..." : ""}
-                      className="w-full px-2 py-2 bg-transparent text-[12px] text-gray-800 border-0 focus:outline-none focus:bg-blue-50/30 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.6]"
+                      className="w-full px-2 py-2 bg-transparent text-[9px] md:text-[12px] text-gray-800 border-0 focus:outline-none focus:bg-blue-50/30 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.6]"
                     />
                   </td>
                   <td className="border-x border-gray-200 px-1 py-0">
@@ -201,15 +202,16 @@ export function VETemplate({
           </tfoot>
         </table>
       </div>
+    </div>
 
-      <div className="px-8 pb-6 pt-3">
-        <div className="flex gap-6">
+      <div className="px-4 md:px-8 pb-6 pt-3">
+        <div className="flex gap-4 md:gap-6">
           <div className="flex-1">
-            <p className="text-[11px] font-bold underline text-gray-700 mb-1">
+            <p className="text-[9px] md:text-[11px] font-bold underline text-gray-700 mb-1">
               {mode === "invoice" ? "Bank Details:" : "Terms & Conditions:-"}
             </p>
             {mode === "invoice" ? (
-              <div className="space-y-1 text-[11px] text-gray-600 border border-dashed border-gray-200 rounded-lg p-2">
+              <div className="space-y-1 text-[9px] md:text-[11px] text-gray-600 border border-dashed border-gray-200 rounded-lg p-2">
                 {(
                   [
                     ["Bank Name:", accountBankName, setAccountBankName],
@@ -220,7 +222,7 @@ export function VETemplate({
                   ] as const
                 ).map(([lbl, val, setter]) => (
                   <div key={lbl} className="flex gap-1">
-                    <span className="text-gray-400 w-[110px] shrink-0">
+                    <span className="text-gray-400 w-[90px] md:w-[110px] shrink-0">
                       {lbl}
                     </span>
                     <input
@@ -228,7 +230,7 @@ export function VETemplate({
                       onChange={(e) =>
                         (setter as (v: string) => void)(e.target.value)
                       }
-                      className="flex-1 bg-transparent border-0 focus:outline-none text-[11px] text-gray-700 py-0"
+                      className="flex-1 bg-transparent border-0 focus:outline-none text-[9px] md:text-[11px] text-gray-700 py-0"
                     />
                   </div>
                 ))}
@@ -238,7 +240,7 @@ export function VETemplate({
                 value={terms}
                 onChange={(e) => setTerms(e.target.value)}
                 rows={4}
-                className="w-full text-[11px] text-gray-600 leading-relaxed bg-transparent border border-dashed border-gray-200 rounded-lg p-2 focus:outline-none focus:border-primary/40 resize-none"
+                className="w-full text-[9px] md:text-[11px] text-gray-600 leading-relaxed bg-transparent border border-dashed border-gray-200 rounded-lg p-2 focus:outline-none focus:border-primary/40 resize-none"
               />
             )}
           </div>
@@ -246,12 +248,12 @@ export function VETemplate({
             <img
               src={signatureImage}
               alt="Signature"
-              className="h-[80px] object-contain"
+              className="h-[50px] md:h-[80px] object-contain"
             />
-            <p className="text-[10px] font-bold text-gray-700 text-center mt-1">
+            <p className="text-[8px] md:text-[10px] font-bold text-gray-700 text-center mt-1">
               For Vedant Enterprises
             </p>
-            <p className="text-[9px] text-gray-500 text-center">Proprietor</p>
+            <p className="text-[8px] md:text-[9px] text-gray-500 text-center">Proprietor</p>
           </div>
         </div>
       </div>

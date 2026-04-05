@@ -183,3 +183,42 @@ export async function deleteQuotation(id: number) {
   await db.delete(quotations).where(eq(quotations.id, id));
   revalidatePath("/quotations");
 }
+
+export async function cloneQuotation(id: number) {
+  const original = await getQuotation(id);
+  if (!original) throw new Error("Quotation not found");
+
+  const { 
+    templateId, 
+    clientId, 
+    projectId, 
+    subject, 
+    clientBranch, 
+    totalAmount, 
+    notes 
+  } = original;
+
+  const clonedItems = original.items.map((i) => ({
+    description: i.description,
+    quantity: i.quantity,
+    rate: i.rate,
+    taxed: i.taxed,
+    amount: i.amount,
+  }));
+
+  const cloned = await createQuotation(
+    {
+      templateId,
+      clientId,
+      projectId,
+      subject: subject ? `${subject} (Copy)` : null,
+      clientBranch,
+      totalAmount,
+      status: "draft",
+      notes,
+    },
+    clonedItems
+  );
+
+  return cloned;
+}

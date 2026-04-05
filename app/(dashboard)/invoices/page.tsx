@@ -15,13 +15,16 @@ import { formatINR } from "@/lib/utils";
 import { getDueDateStatus } from "@/lib/due-date";
 import { Plus, FileDown } from "lucide-react";
 
+import DocumentCard from "@/components/common/document-card";
+import { deleteInvoice } from "@/app/actions/invoices";
+
 type InvoiceRow = Awaited<ReturnType<typeof getInvoices>>[number];
 type QuotationRow = Awaited<ReturnType<typeof getQuotations>>[number];
 
 // ── Due status badge colors ──────────────────────────────────────────────────
 
 const STATUS_COLORS: Record<string, string> = {
-  blue: "text-[#0052cc]",
+  blue: "text-primary",
   orange: "text-[#e67e22]",
   red: "text-[#e74c3c]",
   gray: "text-gray-400",
@@ -57,6 +60,14 @@ export default function InvoicesPage() {
     const invoice = await generateInvoice(quotationId);
     setGenerating(false);
     router.push(`/invoices/${invoice.id}`);
+  }
+
+  async function handleDelete(e: React.MouseEvent, id: number) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm("Delete this invoice?")) return;
+    await deleteInvoice(id);
+    load();
   }
 
   async function handleDownloadPDF(invoiceId: number) {
@@ -107,7 +118,7 @@ export default function InvoicesPage() {
   }
 
   return (
-    <>
+    <div className="p-2 md:p-0">
       <PageHeader
         title="Invoices"
         subtitle="Create invoices or generate from accepted quotations"
@@ -117,15 +128,17 @@ export default function InvoicesPage() {
               href="/invoices/new"
               className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-[13px] font-normal hover:bg-primary-dark transition-colors shadow-sm shadow-primary/20"
             >
-              <Plus size={16} />
-              Create Invoice
+              <Plus size={16} className="h-4 w-4 md:h-5 md:w-5" />
+              <span className="hidden sm:inline text-[13px]">Create Invoice</span>
+              <span className="sm:hidden text-[13px]">Invoice</span>
             </Link>
             <button
               onClick={() => setShowGenerate(!showGenerate)}
               className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-[13px] font-normal hover:bg-gray-50 transition-colors shadow-sm"
             >
               <FileDown size={16} />
-              From Quotation
+              <span className="hidden sm:inline">From Quotation</span>
+              <span className="sm:hidden">From Quotes</span>
             </button>
           </div>
         }
@@ -133,7 +146,7 @@ export default function InvoicesPage() {
 
       {/* ── Generate from Quotation panel ── */}
       {showGenerate && (
-        <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-5 mb-6 animate-fade-in-up">
+        <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-5 mb-0 md:mb-6 animate-fade-in-up">
           <h3 className="text-[14px] font-medium text-gray-800 mb-3">
             Select a quotation to convert to invoice
           </h3>
@@ -171,7 +184,7 @@ export default function InvoicesPage() {
         </div>
       )}
 
-      {/* ── Invoice Table ── */}
+      {/* ── Invoice Table & Cards ── */}
       {invoiceList.length === 0 && !showGenerate ? (
         <EmptyState
           title="No invoices yet"
@@ -179,88 +192,100 @@ export default function InvoicesPage() {
         />
       ) : (
         invoiceList.length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-            <div className="overflow-x-auto">
-              <table className="w-full text-[13px]">
-                <thead className="bg-[#f9fafb] border-b border-gray-200">
-                  <tr className="text-left text-[11px] font-semibold text-gray-500  tracking-wider">
-                    <th className="px-5 py-4 whitespace-nowrap">Invoice #</th>
-                    <th className="px-5 py-4 whitespace-nowrap">
-                      Customer Name
-                    </th>
-                    <th className="px-5 py-4 whitespace-nowrap">Branch</th>
-                    <th className="px-5 py-4 whitespace-nowrap">
-                      Invoice Status
-                    </th>
-                    <th className="px-5 py-4 text-right whitespace-nowrap">
-                      Amount
-                    </th>
-                    <th className="px-5 py-4 text-right whitespace-nowrap">
-                      Paid
-                    </th>
-                    <th className="px-5 py-4 whitespace-nowrap">Status</th>
-                    <th className="px-5 py-4 w-10" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {invoiceList.map((inv) => {
-                    const due = getDueDateStatus(inv.dueDate);
-                    return (
-                      <tr
-                        key={inv.id}
-                        className="hover:bg-gray-50/80 transition-colors cursor-pointer group"
-                        onClick={() => router.push(`/invoices/${inv.id}`)}
-                      >
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <Link
-                            href={`/invoices/${inv.id}`}
-                            className="font-medium text-[#0052cc] hover:underline"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {inv.invoiceNumber}
-                          </Link>
-                        </td>
-                        <td className="px-5 py-4 whitespace-nowrap font-medium text-gray-800">
-                          {inv.clientName}
-                        </td>
-                        <td className="px-5 py-4 whitespace-nowrap text-gray-600">
-                          {inv.clientBranch || "—"}
-                        </td>
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <span
-                            className={`text-[11px] font-semibold tracking-wide ${STATUS_COLORS[due.color]}`}
-                          >
-                            {due.label}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 whitespace-nowrap text-right font-medium text-gray-800">
-                          {formatINR(inv.totalAmount)}
-                        </td>
-                        <td className="px-5 py-4 whitespace-nowrap text-right text-gray-600">
-                          {formatINR(Number(inv.paidAmount))}
-                        </td>
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <StatusBadge status={inv.status} />
-                        </td>
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <InvoiceRowActions
-                            invoiceId={inv.id}
-                            isDownloading={downloadingId === inv.id}
-                            paymentLabel={
-                              inv.status === "paid" ||
-                              Number(inv.paidAmount) > 0
-                                ? "View Payments"
-                                : "Record Payment"
-                            }
-                            onRecordPayment={() => setPaymentTarget(inv)}
-                            onDownloadPDF={() => handleDownloadPDF(inv.id)}
-                          />
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+          <div className="mt-0 md:mt-2">
+            {/* Mobile View */}
+            <div className="md:hidden">
+              {invoiceList.map((inv) => (
+                <DocumentCard
+                  key={inv.id}
+                  mode="invoice"
+                  onDelete={handleDelete}
+                  onRecordPayment={() => setPaymentTarget(inv)}
+                  onDownloadPDF={() => handleDownloadPDF(inv.id)}
+                  isDownloading={downloadingId === inv.id}
+                  onRefresh={load}
+                  data={{
+                    ...inv,
+                    number: inv.invoiceNumber,
+                    date: inv.invoiceDate,
+                    subject: null
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Desktop View */}
+            <div className="hidden md:block bg-white border border-gray-200 rounded-xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+              <div className="overflow-x-auto">
+                <table className="w-full text-[13px]">
+                  <thead>
+                    <tr className="border-b border-border bg-background/50 text-muted/70 text-left">
+                      <th className="px-5 py-4 whitespace-nowrap">Invoice #</th>
+                      <th className="px-5 py-4 whitespace-nowrap">Customer Name</th>
+                      <th className="px-5 py-4 whitespace-nowrap">Branch</th>
+                      <th className="px-5 py-4 whitespace-nowrap">Invoice Status</th>
+                      <th className="px-5 py-4 text-right whitespace-nowrap">Amount</th>
+                      <th className="px-5 py-4 text-right whitespace-nowrap">Paid</th>
+                      <th className="px-5 py-4 whitespace-nowrap">Status</th>
+                      <th className="px-5 py-4 w-10" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {invoiceList.map((inv) => {
+                      const due = getDueDateStatus(inv.dueDate);
+                      return (
+                        <tr
+                          key={inv.id}
+                          className="hover:bg-gray-50/80 transition-colors cursor-pointer group"
+                          onClick={() => router.push(`/invoices/${inv.id}`)}
+                        >
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <Link
+                              href={`/invoices/${inv.id}`}
+                              className="font-semibold text-primary hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {inv.invoiceNumber}
+                            </Link>
+                          </td>
+                          <td className="px-5 py-4 whitespace-nowrap font-medium text-foreground">
+                            {inv.clientName}
+                          </td>
+                          <td className="px-5 py-4 whitespace-nowrap text-foreground">
+                            {inv.clientBranch || "—"}
+                          </td>
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <span className={`text-[11px] font-medium tracking-wide ${STATUS_COLORS[due.color]}`}>
+                              {due.label}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 whitespace-nowrap text-right font-medium text-gray-800">
+                            {formatINR(inv.totalAmount)}
+                          </td>
+                          <td className="px-5 py-4 whitespace-nowrap text-right text-foreground">
+                            {formatINR(Number(inv.paidAmount))}
+                          </td>
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <StatusBadge status={inv.status} />
+                          </td>
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <InvoiceRowActions
+                              invoiceId={inv.id}
+                              status={inv.status}
+                              isDownloading={downloadingId === inv.id}
+                              paymentLabel={inv.status === "paid" || Number(inv.paidAmount) > 0 ? "View Payments" : "Record Payment"}
+                              onRecordPayment={() => setPaymentTarget(inv)}
+                              onDownloadPDF={() => handleDownloadPDF(inv.id)}
+                              onDelete={() => handleDelete(null as any, inv.id)}
+                              onRefresh={load}
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )
@@ -278,6 +303,6 @@ export default function InvoicesPage() {
           onSuccess={() => load()}
         />
       )}
-    </>
+    </div>
   );
 }

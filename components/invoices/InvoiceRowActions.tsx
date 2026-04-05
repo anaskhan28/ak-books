@@ -1,99 +1,131 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, Pencil, Download, CreditCard, Loader2 } from "lucide-react";
+import { ChevronDown, Pencil, Download, CreditCard, Loader2, Copy, Trash2, Ban, RotateCcw } from "lucide-react";
+import { cloneInvoice, updateInvoiceStatus } from "@/app/actions/invoices";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface InvoiceRowActionsProps {
   invoiceId: number;
+  status?: string;
   paymentLabel?: string;
   isDownloading?: boolean;
   onRecordPayment: () => void;
   onDownloadPDF: () => void;
+  onDelete: () => void;
+  onRefresh?: () => void;
+  variant?: "icon" | "button";
+  label?: string;
 }
 
 export default function InvoiceRowActions({
   invoiceId,
+  status,
   paymentLabel = "Record Payment",
   isDownloading = false,
   onRecordPayment,
   onDownloadPDF,
+  onDelete,
+  onRefresh,
+  variant = "icon",
+  label = "Actions",
 }: InvoiceRowActionsProps) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [isCloning, setIsCloning] = useState(false);
 
-  // Close on outside click
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+  const handleClone = async () => {
+    if (isCloning) return;
+    setIsCloning(true);
+    try {
+      const cloned = await cloneInvoice(invoiceId);
+      router.push(`/invoices/${cloned.id}`);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to clone invoice");
+    } finally {
+      setIsCloning(false);
     }
-    if (open) document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
+  };
 
-  const actions = [
-    {
-      label: "Edit",
-      icon: Pencil,
-      onClick: () => router.push(`/invoices/${invoiceId}`),
-    },
-    {
-      label: isDownloading ? "Downloading..." : "Download PDF",
-      icon: isDownloading ? Loader2 : Download,
-      onClick: onDownloadPDF,
-      disabled: isDownloading,
-      loading: isDownloading,
-    },
-    {
-      label: paymentLabel,
-      icon: CreditCard,
-      onClick: onRecordPayment,
-      highlight: true,
-    },
-  ];
+  const handleVoid = async () => {
+    if (!confirm("Are you sure you want to void this invoice? This will mark it as Cancelled and cannot be undone.")) return;
+    await updateInvoiceStatus(invoiceId, "cancelled");
+    router.refresh();
+    if (onRefresh) onRefresh();
+  };
+
+  const handleRestore = async () => {
+    if (!confirm("Are you sure you want to restore this invoice? It will be marked as Unpaid.")) return;
+    await updateInvoiceStatus(invoiceId, "unpaid");
+    router.refresh();
+    if (onRefresh) onRefresh();
+  };
 
   return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen(!open);
-        }}
-        className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-      >
-        <ChevronDown size={14} />
-      </button>
-
-      {open && (
-        <div className="absolute right-0 top-full mt-1 w-[180px] bg-white border border-gray-200 rounded-xl shadow-lg z-50 py-1 animate-in fade-in slide-in-from-top-1 duration-150">
-          {actions.map((action) => (
-            <button
-              key={action.label}
-              disabled={action.disabled}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!action.disabled) {
-                  setOpen(false);
-                  action.onClick();
-                }
-              }}
-              className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-left transition-colors ${
-                action.disabled ? "opacity-60 cursor-not-allowed" : ""
-              } ${
-                action.highlight && !action.disabled
-                  ? "text-[#0052cc] font-medium hover:bg-blue-50"
-                  : !action.disabled ? "text-gray-700 hover:bg-gray-50" : "text-gray-700"
-              }`}
-            >
-              <action.icon size={14} className={action.loading ? "animate-spin" : ""} />
-              {action.label}
+    <div onClick={(e) => e.stopPropagation()}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          {variant === "icon" ? (
+            <button className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+              <ChevronDown size={14} />
             </button>
-          ))}
-        </div>
-      )}
+          ) : (
+            <button className="flex items-center gap-1.5 px-4 py-2 border border-border rounded-xl text-[13px] font-medium text-muted hover:text-muted transition-colors disabled:opacity-50">
+              {label}
+              <ChevronDown size={14} className="opacity-70" />
+            </button>
+          )}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-[190px]">
+          <DropdownMenuItem onClick={() => router.push(`/invoices/${invoiceId}`)}>
+            <Pencil size={14} className="mr-2" /> Edit
+          </DropdownMenuItem>
+
+          <DropdownMenuItem onClick={handleClone} disabled={isCloning}>
+            {isCloning ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Copy size={14} className="mr-2" />}
+            {isCloning ? "Cloning..." : "Clone"}
+          </DropdownMenuItem>
+
+          <DropdownMenuItem onClick={onDownloadPDF} disabled={isDownloading}>
+            {isDownloading ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Download size={14} className="mr-2" />}
+            {isDownloading ? "Downloading..." : "Download PDF"}
+          </DropdownMenuItem>
+
+          {status !== "cancelled" && (
+            <DropdownMenuItem onClick={onRecordPayment}>
+              {status === "paid" ? (
+                <>
+                  <CreditCard size={14} className="mr-2" /> View Payments
+                </>
+              ) : (
+                <>
+                  <CreditCard size={14} className="mr-2" /> {paymentLabel}
+                </>
+              )}
+            </DropdownMenuItem>
+          )}
+
+          {status !== "cancelled" ? (
+            <DropdownMenuItem onClick={handleVoid}>
+              <Ban size={14} className="mr-2" /> Void Invoice
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem onClick={handleRestore} >
+              <RotateCcw size={14} className="mr-2" /> Restore Invoice
+            </DropdownMenuItem>
+          )}
+
+          <DropdownMenuItem onClick={onDelete} >
+            <Trash2 size={14} className="mr-2" /> Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

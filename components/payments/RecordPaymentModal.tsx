@@ -9,6 +9,24 @@ import {
 } from "@/app/actions/payments";
 import { updateInvoiceStatus } from "@/app/actions/invoices";
 
+import { format, parseISO } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CalendarIcon } from "lucide-react";
+
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const PAYMENT_MODES = [
@@ -208,14 +226,14 @@ export default function RecordPaymentModal({
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center px-2 bg-foreground/40 backdrop-blur-sm"
       onClick={(e) => {
         if (e.target === overlayRef.current) onClose();
       }}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[660px] mx-4 max-h-[90vh] flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[660px] max-h-[90vh] flex flex-col ">
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-100 flex-shrink-0">
           <div>
             <h2 className="text-[16px] font-semibold text-gray-900">
               Payments for {invoiceNumber}
@@ -233,7 +251,7 @@ export default function RecordPaymentModal({
         </div>
 
         {/* ── Body ── */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:py-5 ">
           {loadingInitial ? (
             <div className="flex items-center justify-center py-10">
               <Loader2 className="w-6 h-6 animate-spin text-gray-300" />
@@ -242,13 +260,13 @@ export default function RecordPaymentModal({
             <div className="space-y-6">
               {paymentsList.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="text-[13px] font-semibold text-gray-800">
+                  <h3 className="text-[13px] font-semibold text-foreground">
                     Recorded Payments
                   </h3>
-                  <div className="border border-gray-100 rounded-lg overflow-hidden bg-gray-50/50">
-                    <table className="w-full text-left text-[13px]">
+                  <div className="border border-gray-100 rounded-lg overflow-x-auto bg-gray-50/50">
+                    <table className="w-full text-left text-[13px] min-w-[550px]">
                       <thead>
-                        <tr className="border-b border-gray-100 text-gray-500 font-medium">
+                        <tr className="border-b border-gray-100 text-muted font-medium">
                           <th className="px-4 py-2 font-medium">Date</th>
                           <th className="px-4 py-2 font-medium">Received On</th>
                           <th className="px-4 py-2 font-medium">Mode</th>
@@ -268,32 +286,32 @@ export default function RecordPaymentModal({
                                 </div>
                               </td>
                               <td className="px-4 py-2.5 align-top">
-                                <div className="text-gray-800">
+                                <div className="text-foreground">
                                   {p.paymentReceivedOn ? new Date(p.paymentReceivedOn).toLocaleDateString("en-IN") : "—"}
                                 </div>
                               </td>
                               <td className="px-4 py-2.5 align-top capitalize">
-                                <div className="text-gray-800">
+                                <div className="text-foreground">
                                   {p.paymentMethod.replace("_", " ")}
                                 </div>
                                 {p.depositTo && (
-                                  <div className="text-gray-500 text-[11px] mt-0.5">
+                                  <div className="text-muted text-[11px] mt-0.5">
                                     To: {p.depositTo.replace(/_/g, " ")}
                                   </div>
                                 )}
                               </td>
                               <td className="px-4 py-2.5 align-top">
-                                <div className="text-gray-800">
+                                <div className="text-foreground">
                                   {p.referenceNumber || "—"}
                                 </div>
                               </td>
                               <td className="px-4 py-2.5 text-right align-top">
-                                <div className="font-medium text-gray-900">
+                                <div className="font-medium text-foreground">
                                   ₹{p.amount.toLocaleString("en-IN")}
                                 </div>
                               </td>
                               <td className="px-4 py-2.5 text-right align-top">
-                                <div className="text-gray-800">
+                                <div className="text-foreground">
                                   {p.TDSAmount > 0 ? `₹${p.TDSAmount.toLocaleString("en-IN")}` : "—"}
                                 </div>
                               </td>
@@ -330,7 +348,7 @@ export default function RecordPaymentModal({
                   </div>
                 </div>
               )}
-
+              {/* 
               {paymentsList.length === 0 && balance === totalAmount && (
                 <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3">
                   <AlertCircle size={18} className="text-amber-500 shrink-0 mt-0.5" />
@@ -350,10 +368,10 @@ export default function RecordPaymentModal({
                     </button>
                   </div>
                 </div>
-              )}
+              )} */}
 
               {balance > 0 ? (
-                <div className="pt-4 border-t border-gray-100 space-y-5">
+                <div className="pt-2">
                   <h3 className="text-[13px] font-semibold text-gray-800 pb-1">
                     Record New Payment
                   </h3>
@@ -364,7 +382,7 @@ export default function RecordPaymentModal({
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4 pt-2">
                     <Field label="Amount Received (INR)" required>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[13px]">
@@ -374,7 +392,7 @@ export default function RecordPaymentModal({
                           type="number"
                           value={amount}
                           onChange={(e) => setAmount(e.target.value)}
-                          className={`${fieldCls} pl-7 font-semibold text-[15px] border-[#3b6cf5] ring-1 ring-[#3b6cf5]/20`}
+                          className={`${fieldCls} pl-7 font-semibold md:text-[15px] text-[13px] border-primary ring-1 ring-primary/20`}
                           min={0}
                           max={balance}
                         />
@@ -382,7 +400,7 @@ export default function RecordPaymentModal({
                     </Field>
                     <Field label="TDS Deducted (if any)">
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[13px]">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-accent text-[13px]">
                           ₹
                         </span>
                         <input
@@ -411,49 +429,85 @@ export default function RecordPaymentModal({
 
                   <div className="grid grid-cols-2 gap-4">
                     <Field label="Payment Date" required>
-                      <input
-                        type="date"
-                        value={paymentDate}
-                        onChange={(e) => setPaymentDate(e.target.value)}
-                        className={fieldCls}
-                      />
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              fieldCls,
+                              "justify-start text-left font-normal h-auto hover:bg-transparent hover:text-inherit w-full",
+                              !paymentDate && "text-[#c0c4cc]"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4 opacity-50" />
+                            {paymentDate ? format(parseISO(paymentDate), "PPP") : <span>Pick a date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 z-[60]" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={paymentDate ? parseISO(paymentDate) : undefined}
+                            onSelect={(d) => setPaymentDate(d ? format(d, "yyyy-MM-dd") : "")}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </Field>
                     <Field label="Payment Mode">
-                      <select
-                        value={paymentMode}
-                        onChange={(e) => setPaymentMode(e.target.value)}
-                        className={fieldCls}
-                      >
-                        {PAYMENT_MODES.map((m) => (
-                          <option key={m.value} value={m.value}>
-                            {m.label}
-                          </option>
-                        ))}
-                      </select>
+                      <Select value={paymentMode} onValueChange={setPaymentMode}>
+                        <SelectTrigger className={cn(fieldCls, "h-auto font-normal w-full overflow-hidden whitespace-nowrap")}>
+                          <SelectValue placeholder="Select mode" />
+                        </SelectTrigger>
+                        <SelectContent className="z-[60]">
+                          {PAYMENT_MODES.map((m) => (
+                            <SelectItem key={m.value} value={m.value}>
+                              {m.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </Field>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <Field label="Payment Received On">
-                      <input
-                        type="date"
-                        value={paymentReceivedOn}
-                        onChange={(e) => setPaymentReceivedOn(e.target.value)}
-                        className={fieldCls}
-                      />
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              fieldCls,
+                              "justify-start text-left font-normal h-auto hover:bg-transparent hover:text-inherit w-full",
+                              !paymentReceivedOn && "text-[#c0c4cc]"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4 opacity-50" />
+                            {paymentReceivedOn ? format(parseISO(paymentReceivedOn), "PPP") : <span>Pick a date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 z-[60]" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={paymentReceivedOn ? parseISO(paymentReceivedOn) : undefined}
+                            onSelect={(d) => setPaymentReceivedOn(d ? format(d, "yyyy-MM-dd") : "")}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </Field>
                     <Field label="Deposit To" required>
-                      <select
-                        value={depositTo}
-                        onChange={(e) => setDepositTo(e.target.value)}
-                        className={fieldCls}
-                      >
-                        {DEPOSIT_OPTIONS.map((d) => (
-                          <option key={d.value} value={d.value}>
-                            {d.label}
-                          </option>
-                        ))}
-                      </select>
+                      <Select value={depositTo} onValueChange={setDepositTo}>
+                        <SelectTrigger className={cn(fieldCls, "h-auto font-normal w-full overflow-hidden whitespace-nowrap")}>
+                          <SelectValue placeholder="Select deposit account" />
+                        </SelectTrigger>
+                        <SelectContent className="z-[60]">
+                          {DEPOSIT_OPTIONS.map((d) => (
+                            <SelectItem key={d.value} value={d.value}>
+                              {d.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </Field>
                   </div>
 
@@ -470,9 +524,9 @@ export default function RecordPaymentModal({
                       <textarea
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
-                        rows={2}
+                        rows={1}
                         placeholder="Optional notes..."
-                        className={`${fieldCls} resize-none`}
+                        className={`${fieldCls}`}
                       />
                     </Field>
                   </div>
@@ -491,7 +545,7 @@ export default function RecordPaymentModal({
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl flex-shrink-0">
+        <div className="flex items-center justify-end gap-3 px-4 sm:px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl flex-shrink-0">
           <button
             onClick={onClose}
             disabled={saving || loadingInitial}
@@ -503,7 +557,7 @@ export default function RecordPaymentModal({
             <button
               onClick={handleSave}
               disabled={saving}
-              className="px-5 py-2.5 text-[13px] font-medium text-white bg-[#0052cc] rounded-xl hover:bg-[#003d99] transition-colors shadow-sm disabled:opacity-50"
+              className="px-5 py-2.5 text-[13px] font-medium text-white bg-primary rounded-xl hover:bg-primary/80 transition-colors shadow-sm disabled:opacity-50"
             >
               {saving ? "Saving..." : "Record Payment"}
             </button>
@@ -527,7 +581,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-[12px] font-medium text-gray-500 mb-1.5 block">
+      <span className="text-[12px] font-medium text-gray-500 mb-1.5 mt-4 block">
         {label}
         {required && <span className="text-red-400 ml-0.5">*</span>}
       </span>

@@ -37,7 +37,7 @@ export function VijayTemplate({
 
   return (
     <div
-      className="px-10 pt-4 pb-6"
+      className="px-4 md:px-10 pt-4 pb-6"
       style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
     >
       {/* Date — right aligned */}
@@ -46,7 +46,7 @@ export function VijayTemplate({
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="text-[13px] text-gray-700 bg-transparent border border-dashed border-gray-300 rounded px-2 py-0.5 focus:border-primary focus:outline-none cursor-pointer"
+          className="text-[11px] md:text-[13px] text-gray-700 bg-transparent border border-dashed border-gray-300 rounded px-2 py-0.5 focus:border-primary focus:outline-none cursor-pointer"
           style={{ fontFamily: "inherit" }}
         />
       </div>
@@ -58,7 +58,7 @@ export function VijayTemplate({
           onChange={(e) => setClientName(e.target.value)}
           placeholder="Client Name"
           list="client-names-vijay"
-          className="w-full text-[13px] font-semibold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 placeholder:font-normal"
+          className="w-full text-[11px] md:text-[13px] font-semibold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 placeholder:font-normal"
           style={{ fontFamily: "inherit" }}
         />
         <datalist id="client-names-vijay">
@@ -70,19 +70,19 @@ export function VijayTemplate({
           value={clientBranch}
           onChange={(e) => setClientBranch(e.target.value)}
           placeholder="Branch / Address"
-          className="w-full text-[12px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300"
+          className="w-full text-[10px] md:text-[12px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300"
           style={{ fontFamily: "inherit" }}
         />
       </div>
 
       {/* Subject — left aligned, plain (not bold) */}
       <div className="mb-5">
-        <span className="text-[13px] text-gray-900 mr-1">Subject:</span>
+        <span className="text-[11px] md:text-[13px] text-gray-900 mr-1">Subject:</span>
         <input
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           placeholder="Quotation for work"
-          className="text-[13px] text-gray-800 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 w-[80%] placeholder:text-gray-300"
+          className="text-[11px] md:text-[13px] text-gray-800 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 w-[80%] placeholder:text-gray-300"
           style={{ fontFamily: "inherit" }}
         />
       </div>
@@ -104,7 +104,7 @@ export function VijayTemplate({
                   }}
                   rows={15}
                   placeholder={idx === 0 ? "Write item paragraphs..." : ""}
-                  className="w-full max-w-xl text-[15px] text-gray-800 bg-transparent border-0 focus:outline-none resize-none leading-[1.5] overflow-hidden"
+                  className="w-full max-w-full md:max-w-xl text-[12px] md:text-[15px] text-gray-800 bg-transparent border-0 focus:outline-none resize-none leading-[1.5] overflow-hidden"
                 />
               </>
             )}
@@ -129,15 +129,15 @@ export function VijayTemplate({
 
       {/* Total — centered */}
       <div className="text-center my-4">
-        <div className="text-[13px] text-gray-900">
+        <div className="text-[11px] md:text-[13px] text-gray-900">
           All total amount of will be
         </div>
-        <div className="text-[13px] text-gray-900 mt-1">{totalFormatted}</div>
+        <div className="text-[11px] md:text-[13px] text-gray-900 mt-1">{totalFormatted}</div>
         <textarea
           value={terms}
           onChange={(e) => setTerms(e.target.value)}
           rows={2}
-          className="w-50 text-[13px] text-black font-bold leading-relaxed bg-transparent border border-dashed border-gray-200 rounded-lg p-2 focus:outline-none focus:border-primary/40 resize-none"
+          className="w-full md:w-50 text-[11px] md:text-[13px] text-black font-bold leading-relaxed bg-transparent border border-dashed border-gray-200 rounded-lg p-2 focus:outline-none focus:border-primary/40 resize-none"
         />
       </div>
 
@@ -177,7 +177,7 @@ export function VijayTemplate({
         <img
           src={signatureImage}
           alt="Signature"
-          className="h-[70px] object-contain"
+          className="h-[50px] md:h-[70px] object-contain"
         />
       </div>
     </div>

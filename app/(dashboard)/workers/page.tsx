@@ -38,7 +38,7 @@ export default function WorkersPage() {
   const labelCls = "block text-[13px] font-medium text-muted mb-1.5";
 
   return (
-    <>
+    <div className="p-2 md:p-0">
       <PageHeader
         title="Workers"
         subtitle="Manage your workforce"
@@ -159,6 +159,6 @@ export default function WorkersPage() {
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }

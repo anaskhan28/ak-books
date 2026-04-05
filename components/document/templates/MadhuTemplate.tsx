@@ -22,17 +22,17 @@ export function MadhuTemplate({
   formatINR,
 }: TemplateProps) {
   return (
-    <div className="px-8 pt-3">
+    <div className="px-4 md:px-8 pt-3">
       <div className="flex justify-between items-start">
         <div className="flex-1 pr-4">
-          <div className="text-[12px] text-gray-700 mb-1">To,</div>
+          <div className="text-[10px] md:text-[12px] text-gray-700 mb-1">To,</div>
           <div className="mb-1">
             <input
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
               placeholder="Client Name"
               list="client-names"
-              className="w-full text-[13px] font-semibold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 placeholder:font-normal"
+              className="w-full text-[11px] md:text-[13px] font-semibold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 placeholder:font-normal"
             />
             <datalist id="client-names">
               {clients.map((c) => (
@@ -44,16 +44,16 @@ export function MadhuTemplate({
             value={clientBranch}
             onChange={(e) => setClientBranch(e.target.value)}
             placeholder="Branch / Address"
-            className="w-full text-[13px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300"
+            className="w-full text-[11px] md:text-[13px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300"
           />
         </div>
         <div className="flex flex-row justiy-end items-center">
-          <div className="text-[12px] text-gray-500 mb-1">Date:</div>
+          <div className="text-[10px] md:text-[12px] text-gray-500 mb-1 whitespace-nowrap">Date:</div>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="text-[13px] font-semibold text-gray-700 bg-transparent border border-dashed border-gray-300 rounded px-2 py-0.5 focus:border-primary focus:outline-none cursor-pointer ml-4"
+            className="text-[11px] md:text-[13px] font-semibold text-gray-700 bg-transparent border border-dashed border-gray-300 rounded px-2 py-0.5 focus:border-primary focus:outline-none cursor-pointer ml-2 md:ml-4"
           />
         </div>
       </div>
@@ -61,12 +61,12 @@ export function MadhuTemplate({
       <div className="mt-10 text-[15px] text-gray-900">Dear Sir,</div>
 
       <div className="mt-8 text-center">
-        <span className="text-[15px] text-gray-500 mr-1">Sub:</span>
+        <span className="text-[12px] md:text-[15px] text-gray-500 mr-1">Sub:</span>
         <input
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           placeholder="Invoice Subject"
-          className="text-[15px] font-semibold text-gray-800 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 w-[80%] placeholder:text-gray-300 placeholder:font-normal"
+          className="text-[12px] md:text-[15px] font-semibold text-gray-800 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 w-[80%] placeholder:text-gray-300 placeholder:font-normal"
         />
       </div>
 
@@ -86,7 +86,7 @@ export function MadhuTemplate({
                   }}
                   rows={15}
                   placeholder={idx === 0 ? "Write item paragraphs..." : ""}
-                  className="w-full max-w-xl text-[15px] text-gray-800 bg-transparent border-0 focus:outline-none resize-none leading-[1.5] overflow-hidden"
+                  className="w-full max-w-full md:max-w-xl text-[12px] md:text-[15px] text-gray-800 bg-transparent border-0 focus:outline-none resize-none leading-[1.5] overflow-hidden"
                 />
               </>
             )}
@@ -109,15 +109,15 @@ export function MadhuTemplate({
         ))}
       </div>
 
-      <div className="mt-4 text-[15px] text-gray-900">
+      <div className="mt-4 text-[12px] md:text-[15px] text-gray-900">
         All Total Amount is Rs. /- {formatINR(subtotal)} /-
       </div>
-      <div className="mt-2 text-[15px] text-gray-900">
+      <div className="mt-2 text-[12px] md:text-[15px] text-gray-900">
         <textarea
           value={terms}
           onChange={(e) => setTerms(e.target.value)}
           rows={2}
-          className="w-50 text-[15px] text-black font-bold leading-relaxed bg-transparent border border-dashed border-gray-200 rounded-lg p-2 focus:outline-none focus:border-primary/40 resize-none"
+          className="w-full md:w-50 text-[12px] md:text-[15px] text-black font-bold leading-relaxed bg-transparent border border-dashed border-gray-200 rounded-lg p-2 focus:outline-none focus:border-primary/40 resize-none"
         />
       </div>
       {/* 
@@ -161,9 +161,9 @@ export function MadhuTemplate({
             <img
               src={signatureImage}
               alt="Signature"
-              className="h-[60px] object-contain mx-auto"
+              className="h-[40px] md:h-[60px] object-contain mx-auto"
             />
-            <div className="text-[10px] font-semibold text-gray-700 mt-1">
+            <div className="text-[9px] md:text-[10px] font-semibold text-gray-700 mt-1">
               Proprietor
             </div>
           </div>

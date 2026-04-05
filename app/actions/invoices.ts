@@ -238,3 +238,57 @@ export async function updateInvoiceStatus(id: number, status: string) {
   await db.update(invoices).set({ status }).where(eq(invoices.id, id));
   revalidateInvoices();
 }
+
+export async function deleteInvoice(id: number) {
+  await db.delete(invoices).where(eq(invoices.id, id));
+  revalidateInvoices();
+}
+
+export async function cloneInvoice(id: number) {
+  const original = await getInvoice(id);
+  if (!original) throw new Error("Invoice not found");
+
+  const { 
+    templateId, 
+    clientId, 
+    quotationId,
+    subject, 
+    clientBranch, 
+    totalAmount, 
+    notes,
+    accountBankName,
+    accountNumber,
+    accountIfsc,
+    accountHolder,
+    accountPan
+  } = original;
+
+  const clonedItems = original.items.map((i) => ({
+    description: i.description,
+    quantity: i.quantity,
+    rate: i.rate,
+    taxed: i.taxed,
+    amount: i.amount,
+  }));
+
+  const cloned = await createInvoice(
+    {
+      templateId,
+      clientId,
+      quotationId,
+      subject: subject ? `${subject} (Copy)` : null,
+      clientBranch,
+      totalAmount,
+      status: "unpaid",
+      notes,
+      accountBankName,
+      accountNumber,
+      accountIfsc,
+      accountHolder,
+      accountPan
+    },
+    clonedItems
+  );
+
+  return cloned;
+}

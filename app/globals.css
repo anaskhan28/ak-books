@@ -180,3 +180,25 @@
     letter-spacing: var(--tracking-normal);
   }
 }
+
+/* Document Readonly Mode - applied to view pages */
+.document-readonly {
+  pointer-events: none;
+}
+
+.document-readonly input,
+.document-readonly textarea,
+.document-readonly select {
+  background: transparent !important;
+  border-color: transparent !important;
+  resize: none;
+  appearance: none;
+  -webkit-appearance: none;
+  box-shadow: none !important;
+  color: inherit !important;
+}
+
+.document-readonly input::placeholder,
+.document-readonly textarea::placeholder {
+  color: transparent !important;
+}

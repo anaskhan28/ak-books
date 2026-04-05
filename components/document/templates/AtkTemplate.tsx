@@ -38,15 +38,15 @@ export function ATKTemplate({
 
   return (
     <>
-      <div className="px-8 pt-3">
+      <div className="px-4 md:px-8 pt-3">
         <div className="border-t border-gray-800" />
-        <h2 className="text-center text-[20px] italic font-normal text-gray-800 py-1 font-serif">
+        <h2 className="text-center text-[14px] md:text-[20px] italic font-normal text-gray-800 py-1 font-serif leading-tight">
           {title}
         </h2>
         <div className="border-b border-gray-800" />
       </div>
 
-      <div className="flex justify-between items-start px-8 pt-3 pb-1">
+      <div className="flex justify-between items-start px-4 md:px-8 pt-3 pb-1">
         <div className="flex-1">
           <div className="mb-1">
             <input
@@ -54,7 +54,7 @@ export function ATKTemplate({
               onChange={(e) => setClientName(e.target.value)}
               placeholder="Client Name"
               list="client-names"
-              className="w-full text-[13px] font-semibold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 placeholder:font-normal"
+              className="w-full text-[11px] md:text-[13px] font-semibold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 placeholder:font-normal"
             />
             <datalist id="client-names">
               {clients.map((c) => (
@@ -66,31 +66,31 @@ export function ATKTemplate({
             value={clientBranch}
             onChange={(e) => setClientBranch(e.target.value)}
             placeholder="Branch"
-            className="w-full text-[15px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300"
+            className="w-full text-[12px] md:text-[15px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300"
           />
         </div>
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="text-[13px] font-semibold text-gray-700 bg-transparent border border-dashed border-gray-300 rounded px-2 py-0.5 focus:border-primary focus:outline-none cursor-pointer ml-4"
+          className="text-[10px] md:text-[13px] font-semibold text-gray-700 bg-transparent border border-dashed border-gray-300 rounded px-2 py-0.5 focus:border-primary focus:outline-none cursor-pointer ml-4 shrink-0"
         />
       </div>
 
-      <div className="px-8 pt-2 pb-3">
-        <span className="text-[15px] text-gray-400 mr-1">Subject:</span>
+      <div className="px-4 md:px-8 pt-2 pb-3">
+        <span className="text-[12px] md:text-[15px] text-gray-400 mr-1">Subject:</span>
         <input
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           placeholder="Quotation for Scrap"
-          className="text-[13px] font-semibold text-gray-800 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 w-[80%] placeholder:text-gray-300 placeholder:font-normal"
+          className="text-[11px] md:text-[13px] font-semibold text-gray-800 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 w-[80%] placeholder:text-gray-300 placeholder:font-normal"
         />
       </div>
 
-      <div className="px-8">
+      <div className="px-4 md:px-8 overflow-x-auto">
         <table
           ref={tableRef}
-          className="w-full border-collapse text-[12px] border border-gray-800"
+          className="w-full border-collapse text-[9px] md:text-[12px] border border-gray-800"
         >
           <thead>
             <tr>
@@ -129,7 +129,7 @@ export function ATKTemplate({
                     }}
                     rows={1}
                     placeholder={idx === 0 ? "Type description..." : ""}
-                    className="w-full px-2 py-2 bg-transparent text-[12px] text-gray-800 border-0 focus:outline-none focus:bg-blue-50/30 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.6]"
+                    className="w-full px-2 py-2 bg-transparent text-[9px] md:text-[12px] text-gray-800 border-0 focus:outline-none focus:bg-blue-50/30 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.6]"
                   />
                 </td>
                 <td className="border-x border-gray-200 px-1 py-0">
@@ -173,21 +173,21 @@ export function ATKTemplate({
               >
                 Total
               </td>
-              <td className="border border-gray-800 px-3 py-2 text-right font-bold text-[12px]">
+              <td className="border border-gray-800 px-3 py-2 text-right font-bold text-[9px] md:text-[12px]">
                 {formatINR(subtotal)}
               </td>
             </tr>
           </tfoot>
         </table>
       </div>
-      <div className="px-8 pb-6 pt-3">
-        <div className="flex gap-6">
+      <div className="px-4 md:px-8 pb-6 pt-3">
+        <div className="flex gap-4 md:gap-6">
           <div className="flex-1">
-            <p className="text-[11px] font-bold underline text-gray-700 mb-1">
+            <p className="text-[9px] md:text-[11px] font-bold underline text-gray-700 mb-1">
               {mode === "invoice" ? "Terms & Condition:" : "Terms & Condition:"}
             </p>
             {mode === "invoice" ? (
-              <div className="space-y-1 text-[11px] text-gray-600 border border-dashed border-gray-200 rounded-lg p-2">
+              <div className="space-y-1 text-[9px] md:text-[11px] text-gray-600 border border-dashed border-gray-200 rounded-lg p-2">
                 {(
                   [
                     ["Bank Name:", accountBankName, setAccountBankName],
@@ -198,7 +198,7 @@ export function ATKTemplate({
                   ] as const
                 ).map(([lbl, val, setter]) => (
                   <div key={lbl} className="flex gap-1">
-                    <span className="text-gray-400 w-[110px] shrink-0">
+                    <span className="text-gray-400 w-[90px] md:w-[110px] shrink-0">
                       {lbl}
                     </span>
                     <input
@@ -206,7 +206,7 @@ export function ATKTemplate({
                       onChange={(e) =>
                         (setter as (v: string) => void)(e.target.value)
                       }
-                      className="flex-1 bg-transparent border-0 focus:outline-none text-[11px] text-gray-700 py-0"
+                      className="flex-1 bg-transparent border-0 focus:outline-none text-[9px] md:text-[11px] text-gray-700 py-0"
                     />
                   </div>
                 ))}
@@ -216,7 +216,7 @@ export function ATKTemplate({
                 value={terms}
                 onChange={(e) => setTerms(e.target.value)}
                 rows={4}
-                className="w-full text-[11px] text-gray-600 leading-relaxed bg-transparent border border-dashed border-gray-200 rounded-lg p-2 focus:outline-none focus:border-primary/40 resize-none"
+                className="w-full text-[9px] md:text-[11px] text-gray-600 leading-relaxed bg-transparent border border-dashed border-gray-200 rounded-lg p-2 focus:outline-none focus:border-primary/40 resize-none"
               />
             )}
           </div>
@@ -224,7 +224,7 @@ export function ATKTemplate({
             <img
               src={signatureImage}
               alt="Signature"
-              className="h-[80px] object-contain"
+              className="h-[50px] md:h-[80px] object-contain"
             />
           </div>
         </div>

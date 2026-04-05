@@ -70,7 +70,7 @@ export default function LabourPage() {
   const labelCls = "block text-[13px] font-medium text-muted mb-1.5";
 
   return (
-    <>
+    <div className="p-2 md:p-0">
       <PageHeader
         title="Labour Tracking"
         subtitle="Daily worker count and cost — quick entry for site use"
@@ -216,6 +216,6 @@ export default function LabourPage() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

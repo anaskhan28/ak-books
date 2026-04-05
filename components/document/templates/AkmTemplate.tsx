@@ -40,20 +40,20 @@ export function AKMTemplate({
   return (
     <>
       <div className="flex justify-end items-center pt-2 gap-4">
-        <div className="inline-block bg-[#c0392b] text-white text-[10px] font-bold px-2 py-1">
+        <div className="inline-block bg-[#c0392b] text-white md:text-[15px] text-[8px] font-bold px-2 py-1">
           {qtNumber}
         </div>
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="text-[13px] font-semibold text-gray-700 bg-transparent border border-dashed border-gray-300 rounded px-2 py-0.5 focus:border-primary focus:outline-none cursor-pointer"
+          className="md:text-[13px] text-[8px] font-semibold text-gray-700 bg-transparent border border-dashed border-gray-300 rounded px-2 py-0.5 focus:border-primary focus:outline-none cursor-pointer"
         />
       </div>
 
-      <div className="px-8 pt-3 pb-2">
+      <div className="px-0 md:px-8 pt-0 md:pt-3 pb-0 md:pb-2">
         <div className="flex items-center gap-3 mb-3">
-          <div className="inline-block bg-[#c0392b] text-white text-[15px] font-bold px-3 py-1">
+          <div className="inline-block bg-[#c0392b] text-white md:text-[15px] text-[8px] font-bold px-3 py-1">
             {docLabel}
           </div>
         </div>
@@ -63,7 +63,7 @@ export function AKMTemplate({
             onChange={(e) => setClientName(e.target.value)}
             placeholder="Client Name"
             list="client-names"
-            className="w-full text-[14px] font-bold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 placeholder:font-normal"
+            className="w-full md:text-[14px] text-[10px] font-bold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 placeholder:font-normal"
           />
           <datalist id="client-names">
             {clients.map((c) => (
@@ -76,22 +76,22 @@ export function AKMTemplate({
             value={clientBranch}
             onChange={(e) => setClientBranch(e.target.value)}
             placeholder="Branch"
-            className="w-full text-[13px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300"
+            className="w-full md:text-[13px] text-[10px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300"
           />
         </div>
         <div className="mb-4">
-          <span className="text-[15px] text-gray-400 mr-1">Subject:</span>
+          <span className="md:text-[15px] text-[8px] text-gray-400 mr-1">Subject:</span>
           <input
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="Labour Assistance Work"
-            className="text-[13px] font-semibold text-gray-800 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 w-[80%] placeholder:text-gray-300 placeholder:font-normal"
+            className="md:text-[13px] text-[10px] font-semibold text-gray-800 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 w-[80%] placeholder:text-gray-300 placeholder:font-normal"
           />
         </div>
       </div>
 
-      <div className="px-8">
-        <table ref={tableRef} className="w-full border-collapse text-[12px]">
+      <div className="px-0 md:px-8">
+        <table ref={tableRef} className="w-full border-collapse text-[8px] md:text-[12px]">
           <thead>
             <tr>
               <th className="bg-[#c0392b] text-white font-bold text-left px-3 py-2 w-[65%]">
@@ -132,7 +132,7 @@ export function AKMTemplate({
                     }}
                     rows={1}
                     placeholder={idx === 0 ? "Type description..." : ""}
-                    className="w-full px-2 py-2 bg-transparent text-[12px] text-gray-800 border-0 focus:outline-none focus:bg-blue-50/30 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.6]"
+                    className="w-full px-2 py-2 bg-transparent md:text-[12px] text-[8px] text-gray-800 border-0 focus:outline-none focus:bg-blue-50/30 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.6]"
                   />
                 </td>
                 <td className="px-1 py-0">
@@ -179,23 +179,23 @@ export function AKMTemplate({
         </table>
       </div>
 
-      <div className="px-8">
+      <div className="px-0 md:px-8">
         <div className="flex justify-between items-center border-t-2 border-gray-800 py-2">
-          <span className="text-[15px] font-bold text-gray-600">Subtotal</span>
-          <span className="text-[13px] font-bold text-gray-900">
+          <span className="md:text-[15px] text-[10px] font-bold text-gray-600">Subtotal</span>
+          <span className="md:text-[13px] text-[10px] font-bold text-gray-900">
             {subtotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </span>
         </div>
       </div>
 
-      <div className="px-8 pb-6 pt-2">
+      <div className="px-0 md:px-8 pb-0 md:pb-6 pt-0 md:pt-2">
         <div className="flex gap-6">
           <div className="flex-1">
-            <div className="inline-block bg-[#c0392b] text-white text-[10px] font-bold px-2 py-0.5 mb-2">
+            <div className="inline-block bg-[#c0392b] text-white md:text-[10px] text-[8px] font-bold px-2 py-0.5 mb-2">
               {mode === "invoice" ? "Account Info" : "Terms & Condition"}
             </div>
             {mode === "invoice" ? (
-              <div className="space-y-1 text-[11px] text-gray-600 border border-dashed border-gray-200 rounded-lg p-2">
+              <div className="space-y-1 md:text-[11px] text-[8px] text-gray-600 border border-dashed border-gray-200 rounded-lg p-2">
                 {(
                   [
                     ["Bank Name:", accountBankName, setAccountBankName],
@@ -224,23 +224,23 @@ export function AKMTemplate({
                 value={terms}
                 onChange={(e) => setTerms(e.target.value)}
                 rows={4}
-                className="w-full text-[11px] text-gray-600 leading-relaxed bg-transparent border border-dashed border-gray-200 rounded-lg p-2 focus:outline-none focus:border-primary/40 resize-none"
+                className="w-full md:text-[11px] text-[8px] text-gray-600 leading-relaxed bg-transparent border border-dashed border-gray-200 rounded-lg p-2 focus:outline-none focus:border-primary/40 resize-none"
               />
             )}
           </div>
           <div className="flex flex-col items-end gap-3">
             <div className="flex items-center">
-              <span className="bg-[#c0392b] text-white text-[15px] font-bold px-4 py-1.5">
+              <span className="bg-[#c0392b] text-white md:text-[15px] text-[10px] font-bold px-4 py-1.5">
                 TOTAL
               </span>
-              <span className="bg-[#c0392b] text-white text-[13px] font-bold px-4 py-1.5 min-w-[120px] text-right">
+              <span className="bg-[#c0392b] text-white md:text-[13px] text-[10px] font-bold px-4 py-1.5 min-w-[120px] text-right">
                 {formatINR(subtotal)}
               </span>
             </div>
             <img
               src={signatureImage}
               alt="Signature"
-              className="h-[120px] object-cover mt-2"
+              className="md:h-[120px] h-[80px] object-cover mt-2"
             />
           </div>
         </div>

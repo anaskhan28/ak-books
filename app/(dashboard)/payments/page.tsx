@@ -41,7 +41,7 @@ export default function PaymentsPage() {
   }
 
   return (
-    <>
+    <div className="p-2 md:p-0">
       <PageHeader
         title="Payments"
         subtitle="Track client payments against invoices"
@@ -158,13 +158,13 @@ export default function PaymentsPage() {
                     <td className="px-5 py-4 text-gray-600 whitespace-nowrap">
                       {p.paymentReceivedOn
                         ? new Date(p.paymentReceivedOn).toLocaleDateString(
-                            "en-IN",
-                            {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            },
-                          )
+                          "en-IN",
+                          {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          },
+                        )
                         : "—"}
                     </td>
                     <td className="px-5 py-4 text-gray-500 italic max-w-[150px] truncate">
@@ -190,6 +190,6 @@ export default function PaymentsPage() {
           onSuccess={() => load()}
         />
       )}
-    </>
+    </div>
   );
 }
