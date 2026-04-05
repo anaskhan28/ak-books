@@ -7,7 +7,9 @@ import {
 } from "@/components/document/DocumentForm";
 import { createQuotation } from "@/app/actions/quotations";
 
-export default function NewQuotationPage() {
+import { Suspense } from "react";
+
+function NewQuotationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const templateIdParam = searchParams.get("template");
@@ -66,5 +68,13 @@ export default function NewQuotationPage() {
       backHref="/quotations"
       backLabel="Back to Quotations"
     />
+  );
+}
+
+export default function NewQuotationPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading form...</div>}>
+      <NewQuotationContent />
+    </Suspense>
   );
 }

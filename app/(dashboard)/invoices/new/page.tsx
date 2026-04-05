@@ -6,8 +6,9 @@ import {
   DocumentFormValues,
 } from "@/components/document/DocumentForm";
 import { createInvoice } from "@/app/actions/invoices";
+import { Suspense } from "react";
 
-export default function NewInvoicePage() {
+function NewInvoiceContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const templateIdParam = searchParams.get("template");
@@ -71,5 +72,13 @@ export default function NewInvoicePage() {
       backHref="/invoices"
       backLabel="Back to Invoices"
     />
+  );
+}
+
+export default function NewInvoicePage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading form...</div>}>
+      <NewInvoiceContent />
+    </Suspense>
   );
 }

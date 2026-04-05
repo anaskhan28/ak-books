@@ -3,6 +3,8 @@ import { getInvoice } from "@/app/actions/invoices";
 import { getClients } from "@/app/actions/clients";
 import InvoiceDetailClient from "./client";
 
+import { Suspense } from "react";
+
 export default async function InvoiceDetailPage({
   params,
 }: {
@@ -14,5 +16,9 @@ export default async function InvoiceDetailPage({
 
   const clients = await getClients();
 
-  return <InvoiceDetailClient invoice={invoice} clients={clients} />;
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading invoice details...</div>}>
+      <InvoiceDetailClient invoice={invoice} clients={clients} />
+    </Suspense>
+  );
 }

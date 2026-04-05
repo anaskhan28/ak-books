@@ -15,7 +15,17 @@ import { formatINR, todayISO } from "@/lib/utils";
 type LabourRow = Awaited<ReturnType<typeof getLabourEntries>>[number];
 type ProjectOption = { id: number; name: string };
 
+import { Suspense } from "react";
+
 export default function LabourPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading...</div>}>
+      <LabourPageContent />
+    </Suspense>
+  );
+}
+
+function LabourPageContent() {
   const searchParams = useSearchParams();
   const preselectedProject = searchParams.get("project") || "";
 

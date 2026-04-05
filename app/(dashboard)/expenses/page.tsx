@@ -20,7 +20,17 @@ const expenseTypes = [
   "Miscellaneous",
 ];
 
+import { Suspense } from "react";
+
 export default function ExpensesPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading...</div>}>
+      <ExpensesPageContent />
+    </Suspense>
+  );
+}
+
+function ExpensesPageContent() {
   const searchParams = useSearchParams();
   const preselectedProject = searchParams.get("project") || "";
 
