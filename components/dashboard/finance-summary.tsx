@@ -33,6 +33,8 @@ function FinanceCard({
 
   return (
     <div className="bg-white rounded-lg border border-slate-200 overflow-hidden flex flex-col h-full p-4 md:p-0">
+
+
       <div className="md:p-4 border-b border-slate-100 flex items-center justify-between">
         <h3 className="text-[15px] font-medium text-foreground tracking-tight">
           {title}

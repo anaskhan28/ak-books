@@ -531,15 +531,15 @@ function AKQuotationDoc({
               </Text>
               <Text style={[s.td, { width: cols[1] }]}>{item.description}</Text>
               <Text style={[s.td, { width: cols[2], textAlign: "center" }]}>
-                {item.qty > 0 ? item.qty.toFixed(2) : ""}
+                {Math.abs(item.qty) > 0 ? item.qty.toFixed(2) : ""}
               </Text>
               <Text style={[s.td, { width: cols[3], textAlign: "right" }]}>
-                {item.rate > 0 ? fmtINR(item.rate) : ""}
+                {Math.abs(item.rate) > 0 ? fmtINR(item.rate) : ""}
               </Text>
               <Text
                 style={[s.td, s.tdLast, { width: cols[4], textAlign: "right" }]}
               >
-                {item.amount > 0 ? fmtINR(item.amount) : ""}
+                {Math.abs(item.amount) > 0 ? fmtINR(item.amount) : ""}
               </Text>
             </View>
           ))}
@@ -828,10 +828,10 @@ function AKInvoiceDoc({
                 <Text
                   style={[s.invTd, { width: cols[3], textAlign: "center" }]}
                 >
-                  {item.qty > 0 ? item.qty.toFixed(2) : ""}
+                  {Math.abs(item.qty) > 0 ? item.qty.toFixed(2) : ""}
                 </Text>
                 <Text style={[s.invTd, { width: cols[4], textAlign: "right" }]}>
-                  {item.rate > 0 ? fmtINR(item.rate) : ""}
+                  {Math.abs(item.rate) > 0 ? fmtINR(item.rate) : ""}
                 </Text>
                 <Text
                   style={[s.invTd, { width: cols[5], textAlign: "center" }]}
@@ -856,7 +856,7 @@ function AKInvoiceDoc({
                     { width: cols[9], textAlign: "right" },
                   ]}
                 >
-                  {fmtINR(taxable)}
+                  {Math.abs(taxable) > 0 ? fmtINR(taxable) : ""}
                 </Text>
               </View>
             );

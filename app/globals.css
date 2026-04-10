@@ -183,7 +183,7 @@
 
 /* Document Readonly Mode - applied to view pages */
 .document-readonly {
-  pointer-events: none;
+  /* removed pointer-events: none to allow text selection and browser interactions */
 }
 
 .document-readonly input,

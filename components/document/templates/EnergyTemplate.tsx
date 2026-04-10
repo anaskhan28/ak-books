@@ -47,18 +47,25 @@ export function EnergyTemplate({
             onChange={(e) => setClientName(e.target.value)}
             placeholder="Client Name"
             list="client-names-energy"
-            className="w-full text-[11px] md:text-[13px] font-semibold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 placeholder:font-normal"
+            className="w-full max-w-[18rem] text-[11px] md:text-[13px] font-semibold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 placeholder:font-normal"
           />
           <datalist id="client-names-energy">
             {clients.map((c) => (
               <option key={c.id} value={c.name} />
             ))}
           </datalist>
-          <input
+          <textarea
             value={clientBranch}
-            onChange={(e) => setClientBranch(e.target.value)}
+            onChange={(e) => {
+              setClientBranch(e.target.value);
+              autoResize(e.target);
+            }}
+            ref={(el) => {
+              if (el && clientBranch) autoResize(el);
+            }}
+            rows={1}
             placeholder="Branch / Address"
-            className="w-full text-[10px] md:text-[12px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300"
+            className="w-full text-[10px] md:text-[12px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.4]"
           />
         </div>
         <input
@@ -91,81 +98,81 @@ export function EnergyTemplate({
           ref={tableRef}
           className="w-full border-collapse text-[9px] md:text-[12px] border border-gray-700"
         >
-        <thead>
-          <tr className="bg-gray-50">
-            <th className="border border-gray-700 font-bold text-center px-2 py-2 w-[10%]">
-              Sr No
-            </th>
-            <th className="border border-gray-700 font-bold text-left px-3 py-2 w-[62%]">
-              Description
-            </th>
-            <th className="border border-gray-700 font-bold text-center px-2 py-2 w-[10%]">
-              Qty
-            </th>
-            <th className="border border-gray-700 font-bold text-right px-3 py-2 w-[18%]">
-              Total Price
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((item, idx) => {
-            const hasContent =
-              item.description ||
-              item.qty > 0 ||
-              item.rate > 0 ||
-              item.amount > 0;
-            return (
-              <tr
-                key={idx}
-                className=" hover:bg-gray-50/50 transition-colors align-top"
-              >
-                <td className="border-x border-gray-700 text-center text-[11px] text-gray-500 py-2">
-                  {hasContent ? idx + 1 : ""}
-                </td>
-                <td className="border-x border-gray-200 px-1 py-0">
-                  <textarea
-                    value={item.description}
-                    onChange={(e) => {
-                      updateItem(idx, "description", e.target.value);
-                      autoResize(e.target);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Tab") handleKeyDown(e, idx, 0);
-                    }}
-                    ref={(el) => {
-                      if (el && item.description) autoResize(el);
-                    }}
-                    rows={1}
-                    placeholder={idx === 0 ? "Type description..." : ""}
-                    className="w-full px-2 py-2 bg-transparent text-[9px] md:text-[12px] text-gray-800 border-0 focus:outline-none focus:bg-blue-50/30 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.6]"
-                  />
-                </td>
-                <td className="border-x border-gray-200 px-1 py-0">
-                  <input
-                    type="number"
-                    min={0}
-                    value={item.qty || ""}
-                    onChange={(e) => updateItem(idx, "qty", e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(e, idx, 1)}
-                    className={`${inputCls} text-center`}
-                  />
-                </td>
-                <td className="border-x border-gray-700 px-1 py-0">
-                  <input
-                    type="number"
-                    min={0}
-                    value={item.amount || ""}
-                    onChange={(e) => updateItem(idx, "amount", e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(e, idx, 2)}
-                    className={`${inputCls} text-right font-semibold`}
-                  />
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+          <thead>
+            <tr className="bg-gray-50">
+              <th className="border border-gray-700 font-bold text-center px-2 py-2 w-[10%]">
+                Sr No
+              </th>
+              <th className="border border-gray-700 font-bold text-left px-3 py-2 w-[62%]">
+                Description
+              </th>
+              <th className="border border-gray-700 font-bold text-center px-2 py-2 w-[10%]">
+                Qty
+              </th>
+              <th className="border border-gray-700 font-bold text-right px-3 py-2 w-[18%]">
+                Total Price
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item, idx) => {
+              const hasContent =
+                item.description ||
+                item.qty > 0 ||
+                item.rate > 0 ||
+                item.amount > 0;
+              return (
+                <tr
+                  key={idx}
+                  className=" hover:bg-gray-50/50 transition-colors align-top"
+                >
+                  <td className="border-x border-gray-700 text-center text-[11px] text-gray-500 py-2">
+                    {hasContent ? idx + 1 : ""}
+                  </td>
+                  <td className="border-x border-gray-200 px-1 py-0">
+                    <textarea
+                      value={item.description}
+                      onChange={(e) => {
+                        updateItem(idx, "description", e.target.value);
+                        autoResize(e.target);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Tab") handleKeyDown(e, idx, 0);
+                      }}
+                      ref={(el) => {
+                        if (el && item.description) autoResize(el);
+                      }}
+                      rows={1}
+                      placeholder={idx === 0 ? "Type description..." : ""}
+                      className="w-full px-2 py-2 bg-transparent text-[9px] md:text-[12px] text-gray-800 border-0 focus:outline-none focus:bg-blue-50/30 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.6]"
+                    />
+                  </td>
+                  <td className="border-x border-gray-200 px-1 py-0">
+                    <input
+                      type="number"
+                      min={0}
+                      value={item.qty || ""}
+                      onChange={(e) => updateItem(idx, "qty", e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(e, idx, 1)}
+                      className={`${inputCls} text-center`}
+                    />
+                  </td>
+                  <td className="border-x border-gray-700 px-1 py-0">
+                    <input
+                      type="number"
+                      min={0}
+                      value={item.amount || ""}
+                      onChange={(e) => updateItem(idx, "amount", e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(e, idx, 2)}
+                      className={`${inputCls} text-right font-semibold`}
+                    />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
 
       {/* Terms / Bank Details */}
       <div className="mt-4 pb-4">

@@ -29,6 +29,7 @@ export async function getQuotations(templateId?: number) {
       totalAmount: quotations.totalAmount,
       status: quotations.status,
       notes: quotations.notes,
+      quotationDate: quotations.quotationDate,
       createdAt: quotations.createdAt,
     })
     .from(quotations)
@@ -64,6 +65,7 @@ export async function getQuotation(id: number) {
       totalAmount: quotations.totalAmount,
       status: quotations.status,
       notes: quotations.notes,
+      quotationDate: quotations.quotationDate,
       createdAt: quotations.createdAt,
     })
     .from(quotations)
@@ -90,43 +92,64 @@ export async function getQuotation(id: number) {
   return { ...rows[0], items, template };
 }
 
-export async function createQuotation(
-  data: Omit<NewQuotation, "quotationNumber">,
-  items: Omit<NewQuotationItem, "quotationId">[],
-) {
+export async function getNextDocumentNumber(templateId: number | null, isInvoice: boolean) {
   let templateName: string | null = null;
-  if (data.templateId) {
+  if (templateId) {
     const tRows = await db
       .select({ name: quotationTemplates.name })
       .from(quotationTemplates)
-      .where(eq(quotationTemplates.id, data.templateId));
+      .where(eq(quotationTemplates.id, templateId));
     templateName = tRows[0]?.name ?? null;
   }
 
   const { getTemplateConfig } = await import("@/lib/pdf-templates/registry");
-  const prefix = getTemplateConfig(templateName).prefix;
+  const cfg = getTemplateConfig(templateName);
+  const prefix = isInvoice ? cfg.invoicePrefix : cfg.prefix;
 
   const existing = await db
     .select({ num: quotations.quotationNumber })
     .from(quotations)
-    .where(like(quotations.quotationNumber, `${prefix}-%`))
-    .orderBy(desc(quotations.id));
+    .where(like(quotations.quotationNumber, `${prefix}%`)) // match prefix exactly
+    .orderBy(desc(quotations.id))
+    .limit(50);
 
   let nextSeq = 1;
+  const regex = new RegExp(`${prefix.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}-(\\d+)`);
+
   for (const row of existing) {
-    const match = row.num.match(new RegExp(`${prefix}-(\\d+)`));
+    const match = row.num.match(regex);
     if (match) {
       const n = parseInt(match[1], 10);
       if (n >= nextSeq) nextSeq = n + 1;
     }
   }
-  const quotationNumber = `${prefix}-${String(nextSeq).padStart(2, "0")}`;
+
+  return `${prefix}-${String(nextSeq).padStart(2, "0")}`;
+}
+
+export async function createQuotation(
+  data: Omit<NewQuotation, "quotationNumber"> & { quotationNumber?: string },
+  items: Omit<NewQuotationItem, "quotationId">[],
+) {
+  let finalQuotationNumber = data.quotationNumber;
+
+  if (!finalQuotationNumber) {
+     finalQuotationNumber = await getNextDocumentNumber(data.templateId ?? null, false);
+  }
+
   const totalAmount =
     data.totalAmount || items.reduce((sum, item) => sum + item.amount, 0);
 
   const [quotation] = await db
     .insert(quotations)
-    .values({ ...data, quotationNumber, totalAmount })
+    .values({ 
+      ...data, 
+      templateId: data.templateId as number | null,
+      quotationNumber: finalQuotationNumber as string, 
+      totalAmount,
+      quotationDate: data.quotationDate || new Date().toISOString().split("T")[0],
+      notes: data.notes
+    })
     .returning();
 
   if (items.length > 0) {
@@ -195,7 +218,8 @@ export async function cloneQuotation(id: number) {
     subject, 
     clientBranch, 
     totalAmount, 
-    notes 
+    notes,
+    quotationDate
   } = original;
 
   const clonedItems = original.items.map((i) => ({
@@ -216,6 +240,7 @@ export async function cloneQuotation(id: number) {
       totalAmount,
       status: "draft",
       notes,
+      quotationDate
     },
     clonedItems
   );

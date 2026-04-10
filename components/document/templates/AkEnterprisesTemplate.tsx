@@ -29,7 +29,7 @@ function AddressBlock({
       <div className="font-semibold">
         {clientName || <span className="text-gray-300">Client Name</span>}
       </div>
-      {clientBranch && <div>{clientBranch}</div>}
+      {clientBranch && <div className="w-full max-w-40 whitespace-pre-wrap break-words">{clientBranch}</div>}
       {clientCity && <div>{clientCity}</div>}
       {clientState && <div>{clientState}</div>}
       <div>India</div>
@@ -157,11 +157,18 @@ export function AKEnterpriseTemplate({
               <option key={c.id} value={c.name} />
             ))}
           </datalist>
-          <input
+          <textarea
             value={clientBranch}
-            onChange={(e) => setClientBranch(e.target.value)}
+            onChange={(e) => {
+              setClientBranch(e.target.value);
+              autoResize(e.target);
+            }}
+            ref={(el) => {
+              if (el && clientBranch) autoResize(el);
+            }}
+            rows={1}
             placeholder="Branch / Address"
-            className="w-full text-[9px] md:text-[11px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300 mb-0.5"
+            className="w-full max-w-40 text-[9px] md:text-[11px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300 mb-0.5 resize-none overflow-hidden leading-[1.4]"
           />
           <div className="text-[8px] md:text-[10px] text-gray-400 mt-1">India</div>
           {isInvoice && (
@@ -175,7 +182,7 @@ export function AKEnterpriseTemplate({
           <div className="font-bold text-[9px] md:text-[11px] mb-1 md:mb-2">Consignee To</div>
           <div className="md:hidden">
             <div className="text-[9px] font-semibold">{clientName || "Client Name"}</div>
-            <div className="text-[8px]">{clientBranch}</div>
+            <div className="text-[8px] whitespace-pre-wrap break-words">{clientBranch}</div>
           </div>
           <div className="hidden md:block">
             <AddressBlock clientName={clientName} clientBranch={clientBranch} />
@@ -269,7 +276,7 @@ export function AKEnterpriseTemplate({
                     className="border-b border-gray-200 align-top hover:bg-gray-50/50"
                   >
                     <td className="border-x border-gray-400 text-center text-gray-500 py-2 text-[9px]">
-                      {item.description || item.amount > 0 ? idx + 1 : ""}
+                      {item.description || Math.abs(item.amount) > 0 ? idx + 1 : ""}
                     </td>
                     <td className="border-x border-gray-200 px-1 py-0">
                       <textarea
@@ -394,9 +401,9 @@ export function AKEnterpriseTemplate({
               {items.map((item, idx) => {
                 const hasContent =
                   item.description ||
-                  item.qty > 0 ||
-                  item.rate > 0 ||
-                  item.amount > 0;
+                  Math.abs(item.qty) > 0 ||
+                  Math.abs(item.rate) > 0 ||
+                  Math.abs(item.amount) > 0;
                 return (
                   <tr
                     key={idx}

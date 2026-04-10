@@ -174,7 +174,7 @@ function EnergyDoc({
   signatureImageUrl,
 }: EnergyPdfProps) {
   const filled = items.filter(
-    (i) => i.description.trim() || i.qty > 0 || i.rate > 0 || i.amount > 0,
+    (i) => i.description.trim() || Math.abs(i.qty) > 0 || Math.abs(i.rate) > 0 || Math.abs(i.amount) > 0,
   );
   const emptyRows = Math.max(0, EMPTY_ROWS - filled.length);
   const displayDate = fmtDate(date);
@@ -244,7 +244,7 @@ function EnergyDoc({
                   {item.description}
                 </Text>
                 <Text style={[s.td, { width: COL_W[2], textAlign: "center" }]}>
-                  {item.qty > 0 ? String(item.qty) : ""}
+                  {Math.abs(item.qty) > 0 ? String(item.qty) : ""}
                 </Text>
                 <Text
                   style={[
@@ -253,7 +253,7 @@ function EnergyDoc({
                     { width: COL_W[3], textAlign: "right" },
                   ]}
                 >
-                  {item.amount > 0 ? fmtINR(item.amount) : ""}
+                  {Math.abs(item.amount) > 0 ? fmtINR(item.amount) : ""}
                 </Text>
               </View>
             ))}

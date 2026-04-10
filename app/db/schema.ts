@@ -354,6 +354,7 @@ export const quotations = pgTable("quotations", {
   totalAmount: integer("total_amount").notNull().default(0),
   status: text("status").notNull().default("draft"),
   notes: text("notes"),
+  quotationDate: text("quotation_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 export type Quotation = typeof quotations.$inferSelect;

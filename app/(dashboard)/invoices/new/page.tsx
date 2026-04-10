@@ -36,6 +36,7 @@ function NewInvoiceContent() {
 
     const inv = await createInvoice(
       {
+        invoiceNumber: values.docNumber || undefined,
         templateId: values.templateId,
         clientId,
         subject: values.subject || null,

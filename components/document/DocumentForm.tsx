@@ -4,21 +4,35 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  ArrowLeft,
-  Save,
   Plus,
-  Trash2,
+  X,
+  Settings,
+  Search,
+  GripVertical,
+  Info,
+  CalendarIcon,
   ChevronDown,
   FileText,
-  CalendarDays,
-  User,
-  Hash,
-  AlignLeft,
-  StickyNote,
-  ScrollText,
 } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { getClients } from "@/app/actions/clients";
 import { getTemplates } from "@/app/actions/templates";
+import { getNextDocumentNumber } from "@/app/actions/quotations";
 import { formatINR } from "@/lib/utils";
 import { getTemplateConfig } from "@/lib/pdf-templates/registry";
 import type { Client, QuotationTemplate } from "@/app/db/schema";
@@ -79,31 +93,49 @@ function today() {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function FieldLabel({
-  icon: Icon,
+function FieldRow({
   label,
   required,
+  children,
+  className = "",
+  info,
 }: {
-  icon: React.ElementType;
   label: string;
   required?: boolean;
+  children: React.ReactNode;
+  className?: string;
+  info?: string;
 }) {
   return (
-    <label className="flex items-center gap-1.5 text-[11px] font-semibold text-rose-600 mb-1.5 tracking-wide ">
-      <Icon size={11} strokeWidth={2.5} />
-      {label}
-      {required && <span className="text-rose-400">*</span>}
-    </label>
+    <div className={`flex flex-col md:grid md:grid-cols-[200px_1fr] items-start gap-1 md:gap-4 py-3 border-b border-gray-100 last:border-0 ${className}`}>
+      <label className="flex items-center gap-1 mt-2 text-[13px] text-gray-500 font-medium">
+        {label}
+        {required && <span className="text-red-500">*</span>}
+        {info && (
+          <div className="group relative">
+            <Info size={12} className="text-gray-300 cursor-help" />
+            <div className="absolute left-0 md:left-full ml-0 md:ml-2 top-full md:top-0 scale-0 group-hover:scale-100 bg-gray-800 text-white text-[10px] px-2 py-1 rounded w-32 z-50 transition-all origin-top md:origin-left">
+              {info}
+            </div>
+          </div>
+        )}
+      </label>
+      <div className="flex items-center gap-2 w-full max-w-xl">
+        {children}
+      </div>
+    </div>
   );
 }
 
-function Input({
+function ZohoInput({
   value,
   onChange,
   placeholder,
   type = "text",
   className = "",
   disabled,
+  icon: Icon,
+  onIconClick,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -111,18 +143,66 @@ function Input({
   type?: string;
   className?: string;
   disabled?: boolean;
+  icon?: any;
+  onIconClick?: () => void;
 }) {
   return (
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      disabled={disabled}
-      className={`w-full px-3 py-2 text-[13px] text-gray-800 bg-white border border-gray-200 rounded-lg
-        focus:outline-none focus:ring-2 focus:ring-rose-100 focus:border-rose-300
-        placeholder:text-gray-300 disabled:bg-gray-50 disabled:text-gray-400 transition-all ${className}`}
-    />
+    <div className="relative w-full">
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        disabled={disabled}
+        className={`w-full px-3 py-2 text-[14px] text-foreground bg-white border border-border rounded-xl
+          focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary
+          placeholder:text-muted-foreground/40 disabled:bg-slate-50 disabled:text-muted-foreground/60 transition-all ${className} ${Icon ? "pr-10" : ""}`}
+      />
+      {Icon && (
+        <button
+          type="button"
+          onClick={onIconClick}
+          className="absolute right-0 top-0 h-full px-3 flex items-center justify-center text-muted-foreground/40 hover:text-primary transition-colors border-l border-border"
+        >
+          <Icon size={14} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ZohoDatePicker({
+  value,
+  onChange,
+  placeholder = "Pick a date",
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "w-full justify-start text-left font-normal px-3 py-2 text-[14px] border-border rounded-xl h-auto hover:bg-transparent",
+            !value && "text-muted-foreground/40"
+          )}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4 opacity-50" />
+          {value ? format(parseISO(value), "PPP") : <span>{placeholder}</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={value ? parseISO(value) : undefined}
+          onSelect={(d) => onChange(d ? format(d, "yyyy-MM-dd") : "")}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -189,6 +269,15 @@ export function DocumentForm({
   useEffect(() => {
     const tpl = templates.find((t) => t.id === templateId);
     if (!tpl) return;
+    
+    // Fetch next number only if it's a new document or the template has changed
+    const isInitialTemplate = templateId === initialValues?.templateId;
+    const hasInitialNumber = !!initialValues?.docNumber;
+
+    if (!hasInitialNumber || !isInitialTemplate) {
+      getNextDocumentNumber(tpl.id, isInvoice).then(setDocNumber);
+    }
+
     const cfg = getTemplateConfig(tpl.name);
     if (tpl.terms && !initialValues?.terms) setTerms(tpl.terms);
     if (cfg.bank) {
@@ -201,7 +290,7 @@ export function DocumentForm({
         setAccountHolder(cfg.bank.accountHolder ?? "");
       if (!initialValues?.accountPan) setAccountPan(cfg.bank.pan ?? "");
     }
-  }, [templateId, templates]);
+  }, [templateId, templates, isInvoice]);
 
   // Computed
   const subtotal = items.reduce((s, i) => s + i.amount, 0);
@@ -239,6 +328,7 @@ export function DocumentForm({
   async function handleSave() {
     if (!clientName.trim()) return;
     setSaving(true);
+    const clientId = clients.find((c) => c.name === clientName)?.id;
     try {
       await onSave(
         {
@@ -270,87 +360,51 @@ export function DocumentForm({
   );
 
   return (
-    <div className="min-h-screen bg-gray-50/60">
-      {/* ── Top bar ─────────────────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-20 bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Link
-              href={backHref}
-              className="flex items-center gap-1.5 text-[12px] text-gray-400 hover:text-gray-700 transition-colors"
-            >
-              <ArrowLeft size={13} /> {backLabel}
-            </Link>
-            <span className="text-gray-200">|</span>
-            <div className="flex items-center gap-2">
-              <FileText size={14} className="text-rose-400" />
-              <span className="text-[14px] font-semibold text-gray-700">
-                New {isInvoice ? "Invoice" : "Quote"}
-              </span>
-            </div>
+    <div className="min-h-screen bg-background pb-12">
+      {/* ── Responsive Header ────────────────────────────────────────────── */}
+      <div className="sticky top-0 z-40 bg-white border-b border-border shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 h-14 md:h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 md:gap-3">
+            <span className="p-1.5 bg-slate-50 rounded hidden sm:inline-flex">
+              <FileText size={18} className="text-muted-foreground" />
+            </span>
+            <h1 className="text-[14px] md:text-[16px] font-semibold text-foreground">
+              {isInvoice ? "New Invoice" : "New Quote"}
+            </h1>
           </div>
 
-          <button
-            onClick={handleSave}
-            disabled={saving || !clientName.trim()}
-            className="flex items-center gap-2 px-5 py-2 bg-rose-500 text-white rounded-lg text-[13px] font-semibold
-              hover:bg-rose-600 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-          >
-            <Save size={13} />
-            {saving ? "Saving…" : `Save ${isInvoice ? "Invoice" : "Quote"}`}
-          </button>
+          <div className="flex items-center gap-2 md:gap-3">
+            <button
+              onClick={handleSave}
+              disabled={saving || !clientName.trim()}
+              className="px-4 md:px-6 py-2 bg-primary text-white rounded-xl text-[13px] font-medium
+                hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-40 shadow-sm"
+            >
+              {saving ? "Saving…" : "Save"}
+            </button>
+            <Link
+              href={backHref}
+              className="p-1.5 hover:bg-slate-50 rounded-full text-muted-foreground hover:text-destructive transition-all"
+            >
+              <X size={20} />
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* ── Form body ───────────────────────────────────────────────────────── */}
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
-        {/* Card 1 — Template + Customer */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/50">
-            <h2 className="text-[12px] font-bold text-gray-400  tracking-widest">
-              Document Setup
-            </h2>
-          </div>
-          <div className="px-6 py-5 grid grid-cols-2 gap-5">
-            {/* Template */}
-            <div className="col-span-2">
-              <FieldLabel icon={FileText} label="Template" required />
-              <div className="relative">
-                <select
-                  value={templateId ?? ""}
-                  onChange={(e) =>
-                    setTemplateId(
-                      e.target.value ? Number(e.target.value) : null,
-                    )
-                  }
-                  className="w-full px-3 py-2 pr-8 text-[13px] text-gray-800 bg-white border border-gray-200 rounded-lg
-                    focus:outline-none focus:ring-2 focus:ring-rose-100 focus:border-rose-300 appearance-none transition-all"
-                >
-                  <option value="">Select a template</option>
-                  {templates.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  size={14}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                />
-              </div>
-            </div>
-
-            {/* Customer Name */}
-            <div className="col-span-2">
-              <FieldLabel icon={User} label="Customer Name" required />
+      <div className="max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-10 space-y-8 md:space-y-12">
+        {/* Customer Section */}
+        <section className="space-y-1">
+          <FieldRow label="Customer Name" required>
+            <div className="flex-1 relative">
               <input
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
                 placeholder="Select or add a customer"
                 list="client-list"
-                className="w-full px-3 py-2 text-[13px] text-gray-800 bg-white border border-gray-200 rounded-lg
-                  focus:outline-none focus:ring-2 focus:ring-rose-100 focus:border-rose-300
-                  placeholder:text-gray-300 transition-all"
+                className="w-full px-3 py-2 text-[14px] text-foreground bg-white border border-border rounded-xl
+                  focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary
+                  placeholder:text-muted-foreground/40 transition-all font-medium"
               />
               <datalist id="client-list">
                 {clients.map((c) => (
@@ -358,345 +412,305 @@ export function DocumentForm({
                 ))}
               </datalist>
             </div>
+            <button className="p-2 bg-primary text-white rounded-xl hover:opacity-90 transition-all">
+              <Search size={14} />
+            </button>
+          </FieldRow>
 
-            {/* Branch / Address */}
-            <div className="col-span-2">
-              <FieldLabel icon={AlignLeft} label="Branch / Address" />
-              <Input
-                value={clientBranch}
-                onChange={setClientBranch}
-                placeholder="Branch or address (e.g. Ghatkopar Branch)"
-              />
-            </div>
-          </div>
-        </div>
+          <FieldRow label="Client Branch">
+            <textarea
+              value={clientBranch}
+              onChange={(e) => setClientBranch(e.target.value)}
+              placeholder="Enter branch name or address"
+              rows={1}
+              className="w-full px-3 py-2 text-[14px] text-foreground bg-white border border-border rounded-xl
+                focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary
+                placeholder:text-muted-foreground/30 transition-all shadow-sm resize-none"
+              onInput={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                target.style.height = "auto";
+                target.style.height = target.scrollHeight + "px";
+              }}
+            />
+          </FieldRow>
 
-        {/* Card 2 — Document Details */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/50">
-            <h2 className="text-[12px] font-bold text-gray-400  tracking-widest">
-              {isInvoice ? "Invoice Details" : "Quote Details"}
-            </h2>
-          </div>
-          <div className="px-6 py-5 grid grid-cols-3 gap-5">
-            {/* Doc number */}
-            <div>
-              <FieldLabel
-                icon={Hash}
-                label={isInvoice ? "Invoice #" : "Quote #"}
-                required
-              />
-              <Input
-                value={docNumber}
-                onChange={setDocNumber}
-                placeholder={isInvoice ? "AK/25-26/00098" : "QT-000071"}
-              />
-            </div>
+          <FieldRow label="Template" required>
+            <Select 
+               value={templateId?.toString() ?? ""} 
+               onValueChange={(val) => setTemplateId(val ? Number(val) : null)}
+            >
+              <SelectTrigger className="w-full px-3 py-2 h-auto text-[14px] border-border rounded-xl bg-white">
+                <SelectValue placeholder="Select a template" />
+              </SelectTrigger>
+              <SelectContent>
+                {templates.map((t) => (
+                  <SelectItem key={t.id} value={t.id.toString()}>
+                    {t.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FieldRow>
+        </section>
 
-            {/* Date */}
-            <div>
-              <FieldLabel
-                icon={CalendarDays}
-                label={isInvoice ? "Invoice Date" : "Quote Date"}
-                required
-              />
-              <Input type="date" value={date} onChange={setDate} />
-            </div>
+        {/* Details Section */}
+        <section className="space-y-1">
+          <FieldRow 
+            label={isInvoice ? "Invoice#" : "Quote#"} 
+            required
+            info="Automatic numbering is enabled"
+          >
+            <ZohoInput
+              value={docNumber}
+              onChange={setDocNumber}
+              placeholder={isInvoice ? "INV-000001" : "QT-000001"}
+              icon={Settings}
+            />
+          </FieldRow>
 
-            {/* Expiry / Due date */}
-            <div>
-              <FieldLabel
-                icon={CalendarDays}
-                label={isInvoice ? "Due Date" : "Expiry Date"}
-              />
-              <Input type="date" value={expiryDate} onChange={setExpiryDate} />
-            </div>
-
-            {/* Subject */}
-            <div className="col-span-3">
-              <FieldLabel icon={AlignLeft} label="Subject" />
-              <Input
-                value={subject}
-                onChange={setSubject}
-                placeholder={
-                  isInvoice ? "Shifting Invoice" : "Shifting Quotation"
-                }
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3 — Item Table */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
-            <h2 className="text-[12px] font-bold text-gray-400  tracking-widest">
-              Item Table
-            </h2>
-            <span className="text-[11px] text-gray-400">
-              {filledItems.length} item{filledItems.length !== 1 ? "s" : ""}
-            </span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
+             <FieldRow label={isInvoice ? "Invoice Date" : "Quote Date"} required className="border-0">
+                <ZohoDatePicker value={date} onChange={setDate} />
+             </FieldRow>
+             <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 py-3">
+                <label className="text-[13px] text-gray-500 font-medium md:min-w-[100px] md:text-right">
+                  {isInvoice ? "Due Date" : "Expiry Date"}
+                </label>
+                <ZohoDatePicker value={expiryDate} onChange={setExpiryDate} />
+             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-[12px]">
-              <thead>
-                <tr className="bg-gray-50/80 border-b border-gray-100">
-                  <th className="text-left px-4 py-3 font-semibold text-gray-400  text-[10px] tracking-wider w-[42%]">
-                    Item Details
-                  </th>
-                  {isAKEnterprise && isInvoice && (
-                    <th className="text-center px-3 py-3 font-semibold text-gray-400  text-[10px] tracking-wider w-[10%]">
-                      HSN Code
+          <FieldRow label="Subject">
+            <textarea
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder={isInvoice ? "Let your customer know what this Invoice is for" : "Let your customer know what this Quote is for"}
+              rows={1}
+              className="w-full px-3 py-2 text-[14px] text-foreground bg-white border border-border rounded-xl
+                focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary
+                placeholder:text-muted-foreground/40 resize-none transition-all"
+            />
+          </FieldRow>
+        </section>
+
+        {/* Item Table Section */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-[14px] font-bold text-gray-700">Item Table</h2>
+            <button className="text-primary text-[13px] font-medium flex items-center gap-1.5 hover:bg-primary/5 px-3 py-1 rounded-full transition-all">
+               <span className="w-4 h-4 flex items-center justify-center border border-primary rounded-full text-[10px] pb-0.5">✓</span>
+               <span className="hidden sm:inline">Bulk Actions</span>
+            </button>
+          </div>
+
+          <div className="border border-border rounded overflow-hidden">
+            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200">
+              <table className="w-full text-[12px] min-w-[700px]">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-border">
+                    <th className="w-10" />
+                    <th className="text-left px-4 py-2.5 font-medium text-muted-foreground uppercase tracking-widest text-[10px] w-[45%] border-r border-border">
+                      Item Details
                     </th>
-                  )}
-                  <th className="text-center px-3 py-3 font-semibold text-gray-400  text-[10px] tracking-wider w-[10%]">
-                    Qty
-                  </th>
-                  <th className="text-right px-3 py-3 font-semibold text-gray-400  text-[10px] tracking-wider w-[14%]">
-                    Rate
-                  </th>
-                  <th className="text-right px-4 py-3 font-semibold text-gray-400  text-[10px] tracking-wider w-[16%]">
-                    Amount
-                  </th>
-                  <th className="w-8" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {items.map((item, idx) => (
-                  <tr
-                    key={item.id}
-                    className="group hover:bg-gray-50/40 transition-colors align-top"
-                  >
-                    {/* Description */}
-                    <td className="px-4 py-2">
-                      <textarea
-                        value={item.description}
-                        onChange={(e) => {
-                          updateItem(item.id, "description", e.target.value);
-                          e.target.style.height = "auto";
-                          e.target.style.height = e.target.scrollHeight + "px";
-                        }}
-                        ref={(el) => {
-                          if (el && item.description) {
-                            el.style.height = "auto";
-                            el.style.height = el.scrollHeight + "px";
-                          }
-                        }}
-                        rows={1}
-                        placeholder={
-                          idx === 0 ? "Type or click to select an item…" : ""
-                        }
-                        className="w-full text-[12px] text-gray-800 bg-transparent border-0 focus:outline-none
-                          placeholder:text-gray-300 resize-none overflow-hidden leading-[1.6] py-1"
-                      />
-                    </td>
-
-                    {/* HSN (AK invoice only) */}
                     {isAKEnterprise && isInvoice && (
-                      <td className="px-3 py-1">
-                        <select
-                          value={
-                            ["996793", "998533"].includes(item.hsn)
-                              ? item.hsn
-                              : ""
-                          }
+                      <th className="text-center px-3 py-2.5 font-medium text-muted-foreground uppercase tracking-widest text-[10px] w-[12%] border-r border-border">
+                        HSN Code
+                      </th>
+                    )}
+                    <th className="text-center px-3 py-2.5 font-medium text-muted-foreground uppercase tracking-widest text-[10px] w-[12%] border-r border-border">
+                      Quantity
+                    </th>
+                    <th className="text-right px-3 py-2.5 font-medium text-muted-foreground uppercase tracking-widest text-[10px] w-[12%] border-r border-border">
+                      Rate
+                    </th>
+                    <th className="text-right px-4 py-2.5 font-medium text-muted-foreground uppercase tracking-widest text-[10px] w-[15%]">
+                      Amount
+                    </th>
+                    <th className="w-10" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {items.map((item, idx) => (
+                    <tr
+                      key={item.id}
+                      className="group hover:bg-slate-50/50 transition-all duration-150"
+                    >
+                      <td className="text-center text-slate-300">
+                        <GripVertical size={14} className="mx-auto" />
+                      </td>
+                      
+                      <td className="p-0 border-r border-border">
+                        <textarea
+                          value={item.description}
                           onChange={(e) => {
-                            if (e.target.value)
-                              updateItem(item.id, "hsn", e.target.value);
+                            updateItem(item.id, "description", e.target.value);
+                            e.target.style.height = "auto";
+                            e.target.style.height = e.target.scrollHeight + "px";
                           }}
-                          className="w-full text-[10px] text-gray-400 bg-transparent border-0 focus:outline-none cursor-pointer mb-0.5"
-                        >
-                          <option value="">— pick —</option>
-                          <option value="996793">996793 (Shifting)</option>
-                          <option value="998533">998533 (Cleaning)</option>
-                        </select>
-                        <input
-                          value={item.hsn}
-                          onChange={(e) =>
-                            updateItem(item.id, "hsn", e.target.value)
+                          ref={(el) => {
+                            if (el && item.description) {
+                              el.style.height = "auto";
+                              el.style.height = el.scrollHeight + "px";
+                            }
+                          }}
+                          rows={1}
+                          placeholder={
+                            idx === 0 ? "Type or click to select an item…" : ""
                           }
-                          placeholder="Custom HSN"
-                          className="w-full text-center text-[12px] text-gray-700 bg-transparent border-0 border-t border-dashed border-gray-100
-                            focus:outline-none placeholder:text-gray-200 py-0.5"
+                          className="w-full px-4 py-3 text-[14px] text-foreground bg-transparent border-0 focus:outline-none placeholder:text-muted-foreground/30 resize-none overflow-hidden leading-relaxed"
                         />
                       </td>
-                    )}
 
-                    {/* Qty */}
-                    <td className="px-3 py-2">
-                      <input
-                        type="number"
-                        min={0}
-                        value={item.qty || ""}
-                        onChange={(e) =>
-                          updateItem(item.id, "qty", Number(e.target.value))
-                        }
-                        className="w-full text-center text-[12px] text-gray-700 bg-transparent border-0
-                          focus:outline-none placeholder:text-gray-200 py-1"
-                        placeholder="1"
-                      />
-                    </td>
+                      {isAKEnterprise && isInvoice && (
+                        <td className="p-0 border-r border-border">
+                          <input
+                            value={item.hsn}
+                            onChange={(e) => updateItem(item.id, "hsn", e.target.value)}
+                            className="w-full px-2 py-3 text-center text-[14px] text-foreground bg-transparent border-0 focus:outline-none"
+                          />
+                        </td>
+                      )}
 
-                    {/* Rate */}
-                    <td className="px-3 py-2">
-                      <input
-                        type="number"
-                        min={0}
-                        value={item.rate || ""}
-                        onChange={(e) =>
-                          updateItem(item.id, "rate", Number(e.target.value))
-                        }
-                        className="w-full text-right text-[12px] text-gray-700 bg-transparent border-0
-                          focus:outline-none placeholder:text-gray-200 py-1"
-                        placeholder="0.00"
-                      />
-                    </td>
+                      <td className="p-0 border-r border-border">
+                        <input
+                          type="number"
+                          value={item.qty || ""}
+                          onChange={(e) => updateItem(item.id, "qty", Number(e.target.value))}
+                          className="w-full px-2 py-3 text-center text-[14px] text-foreground bg-transparent border-0 focus:outline-none"
+                        />
+                      </td>
 
-                    {/* Amount */}
-                    <td className="px-4 py-2">
-                      <input
-                        type="number"
-                        min={0}
-                        value={item.amount || ""}
-                        onChange={(e) =>
-                          updateItem(item.id, "amount", Number(e.target.value))
-                        }
-                        className="w-full text-right text-[12px] font-semibold text-gray-800 bg-transparent border-0
-                          focus:outline-none placeholder:text-gray-200 py-1"
-                        placeholder="0.00"
-                      />
-                    </td>
+                      <td className="p-0 border-r border-border">
+                        <input
+                          type="number"
+                          value={item.rate || ""}
+                          onChange={(e) => updateItem(item.id, "rate", Number(e.target.value))}
+                          className="w-full px-2 py-3 text-right text-[14px] text-foreground bg-transparent border-0 focus:outline-none"
+                        />
+                      </td>
 
-                    {/* Remove */}
-                    <td className="pr-3 py-2">
-                      <button
-                        onClick={() => removeRow(item.id)}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-50 text-gray-300
-                          hover:text-red-400 transition-all"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <td className="px-4 py-3 text-right text-[14px] text-foreground font-medium bg-slate-50/20">
+                        {formatINR(item.amount)}
+                      </td>
+
+                      <td className="text-center px-1">
+                        <button
+                          onClick={() => removeRow(item.id)}
+                          className="p-2 text-slate-300 hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all"
+                          title="Remove item"
+                        >
+                          <X size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          {/* Add row + subtotal */}
-          <div className="px-4 py-3 border-t border-gray-50 flex items-center justify-between">
-            <button
-              onClick={addRow}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] text-rose-500 font-semibold
-                hover:bg-rose-50 rounded-lg transition-colors"
-            >
-              <Plus size={13} /> Add New Row
-            </button>
-
-            <div className="text-right space-y-1 pr-9">
-              <div className="flex items-center justify-end gap-8 text-[12px] text-gray-500">
-                <span>Sub Total</span>
-                <span className="min-w-[80px] text-right">
-                  {formatINR(subtotal)}
-                </span>
+          <div className="flex flex-col md:flex-row items-start justify-between py-6 gap-8">
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={addRow}
+                  className="flex items-center gap-2 px-4 py-2 text-[14px] text-primary font-semibold hover:bg-primary/5 rounded-xl border border-dashed border-primary/30 transition-all active:scale-95"
+                >
+                  <Plus size={16} /> Add New Row
+                </button>
               </div>
-              <div className="flex items-center justify-end gap-8 text-[13px] font-bold text-gray-800 border-t border-gray-100 pt-1">
-                <span>Total (₹)</span>
-                <span className="min-w-[80px] text-right">
-                  {formatINR(subtotal)}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Card 4 — Notes & Terms */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/50">
-            <h2 className="text-[12px] font-bold text-gray-400  tracking-widest">
-              Notes & Terms
-            </h2>
-          </div>
-          <div className="px-6 py-5 grid grid-cols-2 gap-5">
-            <div>
-              <FieldLabel icon={StickyNote} label="Customer Notes" />
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-                placeholder={
-                  isInvoice
-                    ? "Thanks for your business."
-                    : "Looking forward for your business."
-                }
-                className="w-full px-3 py-2 text-[12px] text-gray-700 bg-white border border-gray-200 rounded-lg
-                  focus:outline-none focus:ring-2 focus:ring-rose-100 focus:border-rose-300
-                  placeholder:text-gray-300 resize-none transition-all"
-              />
-              <p className="text-[10px] text-gray-300 mt-1">
-                Displayed on the {isInvoice ? "invoice" : "quotation"}
-              </p>
-            </div>
-            <div>
-              <FieldLabel icon={ScrollText} label="Terms & Conditions" />
-              <textarea
-                value={terms}
-                onChange={(e) => setTerms(e.target.value)}
-                rows={3}
-                placeholder={
-                  "1. Authorized work group\n2. GST 18% Extra\n3. Payment 100% Against Work Done"
-                }
-                className="w-full px-3 py-2 text-[12px] text-gray-700 bg-white border border-gray-200 rounded-lg
-                  focus:outline-none focus:ring-2 focus:ring-rose-100 focus:border-rose-300
-                  placeholder:text-gray-300 resize-none transition-all"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Card 5 — Bank Details (invoice or toggle) */}
-        {(isInvoice || showBank) && (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/50">
-              <h2 className="text-[12px] font-bold text-gray-400  tracking-widest">
-                Bank Details
-              </h2>
-            </div>
-            <div className="px-6 py-5 grid grid-cols-2 gap-4">
-              {(
-                [
-                  ["Bank Name", accountBankName, setAccountBankName],
-                  ["Account Number", accountNumber, setAccountNumber],
-                  ["IFSC Code", accountIfsc, setAccountIfsc],
-                  ["Account Holder", accountHolder, setAccountHolder],
-                  ["PAN Card No", accountPan, setAccountPan],
-                ] as const
-              ).map(([label, val, setter]) => (
-                <div key={label}>
-                  <label className="text-[11px] font-semibold text-gray-400  tracking-wide mb-1.5 block">
-                    {label}
-                  </label>
-                  <Input
-                    value={val}
-                    onChange={(v) => (setter as (v: string) => void)(v)}
-                    placeholder={label}
-                  />
+             <div className="w-full md:w-[400px] bg-slate-50/50 p-6 rounded-lg border border-border space-y-4">
+                <div className="flex items-center justify-between text-[13px] text-muted-foreground">
+                   <span>Sub Total</span>
+                   <span className="text-foreground">{formatINR(subtotal)}</span>
                 </div>
-              ))}
+                
+                <div className="flex items-center justify-between text-[16px] font-bold text-foreground pt-4 border-t border-border">
+                   <span>Total (₹)</span>
+                   <span className="text-primary">{formatINR(subtotal)}</span>
+                </div>
+             </div>
+          </div>
+        </section>
+
+        {/* Footer Notes */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 pt-8 border-t border-border">
+          <div className="space-y-4">
+            {isAKEnterprise && (
+              <div className="space-y-1.5">
+                <label className="text-[13px] text-gray-600 font-medium">Customer Notes</label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 text-[14px] text-foreground bg-white border border-border rounded-xl
+                    focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary
+                    placeholder:text-muted-foreground/30 transition-all shadow-sm"
+                />
+                <p className="text-[11px] text-muted-foreground/60">Displayed on the {isInvoice ? "invoice" : "quotation"}</p>
+              </div>
+            )}
+          </div>
+          
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+               <label className="text-[13px] text-gray-600 font-medium">Terms & Conditions</label>
+               <textarea
+                 value={terms}
+                 onChange={(e) => setTerms(e.target.value)}
+                 rows={3}
+                 className="w-full px-3 py-2 text-[14px] text-foreground bg-white border border-border rounded-xl
+                   focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary
+                   placeholder:text-muted-foreground/30 transition-all shadow-sm"
+               />
             </div>
           </div>
-        )}
+        </section>
 
-        {!isInvoice && !showBank && (
-          <button
-            onClick={() => setShowBank(true)}
-            className="text-[12px] text-gray-400 hover:text-rose-500 transition-colors"
-          >
-            + Add bank details
-          </button>
+        {/* Bank Details section */}
+        {(isInvoice || showBank) ? (
+          <section className="pt-8 border-t border-border space-y-6">
+             <div className="flex items-center justify-between">
+                <h2 className="text-[13px] font-bold text-muted uppercase tracking-widest">Bank Details</h2>
+                {isInvoice && (
+                  <button onClick={() => setShowBank(!showBank)} className="text-primary text-[12px] hover:underline">
+                    {showBank ? "Hide" : "Show"}
+                  </button>
+                )}
+             </div>
+             
+             {showBank && (
+               <div className="grid grid-cols-1 gap-1 max-w-2xl">
+                 {(
+                   [
+                     ["Bank Name", accountBankName, setAccountBankName],
+                     ["Account Number", accountNumber, setAccountNumber],
+                     ["IFSC Code", accountIfsc, setAccountIfsc],
+                     ["Account Holder", accountHolder, setAccountHolder],
+                     ["PAN Card No", accountPan, setAccountPan],
+                   ] as const
+                 ).map(([label, val, setter]) => (
+                   <FieldRow key={label} label={label}>
+                     <ZohoInput
+                       value={val}
+                       onChange={(v) => (setter as (v: string) => void)(v)}
+                       placeholder={label}
+                     />
+                   </FieldRow>
+                 ))}
+               </div>
+             )}
+          </section>
+        ) : (
+          <div className="pt-8 flex justify-center">
+             <button
+               onClick={() => setShowBank(true)}
+               className="px-6 py-2 border border-border text-muted-foreground text-[14px] font-medium rounded-xl hover:bg-slate-50 transition-all"
+             >
+               + Add Bank Details
+             </button>
+          </div>
         )}
-
-        <div className="h-6" />
       </div>
     </div>
   );

@@ -37,6 +37,7 @@ function NewQuotationContent() {
 
     const q = await createQuotation(
       {
+        quotationNumber: values.docNumber || undefined,
         templateId: values.templateId,
         clientId,
         projectId: null,
@@ -45,6 +46,7 @@ function NewQuotationContent() {
         totalAmount: subtotal,
         status: "draft",
         notes: values.terms || null,
+        quotationDate: values.date,
       },
       values.items
         .filter((i) => i.description || i.amount > 0)

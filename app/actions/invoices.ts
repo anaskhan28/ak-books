@@ -149,20 +149,30 @@ export async function getInvoice(id: number) {
 
 /** Create a standalone invoice (not linked to a quotation) */
 export async function createInvoice(
-  data: Omit<NewInvoice, "invoiceNumber"> & { invoiceDate?: string },
+  data: Omit<NewInvoice, "invoiceNumber"> & { 
+    invoiceNumber?: string;
+    invoiceDate?: string;
+  },
   items: Omit<NewInvoiceItem, "invoiceId">[],
 ) {
   const tplName = await resolveTemplateName(data.templateId ?? null);
   const { getTemplateConfig } = await import("@/lib/pdf-templates/registry");
   const cfg = getTemplateConfig(tplName);
 
-  const invoiceNumber = await generateInvoiceNumber(cfg.invoicePrefix);
   const { today, dueDate } = todayAndDueDate();
+  const invoiceNumber = await generateInvoiceNumber(cfg.invoicePrefix);
   const totalAmount = data.totalAmount || items.reduce((s, i) => s + i.amount, 0);
 
   const [invoice] = await db
     .insert(invoices)
-    .values({ ...data, invoiceNumber, totalAmount, invoiceDate: data.invoiceDate || today, dueDate })
+    .values({ 
+      ...data, 
+      templateId: data.templateId as number | null,
+      invoiceNumber: data.invoiceNumber || invoiceNumber, 
+      totalAmount, 
+      invoiceDate: data.invoiceDate || today, 
+      dueDate 
+    })
     .returning();
 
   await insertItems(invoice.id, items);

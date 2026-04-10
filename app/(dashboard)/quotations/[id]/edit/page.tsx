@@ -21,7 +21,7 @@ export default function EditQuotationPage() {
         clientName: dbQuotation.clientName || "",
         clientBranch: dbQuotation.clientBranch || "",
         docNumber: dbQuotation.quotationNumber || "",
-        date: new Date(dbQuotation.createdAt).toISOString().split("T")[0],
+        date: dbQuotation.quotationDate || new Date(dbQuotation.createdAt).toISOString().split("T")[0],
         expiryDate: "",
         subject: dbQuotation.subject || "",
         notes: dbQuotation.notes || "",
@@ -56,6 +56,7 @@ export default function EditQuotationPage() {
          clientBranch: values.clientBranch || null,
          subject: values.subject || null,
          notes: values.notes || null,
+         quotationDate: values.date,
       },
       values.items.filter((i) => i.description || i.amount > 0).map((i) => ({
          description: i.description,

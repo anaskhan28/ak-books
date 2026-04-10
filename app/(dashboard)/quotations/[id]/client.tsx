@@ -77,7 +77,7 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
     mode: "quotation",
     templateName: quotation.template?.name,
     initialNumber: quotation.quotationNumber,
-    initialDate: new Date(quotation.createdAt).toISOString().split("T")[0],
+    initialDate: quotation.quotationDate || new Date(quotation.createdAt).toISOString().split("T")[0],
     initialClientName: quotation.clientName || "",
     initialClientBranch: quotation.clientBranch || "",
     initialSubject: quotation.subject || "",

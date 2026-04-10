@@ -66,11 +66,18 @@ export function VETemplate({
                 ))}
               </datalist>
             </div>
-            <input
+            <textarea
               value={clientBranch}
-              onChange={(e) => setClientBranch(e.target.value)}
+              onChange={(e) => {
+                setClientBranch(e.target.value);
+                autoResize(e.target);
+              }}
+              ref={(el) => {
+                if (el && clientBranch) autoResize(el);
+              }}
+              rows={1}
               placeholder="Branch"
-              className="w-full text-[12px] md:text-[15px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300"
+              className="w-full text-[12px] md:text-[15px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.4]"
             />
           </div>
           <input
@@ -118,9 +125,9 @@ export function VETemplate({
             {items.map((item, idx) => {
               const hasContent =
                 item.description ||
-                item.rate > 0 ||
-                item.qty > 0 ||
-                item.amount > 0;
+                Math.abs(item.rate) > 0 ||
+                Math.abs(item.qty) > 0 ||
+                Math.abs(item.amount) > 0;
               return (
                 <tr
                   key={idx}
@@ -150,7 +157,6 @@ export function VETemplate({
                   <td className="border-x border-gray-200 px-1 py-0">
                     <input
                       type="number"
-                      min={0}
                       value={item.qty || ""}
                       onChange={(e) => updateItem(idx, "qty", e.target.value)}
                       onKeyDown={(e) => handleKeyDown(e, idx, 1)}
@@ -160,7 +166,6 @@ export function VETemplate({
                   <td className="border-x border-gray-200 px-1 py-0">
                     <input
                       type="number"
-                      min={0}
                       value={item.rate || ""}
                       onChange={(e) => updateItem(idx, "rate", e.target.value)}
                       onKeyDown={(e) => handleKeyDown(e, idx, 2)}
@@ -170,7 +175,6 @@ export function VETemplate({
                   <td className="border-x border-gray-800 px-1 py-0">
                     <input
                       type="number"
-                      min={0}
                       value={item.amount || ""}
                       onChange={(e) =>
                         updateItem(idx, "amount", e.target.value)

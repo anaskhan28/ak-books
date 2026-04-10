@@ -62,11 +62,18 @@ export function ATKTemplate({
               ))}
             </datalist>
           </div>
-          <input
+          <textarea
             value={clientBranch}
-            onChange={(e) => setClientBranch(e.target.value)}
+            onChange={(e) => {
+              setClientBranch(e.target.value);
+              autoResize(e.target);
+            }}
+            ref={(el) => {
+              if (el && clientBranch) autoResize(el);
+            }}
+            rows={1}
             placeholder="Branch"
-            className="w-full text-[12px] md:text-[15px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300"
+            className="w-full max-w-[18rem] text-[12px] md:text-[15px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.4]"
           />
         </div>
         <input

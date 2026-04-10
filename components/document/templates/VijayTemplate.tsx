@@ -66,11 +66,18 @@ export function VijayTemplate({
             <option key={c.id} value={c.name} />
           ))}
         </datalist>
-        <input
+        <textarea
           value={clientBranch}
-          onChange={(e) => setClientBranch(e.target.value)}
+          onChange={(e) => {
+            setClientBranch(e.target.value);
+            autoResize(e.target);
+          }}
+          ref={(el) => {
+            if (el && clientBranch) autoResize(el);
+          }}
+          rows={1}
           placeholder="Branch / Address"
-          className="w-full text-[10px] md:text-[12px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300"
+          className="w-full text-[10px] md:text-[12px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.4]"
           style={{ fontFamily: "inherit" }}
         />
       </div>

@@ -13,7 +13,7 @@ import {
 Font.registerHyphenationCallback((word) => [word]);
 
 const fmtNum = (n: number) =>
-  n > 0
+  n !== 0
     ? n.toLocaleString("en-IN", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -198,7 +198,7 @@ function KGNDocument({
   signatureImageUrl,
 }: KGNPdfProps) {
   const filled = items.filter(
-    (i) => i.description || i.rate > 0 || i.qty > 0 || i.amount > 0,
+    (i) => i.description || Math.abs(i.rate) > 0 || Math.abs(i.qty) > 0 || Math.abs(i.amount) > 0,
   );
   const emptyRows = Math.max(0, EMPTY_ROWS - filled.length);
   const displayDate = fmtDate(date);
@@ -257,7 +257,7 @@ function KGNDocument({
                 {item.description}
               </Text>
               <Text style={[s.td, { width: COL_W[1], textAlign: "center" }]}>
-                {item.qty > 0 ? String(item.qty) : ""}
+                {Math.abs(item.qty) > 0 ? String(item.qty) : ""}
               </Text>
               <Text style={[s.td, { width: COL_W[2], textAlign: "center" }]}>
                 {fmtNum(item.rate)}
@@ -269,7 +269,7 @@ function KGNDocument({
                   { width: COL_W[3], textAlign: "right" },
                 ]}
               >
-                {item.amount > 0 ? fmtNum(item.amount) : ""}
+                {Math.abs(item.amount) > 0 ? fmtNum(item.amount) : ""}
               </Text>
             </View>
           ))}

@@ -71,15 +71,22 @@ export function KGNTemplate({
               )}
             </div>
             {isReadOnly ? (
-              <div className="w-full text-[12px] md:text-[15px] text-gray-700 py-1">
+              <div className="w-full text-[12px] md:text-[15px] text-gray-700 py-1 whitespace-pre-wrap break-words">
                 {clientBranch || "—"}
               </div>
             ) : (
-              <input
+              <textarea
                 value={clientBranch}
-                onChange={(e) => setClientBranch?.(e.target.value)}
+                onChange={(e) => {
+                  setClientBranch?.(e.target.value);
+                  autoResize(e.target);
+                }}
+                ref={(el) => {
+                  if (el && clientBranch) autoResize(el);
+                }}
+                rows={1}
                 placeholder="Branch"
-                className="w-full text-[12px] md:text-[15px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300"
+                className="w-full max-w-[18rem] text-[12px] md:text-[15px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.4]"
               />
             )}
           </div>
@@ -100,9 +107,9 @@ export function KGNTemplate({
         <div className="px-4 md:px-8 pt-2 pb-3 text-center">
           <span className="text-[12px] md:text-[15px] text-gray-400 mr-1">Sub:</span>
           {isReadOnly ? (
-             <span className="text-[11px] md:text-[13px] font-semibold text-gray-800 py-0.5">
-               {subject || "—"}
-             </span>
+            <span className="text-[11px] md:text-[13px] font-semibold text-gray-800 py-0.5">
+              {subject || "—"}
+            </span>
           ) : (
             <input
               value={subject}
@@ -199,7 +206,7 @@ export function KGNTemplate({
                   <td className="border-x border-gray-800 px-1 py-0">
                     {isReadOnly ? (
                       <div className="w-full py-2 text-right text-[9px] md:text-[12px] font-semibold text-gray-800 pr-2">
-                         {item.amount ? formatINR(item.amount) : ""}
+                        {item.amount ? formatINR(item.amount) : ""}
                       </div>
                     ) : (
                       <input
@@ -257,7 +264,7 @@ export function KGNTemplate({
                     </span>
                     {isReadOnly ? (
                       <span className="flex-1 text-[9px] md:text-[11px] text-gray-700 py-0">
-                         {val || "—"}
+                        {val || "—"}
                       </span>
                     ) : (
                       <input

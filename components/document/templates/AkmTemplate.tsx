@@ -65,18 +65,20 @@ export function AKMTemplate({
             list="client-names"
             className="w-full md:text-[14px] text-[10px] font-bold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 placeholder:font-normal"
           />
-          <datalist id="client-names">
-            {clients.map((c) => (
-              <option key={c.id} value={c.name} />
-            ))}
-          </datalist>
         </div>
         <div className="mb-3">
-          <input
+          <textarea
             value={clientBranch}
-            onChange={(e) => setClientBranch(e.target.value)}
+            onChange={(e) => {
+              setClientBranch(e.target.value);
+              autoResize(e.target);
+            }}
+            ref={(el) => {
+              if (el && clientBranch) autoResize(el);
+            }}
+            rows={1}
             placeholder="Branch"
-            className="w-full md:text-[13px] text-[10px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300"
+            className="w-full  max-w-[18rem] md:text-[13px] text-[10px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.4]"
           />
         </div>
         <div className="mb-4">

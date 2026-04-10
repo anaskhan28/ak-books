@@ -40,11 +40,18 @@ export function MadhuTemplate({
               ))}
             </datalist>
           </div>
-          <input
+          <textarea
             value={clientBranch}
-            onChange={(e) => setClientBranch(e.target.value)}
+            onChange={(e) => {
+              setClientBranch(e.target.value);
+              autoResize(e.target);
+            }}
+            ref={(el) => {
+              if (el && clientBranch) autoResize(el);
+            }}
+            rows={1}
             placeholder="Branch / Address"
-            className="w-full text-[11px] md:text-[13px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300"
+            className="w-full max-w-[18rem] text-[11px] md:text-[13px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.4]"
           />
         </div>
         <div className="flex flex-row justiy-end items-center">

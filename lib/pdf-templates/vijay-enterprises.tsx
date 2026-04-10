@@ -138,7 +138,7 @@ function VijayDoc({
   signatureImageUrl,
 }: VijayPdfProps) {
   const filled = items.filter(
-    (i) => i.description.trim() || i.amount > 0 || i.qty > 0 || i.rate > 0,
+    (i) => i.description.trim() || Math.abs(i.amount) > 0 || Math.abs(i.qty) > 0 || Math.abs(i.rate) > 0,
   );
   const displayDate = fmtDate(date);
   const subjectLabel = subject || "Quotation for work";
