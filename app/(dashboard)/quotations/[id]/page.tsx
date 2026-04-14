@@ -9,9 +9,14 @@ export default async function QuotationDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const quotation = await getQuotation(Number(id));
+
+  // Parallel fetch: quotation + clients at the same time
+  const [quotation, clients] = await Promise.all([
+    getQuotation(Number(id)),
+    getClients(),
+  ]);
+
   if (!quotation) notFound();
 
-  const clients = await getClients();
   return <QuotationDetailClient quotation={quotation} clients={clients} />;
 }

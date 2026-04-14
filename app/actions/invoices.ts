@@ -15,7 +15,7 @@ import {
 import { eq, sql, desc, like } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-// ── Shared helpers ───────────────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 async function resolveTemplateName(templateId: number | null) {
   if (!templateId) return null;
@@ -69,9 +69,9 @@ export async function getInvoices() {
       quotationId: invoices.quotationId,
       quotationNumber: quotations.quotationNumber,
       clientName: clients.name,
-      clientBranch: invoices.clientBranch, // added
+      clientBranch: invoices.clientBranch,
       invoiceNumber: invoices.invoiceNumber,
-      invoiceDate: invoices.invoiceDate,   // added
+      invoiceDate: invoices.invoiceDate,
       totalAmount: invoices.totalAmount,
       status: invoices.status,
       dueDate: invoices.dueDate,
@@ -87,46 +87,48 @@ export async function getInvoices() {
     .orderBy(desc(invoices.createdAt));
 }
 
+/** Single optimized fetch: invoice + items + payments + template in parallel */
 export async function getInvoice(id: number) {
-  const [row] = await db
-    .select({
-      id: invoices.id,
-      quotationId: invoices.quotationId,
-      templateId: invoices.templateId,
-      quotationNumber: quotations.quotationNumber,
-      clientId: invoices.clientId,
-      clientName: clients.name,
-      clientPhone: clients.phone,
-      clientEmail: clients.email,
-      clientAddress: clients.address,
-      invoiceNumber: invoices.invoiceNumber,
-      clientBranch: invoices.clientBranch,
-      subject: invoices.subject,
-      totalAmount: invoices.totalAmount,
-      status: invoices.status,
-      dueDate: invoices.dueDate,
-      invoiceDate: invoices.invoiceDate,
-      notes: invoices.notes,
-      accountBankName: invoices.accountBankName,
-      accountNumber: invoices.accountNumber,
-      accountIfsc: invoices.accountIfsc,
-      accountHolder: invoices.accountHolder,
-      accountPan: invoices.accountPan,
-      createdAt: invoices.createdAt,
-    })
-    .from(invoices)
-    .leftJoin(quotations, eq(invoices.quotationId, quotations.id))
-    .leftJoin(clients, eq(invoices.clientId, clients.id))
-    .where(eq(invoices.id, id));
-
-  if (!row) return null;
-
-  const [items, invoicePayments] = await Promise.all([
+  // Batch: core row + items + payments in one Promise.all
+  const [rows, items, invoicePayments] = await Promise.all([
+    db
+      .select({
+        id: invoices.id,
+        quotationId: invoices.quotationId,
+        templateId: invoices.templateId,
+        quotationNumber: quotations.quotationNumber,
+        clientId: invoices.clientId,
+        clientName: clients.name,
+        clientPhone: clients.phone,
+        clientEmail: clients.email,
+        clientAddress: clients.address,
+        invoiceNumber: invoices.invoiceNumber,
+        clientBranch: invoices.clientBranch,
+        subject: invoices.subject,
+        totalAmount: invoices.totalAmount,
+        status: invoices.status,
+        dueDate: invoices.dueDate,
+        invoiceDate: invoices.invoiceDate,
+        notes: invoices.notes,
+        accountBankName: invoices.accountBankName,
+        accountNumber: invoices.accountNumber,
+        accountIfsc: invoices.accountIfsc,
+        accountHolder: invoices.accountHolder,
+        accountPan: invoices.accountPan,
+        createdAt: invoices.createdAt,
+      })
+      .from(invoices)
+      .leftJoin(quotations, eq(invoices.quotationId, quotations.id))
+      .leftJoin(clients, eq(invoices.clientId, clients.id))
+      .where(eq(invoices.id, id)),
     db.select().from(invoiceItems).where(eq(invoiceItems.invoiceId, id)),
     db.select().from(payments).where(eq(payments.invoiceId, id)),
   ]);
 
-  // Resolve template: invoice's own templateId → quotation's templateId
+  const row = rows[0];
+  if (!row) return null;
+
+  // Resolve template: invoice's own → quotation's → null
   let tplId = row.templateId;
   if (!tplId && row.quotationId) {
     const [qt] = await db
@@ -147,9 +149,8 @@ export async function getInvoice(id: number) {
 
 // ── Mutations ────────────────────────────────────────────────────────────────
 
-/** Create a standalone invoice (not linked to a quotation) */
 export async function createInvoice(
-  data: Omit<NewInvoice, "invoiceNumber"> & { 
+  data: Omit<NewInvoice, "invoiceNumber"> & {
     invoiceNumber?: string;
     invoiceDate?: string;
   },
@@ -165,13 +166,13 @@ export async function createInvoice(
 
   const [invoice] = await db
     .insert(invoices)
-    .values({ 
-      ...data, 
+    .values({
+      ...data,
       templateId: data.templateId as number | null,
-      invoiceNumber: data.invoiceNumber || invoiceNumber, 
-      totalAmount, 
-      invoiceDate: data.invoiceDate || today, 
-      dueDate 
+      invoiceNumber: data.invoiceNumber || invoiceNumber,
+      totalAmount,
+      invoiceDate: data.invoiceDate || today,
+      dueDate,
     })
     .returning();
 
@@ -180,19 +181,22 @@ export async function createInvoice(
   return invoice;
 }
 
-/** Generate an invoice from an existing quotation */
 export async function generateInvoice(quotationId: number) {
   const [quotation] = await db.select().from(quotations).where(eq(quotations.id, quotationId));
   if (!quotation) throw new Error("Quotation not found");
 
-  const qtItems = await db.select().from(quotationItems).where(eq(quotationItems.quotationId, quotationId));
+  const [qtItems, tplName] = await Promise.all([
+    db.select().from(quotationItems).where(eq(quotationItems.quotationId, quotationId)),
+    resolveTemplateName(quotation.templateId),
+  ]);
 
-  const tplName = await resolveTemplateName(quotation.templateId);
   const { getTemplateConfig } = await import("@/lib/pdf-templates/registry");
   const cfg = getTemplateConfig(tplName);
 
-  const invoiceNumber = await generateInvoiceNumber(cfg.invoicePrefix);
-  const { today, dueDate } = todayAndDueDate();
+  const [invoiceNumber, dates] = await Promise.all([
+    generateInvoiceNumber(cfg.invoicePrefix),
+    Promise.resolve(todayAndDueDate()),
+  ]);
 
   const [invoice] = await db
     .insert(invoices)
@@ -204,8 +208,8 @@ export async function generateInvoice(quotationId: number) {
       clientBranch: quotation.clientBranch,
       subject: quotation.subject,
       totalAmount: quotation.totalAmount,
-      invoiceDate: today,
-      dueDate,
+      invoiceDate: dates.today,
+      dueDate: dates.dueDate,
       notes: quotation.notes,
       accountBankName: cfg.bank.bankName,
       accountNumber: cfg.bank.accountNumber,
@@ -215,14 +219,16 @@ export async function generateInvoice(quotationId: number) {
     })
     .returning();
 
-  await insertItems(
-    invoice.id,
-    qtItems.map(({ description, quantity, rate, taxed, amount }) => ({
-      description, quantity, rate, taxed, amount,
-    })),
-  );
+  await Promise.all([
+    insertItems(
+      invoice.id,
+      qtItems.map(({ description, quantity, rate, taxed, amount }) => ({
+        description, quantity, rate, taxed, amount,
+      })),
+    ),
+    db.update(quotations).set({ status: "invoiced" }).where(eq(quotations.id, quotationId)),
+  ]);
 
-  await db.update(quotations).set({ status: "invoiced" }).where(eq(quotations.id, quotationId));
   revalidateInvoices();
   revalidatePath("/quotations");
   return invoice;
@@ -235,8 +241,10 @@ export async function updateInvoice(
 ) {
   if (items) {
     const totalAmount = items.reduce((s, i) => s + i.amount, 0);
-    await db.update(invoices).set({ ...data, totalAmount }).where(eq(invoices.id, id));
-    await db.delete(invoiceItems).where(eq(invoiceItems.invoiceId, id));
+    await Promise.all([
+      db.update(invoices).set({ ...data, totalAmount }).where(eq(invoices.id, id)),
+      db.delete(invoiceItems).where(eq(invoiceItems.invoiceId, id)),
+    ]);
     await insertItems(id, items);
   } else {
     await db.update(invoices).set(data).where(eq(invoices.id, id));
@@ -258,47 +266,24 @@ export async function cloneInvoice(id: number) {
   const original = await getInvoice(id);
   if (!original) throw new Error("Invoice not found");
 
-  const { 
-    templateId, 
-    clientId, 
-    quotationId,
-    subject, 
-    clientBranch, 
-    totalAmount, 
-    notes,
-    accountBankName,
-    accountNumber,
-    accountIfsc,
-    accountHolder,
-    accountPan
-  } = original;
-
-  const clonedItems = original.items.map((i) => ({
-    description: i.description,
-    quantity: i.quantity,
-    rate: i.rate,
-    taxed: i.taxed,
-    amount: i.amount,
-  }));
-
-  const cloned = await createInvoice(
+  return createInvoice(
     {
-      templateId,
-      clientId,
-      quotationId,
-      subject: subject ? `${subject} (Copy)` : null,
-      clientBranch,
-      totalAmount,
+      templateId: original.templateId,
+      clientId: original.clientId,
+      quotationId: original.quotationId,
+      subject: original.subject ? `${original.subject} (Copy)` : null,
+      clientBranch: original.clientBranch,
+      totalAmount: original.totalAmount,
       status: "unpaid",
-      notes,
-      accountBankName,
-      accountNumber,
-      accountIfsc,
-      accountHolder,
-      accountPan
+      notes: original.notes,
+      accountBankName: original.accountBankName,
+      accountNumber: original.accountNumber,
+      accountIfsc: original.accountIfsc,
+      accountHolder: original.accountHolder,
+      accountPan: original.accountPan,
     },
-    clonedItems
+    original.items.map(({ description, quantity, rate, taxed, amount }) => ({
+      description, quantity, rate, taxed, amount,
+    })),
   );
-
-  return cloned;
 }
