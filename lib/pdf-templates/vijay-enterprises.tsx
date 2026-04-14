@@ -74,7 +74,7 @@ const s = StyleSheet.create({
 
   // Client block — no "To," label (matching image 1)
   clientName: { fontSize: 18, fontFamily: "Times-Roman", marginBottom: 2 },
-  clientBranch: { fontSize: 18, fontFamily: "Times-Roman", marginBottom: 12 },
+  clientBranch: { fontSize: 18, fontFamily: "Times-Roman", marginBottom: 12, maxWidth: 110 },
 
   // Subject — left aligned, normal weight (not bold)
   subLine: { marginBottom: 12 },
@@ -184,9 +184,23 @@ function VijayDoc({
               const desc = item.description.trim();
               if (!desc) return null;
               return (
-                <Text key={idx} style={s.itemPara}>
-                  {desc}
-                </Text>
+                <View key={idx} style={{ marginBottom: filled.length > 1 ? 15 : 10 }}>
+                  <Text style={s.itemPara}>
+                    {desc}
+                  </Text>
+                  {filled.length > 1 && (
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        fontFamily: "Times-Roman",
+                        textAlign: "left",
+                        marginTop: 1,
+                      }}
+                    >
+                      The amount would be: {fmtINR0(item.amount)}
+                    </Text>
+                  )}
+                </View>
               );
             })}
           </View>

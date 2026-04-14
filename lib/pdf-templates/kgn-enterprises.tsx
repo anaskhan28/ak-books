@@ -103,7 +103,7 @@ const s = StyleSheet.create({
     marginBottom: 2,
   },
   clientName: { fontSize: 10, color: "#111" },
-  clientBranch: { fontSize: 10, color: "#111", marginTop: 1 },
+  clientBranch: { fontSize: 10, color: "#111", marginTop: 1, maxWidth: 110 },
   dateText: { fontSize: 10, color: "#111" },
   subjectWrap: {
     paddingVertical: 4,

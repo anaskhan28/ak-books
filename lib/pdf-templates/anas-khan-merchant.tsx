@@ -17,9 +17,9 @@ const RED = "#c0392b";
 const fmtNum = (n: number) =>
   n !== 0
     ? n.toLocaleString("en-IN", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
     : "";
 
 const fmtINR = (n: number) => `Rs.${n.toLocaleString("en-IN")}`;
@@ -105,7 +105,7 @@ const s = StyleSheet.create({
 
   clientSection: { paddingHorizontal: 40, paddingTop: 6 },
   clientName: { fontSize: 10, fontWeight: 700, color: "#111", marginBottom: 3 },
-  clientBranch: { fontSize: 10, color: "#555", marginBottom: 6 },
+  clientBranch: { fontSize: 10, color: "#555", marginBottom: 6, maxWidth: 110 },
   subjectLine: { fontSize: 10, color: "#333", marginBottom: 12, marginTop: 8 },
   subjectVal: { fontWeight: 700, color: "#222" },
 

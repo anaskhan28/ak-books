@@ -74,7 +74,7 @@ const s = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 10,
   },
-  toBlock: { fontSize: 10, color: "#111" },
+  toBlock: { fontSize: 10, color: "#111", maxWidth: 110 },
   clientName: { fontFamily: "Helvetica-Bold", fontSize: 10 },
   dateText: { fontSize: 10, color: "#111" },
 

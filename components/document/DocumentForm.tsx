@@ -15,7 +15,7 @@ import {
   FileText,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn, formatINR, generateId } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -33,7 +33,6 @@ import {
 import { getClients } from "@/app/actions/clients";
 import { getTemplates } from "@/app/actions/templates";
 import { getNextDocumentNumber } from "@/app/actions/quotations";
-import { formatINR } from "@/lib/utils";
 import { getTemplateConfig } from "@/lib/pdf-templates/registry";
 import type { Client, QuotationTemplate } from "@/app/db/schema";
 
@@ -59,6 +58,7 @@ export interface DocumentFormValues {
   expiryDate: string;
   subject: string;
   items: LineItem[];
+  status: string;
   notes: string;
   terms: string;
   // account (invoice)
@@ -72,6 +72,7 @@ export interface DocumentFormValues {
 interface DocumentFormProps {
   mode: DocumentMode;
   initialValues?: Partial<DocumentFormValues>;
+  isEdit?: boolean;
   onSave: (values: DocumentFormValues, subtotal: number) => Promise<void>;
   backHref: string;
   backLabel: string;
@@ -79,12 +80,9 @@ interface DocumentFormProps {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function uid() {
-  return Math.random().toString(36).slice(2, 9);
-}
 
 function emptyItem(): LineItem {
-  return { id: uid(), description: "", qty: 1, rate: 0, hsn: "", amount: 0 };
+  return { id: generateId(), description: "", qty: 1, rate: 0, hsn: "", amount: 0 };
 }
 
 function today() {
@@ -186,7 +184,7 @@ function ZohoDatePicker({
         <Button
           variant="outline"
           className={cn(
-            "w-full justify-start text-left font-normal px-3 py-2 text-[14px] border-border rounded-xl h-auto hover:bg-transparent",
+            "w-full max-w-[16rem] justify-start text-left font-normal px-3 py-2 text-[14px] border-border rounded-xl h-auto hover:bg-transparent",
             !value && "text-muted-foreground/40"
           )}
         >
@@ -211,6 +209,7 @@ function ZohoDatePicker({
 export function DocumentForm({
   mode,
   initialValues,
+  isEdit,
   onSave,
   backHref,
   backLabel,
@@ -234,14 +233,15 @@ export function DocumentForm({
   const [date, setDate] = useState(initialValues?.date ?? today());
   const [expiryDate, setExpiryDate] = useState(initialValues?.expiryDate ?? "");
   const [subject, setSubject] = useState(initialValues?.subject ?? "");
+  const [status, setStatus] = useState(initialValues?.status ?? (isInvoice ? "unpaid" : "draft"));
   const [items, setItems] = useState<LineItem[]>(
     initialValues?.items?.length ? initialValues.items : [emptyItem()],
   );
   const [notes, setNotes] = useState(
     initialValues?.notes ??
-      (isInvoice
-        ? "Thanks for your business."
-        : "Looking forward for your business."),
+    (isInvoice
+      ? "Thanks for your business."
+      : "Looking forward for your business."),
   );
   const [terms, setTerms] = useState(initialValues?.terms ?? "");
   const [accountBankName, setAccountBankName] = useState(
@@ -269,7 +269,7 @@ export function DocumentForm({
   useEffect(() => {
     const tpl = templates.find((t) => t.id === templateId);
     if (!tpl) return;
-    
+
     // Fetch next number only if it's a new document or the template has changed
     const isInitialTemplate = templateId === initialValues?.templateId;
     const hasInitialNumber = !!initialValues?.docNumber;
@@ -325,10 +325,11 @@ export function DocumentForm({
       prev.length > 1 ? prev.filter((i) => i.id !== id) : prev,
     );
 
-  async function handleSave() {
+  async function handleSave(forcedStatus?: string) {
     if (!clientName.trim()) return;
     setSaving(true);
     const clientId = clients.find((c) => c.name === clientName)?.id;
+    const finalStatus = forcedStatus || status;
     try {
       await onSave(
         {
@@ -340,6 +341,7 @@ export function DocumentForm({
           expiryDate,
           subject,
           items,
+          status: finalStatus,
           notes,
           terms,
           accountBankName,
@@ -369,19 +371,42 @@ export function DocumentForm({
               <FileText size={18} className="text-muted-foreground" />
             </span>
             <h1 className="text-[14px] md:text-[16px] font-semibold text-foreground">
-              {isInvoice ? "New Invoice" : "New Quote"}
+              {isEdit 
+                ? (isInvoice ? "Edit Invoice" : "Edit Quote") 
+                : (isInvoice ? "New Invoice" : "New Quote")}
             </h1>
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
-            <button
-              onClick={handleSave}
-              disabled={saving || !clientName.trim()}
-              className="px-4 md:px-6 py-2 bg-primary text-white rounded-xl text-[13px] font-medium
-                hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-40 shadow-sm"
-            >
-              {saving ? "Saving…" : "Save"}
-            </button>
+            {!isEdit ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleSave(isInvoice ? "unpaid" : "draft")}
+                  disabled={saving || !clientName.trim()}
+                  className="px-3 md:px-4 py-2 bg-white border border-border text-foreground rounded-xl text-[13px] font-medium
+                    hover:bg-slate-50 active:scale-[0.98] transition-all disabled:opacity-40"
+                >
+                  Draft
+                </button>
+                <button
+                  onClick={() => handleSave(isInvoice ? "unpaid" : "sent")}
+                  disabled={saving || !clientName.trim()}
+                  className="px-4 md:px-6 py-2 bg-primary text-white rounded-xl text-[13px] font-medium
+                    hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-40 shadow-sm"
+                >
+                  {isInvoice ? "Save" : "Send"}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => handleSave()}
+                disabled={saving || !clientName.trim()}
+                className="px-4 md:px-6 py-2 bg-primary text-white rounded-xl text-[13px] font-medium
+                  hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-40 shadow-sm"
+              >
+                {saving ? "Saving…" : "Save"}
+              </button>
+            )}
             <Link
               href={backHref}
               className="p-1.5 hover:bg-slate-50 rounded-full text-muted-foreground hover:text-destructive transition-all"
@@ -425,7 +450,7 @@ export function DocumentForm({
               rows={1}
               className="w-full px-3 py-2 text-[14px] text-foreground bg-white border border-border rounded-xl
                 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary
-                placeholder:text-muted-foreground/30 transition-all shadow-sm resize-none"
+                placeholder:text-muted-foreground/30 transition-all  resize-none"
               onInput={(e) => {
                 const target = e.target as HTMLTextAreaElement;
                 target.style.height = "auto";
@@ -435,9 +460,9 @@ export function DocumentForm({
           </FieldRow>
 
           <FieldRow label="Template" required>
-            <Select 
-               value={templateId?.toString() ?? ""} 
-               onValueChange={(val) => setTemplateId(val ? Number(val) : null)}
+            <Select
+              value={templateId?.toString() ?? ""}
+              onValueChange={(val) => setTemplateId(val ? Number(val) : null)}
             >
               <SelectTrigger className="w-full px-3 py-2 h-auto text-[14px] border-border rounded-xl bg-white">
                 <SelectValue placeholder="Select a template" />
@@ -455,8 +480,8 @@ export function DocumentForm({
 
         {/* Details Section */}
         <section className="space-y-1">
-          <FieldRow 
-            label={isInvoice ? "Invoice#" : "Quote#"} 
+          <FieldRow
+            label={isInvoice ? "Invoice#" : "Quote#"}
             required
             info="Automatic numbering is enabled"
           >
@@ -469,15 +494,15 @@ export function DocumentForm({
           </FieldRow>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
-             <FieldRow label={isInvoice ? "Invoice Date" : "Quote Date"} required className="border-0">
-                <ZohoDatePicker value={date} onChange={setDate} />
-             </FieldRow>
-             <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 py-3">
-                <label className="text-[13px] text-gray-500 font-medium md:min-w-[100px] md:text-right">
-                  {isInvoice ? "Due Date" : "Expiry Date"}
-                </label>
-                <ZohoDatePicker value={expiryDate} onChange={setExpiryDate} />
-             </div>
+            <FieldRow label={isInvoice ? "Invoice Date" : "Quote Date"} required className="border-0">
+              <ZohoDatePicker value={date} onChange={setDate} />
+            </FieldRow>
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 py-3">
+              <label className="text-[13px] text-gray-500 font-medium md:min-w-[100px] md:text-right">
+                {isInvoice ? "Due Date" : "Expiry Date"}
+              </label>
+              <ZohoDatePicker value={expiryDate} onChange={setExpiryDate} />
+            </div>
           </div>
 
           <FieldRow label="Subject">
@@ -498,8 +523,8 @@ export function DocumentForm({
           <div className="flex items-center justify-between">
             <h2 className="text-[14px] font-bold text-gray-700">Item Table</h2>
             <button className="text-primary text-[13px] font-medium flex items-center gap-1.5 hover:bg-primary/5 px-3 py-1 rounded-full transition-all">
-               <span className="w-4 h-4 flex items-center justify-center border border-primary rounded-full text-[10px] pb-0.5">✓</span>
-               <span className="hidden sm:inline">Bulk Actions</span>
+              <span className="w-4 h-4 flex items-center justify-center border border-primary rounded-full text-[10px] pb-0.5">✓</span>
+              <span className="hidden sm:inline">Bulk Actions</span>
             </button>
           </div>
 
@@ -538,7 +563,7 @@ export function DocumentForm({
                       <td className="text-center text-slate-300">
                         <GripVertical size={14} className="mx-auto" />
                       </td>
-                      
+
                       <td className="p-0 border-r border-border">
                         <textarea
                           value={item.description}
@@ -610,26 +635,26 @@ export function DocumentForm({
           </div>
 
           <div className="flex flex-col md:flex-row items-start justify-between py-6 gap-8">
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={addRow}
-                  className="flex items-center gap-2 px-4 py-2 text-[14px] text-primary font-semibold hover:bg-primary/5 rounded-xl border border-dashed border-primary/30 transition-all active:scale-95"
-                >
-                  <Plus size={16} /> Add New Row
-                </button>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={addRow}
+                className="flex items-center gap-2 px-4 py-2 text-[14px] text-primary font-semibold hover:bg-primary/5 rounded-xl border border-dashed border-primary/30 transition-all active:scale-95"
+              >
+                <Plus size={16} /> Add New Row
+              </button>
+            </div>
+
+            <div className="w-full md:w-[400px] bg-slate-50/50 p-6 rounded-lg border border-border space-y-4">
+              <div className="flex items-center justify-between text-[13px] text-muted-foreground">
+                <span>Sub Total</span>
+                <span className="text-foreground">{formatINR(subtotal)}</span>
               </div>
 
-             <div className="w-full md:w-[400px] bg-slate-50/50 p-6 rounded-lg border border-border space-y-4">
-                <div className="flex items-center justify-between text-[13px] text-muted-foreground">
-                   <span>Sub Total</span>
-                   <span className="text-foreground">{formatINR(subtotal)}</span>
-                </div>
-                
-                <div className="flex items-center justify-between text-[16px] font-bold text-foreground pt-4 border-t border-border">
-                   <span>Total (₹)</span>
-                   <span className="text-primary">{formatINR(subtotal)}</span>
-                </div>
-             </div>
+              <div className="flex items-center justify-between text-[16px] font-bold text-foreground pt-4 border-t border-border">
+                <span>Total (₹)</span>
+                <span className="text-foreground">{formatINR(subtotal)}</span>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -651,18 +676,18 @@ export function DocumentForm({
               </div>
             )}
           </div>
-          
+
           <div className="space-y-4">
             <div className="space-y-1.5">
-               <label className="text-[13px] text-gray-600 font-medium">Terms & Conditions</label>
-               <textarea
-                 value={terms}
-                 onChange={(e) => setTerms(e.target.value)}
-                 rows={3}
-                 className="w-full px-3 py-2 text-[14px] text-foreground bg-white border border-border rounded-xl
+              <label className="text-[13px] text-gray-600 font-medium">Terms & Conditions</label>
+              <textarea
+                value={terms}
+                onChange={(e) => setTerms(e.target.value)}
+                rows={3}
+                className="w-full px-3 py-2 text-[14px] text-foreground bg-white border border-border rounded-xl
                    focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary
                    placeholder:text-muted-foreground/30 transition-all shadow-sm"
-               />
+              />
             </div>
           </div>
         </section>
@@ -670,45 +695,45 @@ export function DocumentForm({
         {/* Bank Details section */}
         {(isInvoice || showBank) ? (
           <section className="pt-8 border-t border-border space-y-6">
-             <div className="flex items-center justify-between">
-                <h2 className="text-[13px] font-bold text-muted uppercase tracking-widest">Bank Details</h2>
-                {isInvoice && (
-                  <button onClick={() => setShowBank(!showBank)} className="text-primary text-[12px] hover:underline">
-                    {showBank ? "Hide" : "Show"}
-                  </button>
-                )}
-             </div>
-             
-             {showBank && (
-               <div className="grid grid-cols-1 gap-1 max-w-2xl">
-                 {(
-                   [
-                     ["Bank Name", accountBankName, setAccountBankName],
-                     ["Account Number", accountNumber, setAccountNumber],
-                     ["IFSC Code", accountIfsc, setAccountIfsc],
-                     ["Account Holder", accountHolder, setAccountHolder],
-                     ["PAN Card No", accountPan, setAccountPan],
-                   ] as const
-                 ).map(([label, val, setter]) => (
-                   <FieldRow key={label} label={label}>
-                     <ZohoInput
-                       value={val}
-                       onChange={(v) => (setter as (v: string) => void)(v)}
-                       placeholder={label}
-                     />
-                   </FieldRow>
-                 ))}
-               </div>
-             )}
+            <div className="flex items-center justify-between">
+              <h2 className="text-[13px] font-bold text-muted uppercase tracking-widest">Bank Details</h2>
+              {isInvoice && (
+                <button onClick={() => setShowBank(!showBank)} className="text-primary text-[12px] hover:underline">
+                  {showBank ? "Hide" : "Show"}
+                </button>
+              )}
+            </div>
+
+            {showBank && (
+              <div className="grid grid-cols-1 gap-1 max-w-2xl">
+                {(
+                  [
+                    ["Bank Name", accountBankName, setAccountBankName],
+                    ["Account Number", accountNumber, setAccountNumber],
+                    ["IFSC Code", accountIfsc, setAccountIfsc],
+                    ["Account Holder", accountHolder, setAccountHolder],
+                    ["PAN Card No", accountPan, setAccountPan],
+                  ] as const
+                ).map(([label, val, setter]) => (
+                  <FieldRow key={label} label={label}>
+                    <ZohoInput
+                      value={val}
+                      onChange={(v) => (setter as (v: string) => void)(v)}
+                      placeholder={label}
+                    />
+                  </FieldRow>
+                ))}
+              </div>
+            )}
           </section>
         ) : (
           <div className="pt-8 flex justify-center">
-             <button
-               onClick={() => setShowBank(true)}
-               className="px-6 py-2 border border-border text-muted-foreground text-[14px] font-medium rounded-xl hover:bg-slate-50 transition-all"
-             >
-               + Add Bank Details
-             </button>
+            <button
+              onClick={() => setShowBank(true)}
+              className="px-6 py-2 border border-border text-muted-foreground text-[14px] font-medium rounded-xl hover:bg-slate-50 transition-all"
+            >
+              + Add Bank Details
+            </button>
           </div>
         )}
       </div>

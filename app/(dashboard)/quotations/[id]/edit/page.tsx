@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { DocumentForm, DocumentFormValues } from "@/components/document/DocumentForm";
 import { getQuotation, updateQuotation } from "@/app/actions/quotations";
+import { generateId } from "@/lib/utils";
 
 export default function EditQuotationPage() {
   const router = useRouter();
@@ -25,9 +26,9 @@ export default function EditQuotationPage() {
         expiryDate: "",
         subject: dbQuotation.subject || "",
         notes: dbQuotation.notes || "",
-        terms: "", // Terms isn't persisted independently
+        terms: dbQuotation.notes || "", // Load notes into terms for templates using that field
         items: dbQuotation.items.map(i => ({
-          id: crypto.randomUUID(),
+          id: generateId(),
           description: i.description,
           qty: i.quantity,
           rate: i.rate,
@@ -55,8 +56,9 @@ export default function EditQuotationPage() {
          quotationNumber: values.docNumber || undefined,
          clientBranch: values.clientBranch || null,
          subject: values.subject || null,
-         notes: values.notes || null,
+         notes: values.terms || values.notes || null, // Map form terms back to DB notes
          quotationDate: values.date,
+         status: values.status,
       },
       values.items.filter((i) => i.description || i.amount > 0).map((i) => ({
          description: i.description,
@@ -81,6 +83,7 @@ export default function EditQuotationPage() {
     <DocumentForm
       mode="quotation"
       initialValues={initialValues}
+      isEdit={true}
       onSave={handleSave}
       backHref={`/quotations/${params.id}`}
       backLabel="Back to Quotation"

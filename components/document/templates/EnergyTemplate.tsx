@@ -47,7 +47,7 @@ export function EnergyTemplate({
             onChange={(e) => setClientName(e.target.value)}
             placeholder="Client Name"
             list="client-names-energy"
-            className="w-full max-w-[18rem] text-[11px] md:text-[13px] font-semibold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 placeholder:font-normal"
+            className="w-full max-w-48 text-[11px] md:text-[13px] font-semibold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 placeholder:font-normal"
           />
           <datalist id="client-names-energy">
             {clients.map((c) => (
@@ -65,7 +65,7 @@ export function EnergyTemplate({
             }}
             rows={1}
             placeholder="Branch / Address"
-            className="w-full text-[10px] md:text-[12px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.4]"
+            className="w-full max-w-[110px] text-[10px] md:text-[12px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 resize-none overflow-y-hidden leading-[1.4]"
           />
         </div>
         <input

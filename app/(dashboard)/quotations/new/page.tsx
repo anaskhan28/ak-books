@@ -44,7 +44,7 @@ function NewQuotationContent() {
         subject: values.subject || null,
         clientBranch: values.clientBranch || null,
         totalAmount: subtotal,
-        status: "draft",
+        status: values.status || "draft",
         notes: values.terms || null,
         quotationDate: values.date,
       },

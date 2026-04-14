@@ -85,7 +85,7 @@ const s = StyleSheet.create({
     color: "#111",
     marginBottom: 2,
   },
-  clientBranch: { fontSize: 13, color: "#111", marginBottom: 2, marginTop: 2 },
+  clientBranch: { fontSize: 13, color: "#111", marginBottom: 2, marginTop: 2, maxWidth: 110 },
 
   // Dear Sir
   dear: { marginTop: 16, marginBottom: 10 },
@@ -213,9 +213,23 @@ function MadhuNeilDoc({
               const desc = item.description.trim();
               if (!desc) return null;
               return (
-                <Text key={idx} style={s.itemPara}>
-                  {desc}
-                </Text>
+                <View key={idx} style={{ marginBottom: filled.length > 1 ? 15 : 8 }}>
+                  <Text style={s.itemPara}>
+                    {desc}
+                  </Text>
+                  {filled.length > 1 && (
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontFamily: "Helvetica-Bold",
+                        textAlign: "left",
+                        marginTop: 1,
+                      }}
+                    >
+                      The amount would be: {fmtINR(item.amount)}
+                    </Text>
+                  )}
+                </View>
               );
             })}
           </View>

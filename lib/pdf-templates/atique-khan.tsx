@@ -84,7 +84,7 @@ const s = StyleSheet.create({
     marginBottom: 1,
   },
   clientName: { fontSize: 11, color: "#222" },
-  clientBranch: { fontSize: 11, color: "#222" },
+  clientBranch: { fontSize: 11, color: "#222", maxWidth: 110 },
   dateText: { fontSize: 11, color: "#222" },
 
   subjectLine: {

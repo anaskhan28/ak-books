@@ -71,7 +71,7 @@ export function KGNTemplate({
               )}
             </div>
             {isReadOnly ? (
-              <div className="w-full text-[12px] md:text-[15px] text-gray-700 py-1 whitespace-pre-wrap break-words">
+              <div className="w-full max-w-[110px] text-[12px] md:text-[15px] text-gray-700 py-1 whitespace-pre-wrap break-words">
                 {clientBranch || "—"}
               </div>
             ) : (
@@ -86,7 +86,7 @@ export function KGNTemplate({
                 }}
                 rows={1}
                 placeholder="Branch"
-                className="w-full max-w-[18rem] text-[12px] md:text-[15px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.4]"
+                className="w-full max-w-[110px] text-[12px] md:text-[15px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 resize-none overflow-y-hidden leading-[1.4]"
               />
             )}
           </div>

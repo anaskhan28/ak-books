@@ -15,9 +15,9 @@ Font.registerHyphenationCallback((word) => [word]);
 const fmtNum = (n: number) =>
   n !== 0
     ? n.toLocaleString("en-IN", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
     : "";
 
 const fmtINR = (n: number) =>
@@ -126,7 +126,7 @@ const s = StyleSheet.create({
     marginBottom: 2,
   },
   clientName: { fontSize: 11, fontWeight: 700, color: "#222" },
-  clientBranch: { fontSize: 10, color: "#222", marginTop: 1 },
+  clientBranch: { fontSize: 10, color: "#222", marginTop: 1, maxWidth: 110 },
   dateText: { fontSize: 10, color: "#222" },
   refText: { fontSize: 9, color: BDR, marginTop: 2 },
 

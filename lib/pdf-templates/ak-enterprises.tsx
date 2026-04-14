@@ -197,7 +197,7 @@ const s = StyleSheet.create({
   },
   addrCellLast: { borderRightWidth: 0 },
   addrHeader: { fontFamily: "Helvetica-Bold", fontSize: 9, marginBottom: 4 },
-  addrLine: { fontSize: 8, color: "#333", lineHeight: 1.4 },
+  addrLine: { fontSize: 8, color: "#333", lineHeight: 1.4, maxWidth: 110 },
 
   // Subject row
   subjectRow: {

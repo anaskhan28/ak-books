@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { DocumentForm, DocumentFormValues } from "@/components/document/DocumentForm";
 import { getInvoice, updateInvoice } from "@/app/actions/invoices";
+import { generateId } from "@/lib/utils";
 
 export default function EditInvoicePage() {
   const router = useRouter();
@@ -25,14 +26,14 @@ export default function EditInvoicePage() {
         expiryDate: "",
         subject: dbInvoice.subject || "",
         notes: dbInvoice.notes || "",
-        terms: "", // Terms isn't persisted independently
+        terms: dbInvoice.notes || "", // Load notes into terms for templates using that field
         accountBankName: dbInvoice.accountBankName || "",
         accountNumber: dbInvoice.accountNumber || "",
         accountIfsc: dbInvoice.accountIfsc || "",
         accountHolder: dbInvoice.accountHolder || "",
         accountPan: dbInvoice.accountPan || "",
         items: dbInvoice.items.map(i => ({
-          id: crypto.randomUUID(),
+          id: generateId(),
           description: i.description,
           qty: i.quantity,
           rate: i.rate,
@@ -60,13 +61,14 @@ export default function EditInvoicePage() {
          invoiceNumber: values.docNumber || undefined,
          clientBranch: values.clientBranch || null,
          subject: values.subject || null,
-         notes: values.notes || null,
+         notes: values.terms || values.notes || null, // Map form terms back to DB notes
          invoiceDate: values.date || undefined,
          accountBankName: values.accountBankName || null,
          accountNumber: values.accountNumber || null,
          accountIfsc: values.accountIfsc || null,
          accountHolder: values.accountHolder || null,
          accountPan: values.accountPan || null,
+         status: values.status,
       },
       values.items.filter((i) => i.description || i.amount > 0).map((i) => ({
          description: i.description,
@@ -91,6 +93,7 @@ export default function EditInvoicePage() {
     <DocumentForm
       mode="invoice"
       initialValues={initialValues}
+      isEdit={true}
       onSave={handleSave}
       backHref={`/invoices/${params.id}`}
       backLabel="Back to Invoice"

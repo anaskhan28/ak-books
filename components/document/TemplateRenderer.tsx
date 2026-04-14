@@ -9,6 +9,7 @@ import { VijayTemplate } from "./templates/VijayTemplate";
 import { AKEnterpriseTemplate } from "./templates/AkEnterprisesTemplate";
 interface TemplateRendererProps extends TemplateProps {
   generator: string;
+
 }
 
 export function TemplateRenderer({

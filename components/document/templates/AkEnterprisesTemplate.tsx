@@ -29,7 +29,7 @@ function AddressBlock({
       <div className="font-semibold">
         {clientName || <span className="text-gray-300">Client Name</span>}
       </div>
-      {clientBranch && <div className="w-full max-w-40 whitespace-pre-wrap break-words">{clientBranch}</div>}
+      {clientBranch && <div className="w-full max-w-[110px] whitespace-pre-wrap break-words">{clientBranch}</div>}
       {clientCity && <div>{clientCity}</div>}
       {clientState && <div>{clientState}</div>}
       <div>India</div>
@@ -168,7 +168,7 @@ export function AKEnterpriseTemplate({
             }}
             rows={1}
             placeholder="Branch / Address"
-            className="w-full max-w-40 text-[9px] md:text-[11px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300 mb-0.5 resize-none overflow-hidden leading-[1.4]"
+            className="w-full max-w-[110px] text-[9px] md:text-[11px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300 mb-0.5 resize-none overflow-y-hidden leading-[1.4]"
           />
           <div className="text-[8px] md:text-[10px] text-gray-400 mt-1">India</div>
           {isInvoice && (
@@ -182,7 +182,7 @@ export function AKEnterpriseTemplate({
           <div className="font-bold text-[9px] md:text-[11px] mb-1 md:mb-2">Consignee To</div>
           <div className="md:hidden">
             <div className="text-[9px] font-semibold">{clientName || "Client Name"}</div>
-            <div className="text-[8px] whitespace-pre-wrap break-words">{clientBranch}</div>
+            <div className="text-[8px] max-w-[110px] whitespace-pre-wrap break-words">{clientBranch}</div>
           </div>
           <div className="hidden md:block">
             <AddressBlock clientName={clientName} clientBranch={clientBranch} />

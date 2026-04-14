@@ -77,7 +77,7 @@ export function VijayTemplate({
           }}
           rows={1}
           placeholder="Branch / Address"
-          className="w-full text-[10px] md:text-[12px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.4]"
+          className="w-full max-w-[110px] text-[10px] md:text-[12px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 resize-none overflow-y-hidden leading-[1.4]"
           style={{ fontFamily: "inherit" }}
         />
       </div>
@@ -99,39 +99,45 @@ export function VijayTemplate({
         className="text-[13px] text-gray-900 mb-4"
         style={{ lineHeight: 1.6 }}
       >
-        {items.map((item, idx) => (
-          <div key={idx} className="mb-3">
-            {idx === 0 && (
-              <>
-                <textarea
-                  value={item.description}
-                  onChange={(e) => {
-                    updateItem(idx, "description", e.target.value);
-                    autoResize(e.target);
-                  }}
-                  rows={15}
-                  placeholder={idx === 0 ? "Write item paragraphs..." : ""}
-                  className="w-full max-w-full md:max-w-xl text-[12px] md:text-[15px] text-gray-800 bg-transparent border-0 focus:outline-none resize-none leading-[1.5] overflow-hidden"
-                />
-              </>
-            )}
-            {idx === 0 && (
+        {items
+          .filter((item) => item.description.trim() || item.amount > 0)
+          .map((item, idx, filtered) => (
+            <div key={idx} className="mb-6 last:mb-0">
+              <textarea
+                value={item.description}
+                onChange={(e) => {
+                  updateItem(idx, "description", e.target.value);
+                  autoResize(e.target);
+                }}
+                rows={5}
+                placeholder="Write item paragraphs..."
+                className="w-full max-w-full md:max-w-xl text-[12px] md:text-[15px] text-gray-800 bg-transparent border-0 focus:outline-none resize-none leading-[1.5] overflow-hidden"
+                ref={(el) => {
+                  if (el) autoResize(el);
+                }}
+              />
               <div className="flex justify-end items-center gap-2 mt-1">
-                <label className="text-[15px] text-gray-900">Amount:</label>
-                <button className="bg-green-400 rounded-md px-2">
+                <label className="text-[13px] md:text-[15px] text-gray-600">
+                  {filtered.length > 1
+                    ? "The amount would be:"
+                    : "Amount:"}
+                </label>
+                <div className="bg-green-400 rounded-md px-2 flex items-center h-8">
+                  <span className="text-white text-[13px] md:text-[15px] mr-1">
+                    ₹
+                  </span>
                   <input
                     type="number"
                     min={0}
                     value={item.amount || ""}
                     onChange={(e) => updateItem(idx, "amount", e.target.value)}
-                    className={`${inputCls} text-[15px] text-right font-semibold max-w-[90px]  `}
-                    placeholder="Amount"
+                    className="bg-transparent text-[13px] md:text-[15px] text-white font-semibold w-[80px] focus:outline-none text-right"
+                    placeholder="0.00"
                   />
-                </button>
+                </div>
               </div>
-            )}
-          </div>
-        ))}
+            </div>
+          ))}
       </div>
 
       {/* Total — centered */}

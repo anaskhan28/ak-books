@@ -78,7 +78,7 @@ export function AKMTemplate({
             }}
             rows={1}
             placeholder="Branch"
-            className="w-full  max-w-[18rem] md:text-[13px] text-[10px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.4]"
+            className="w-full  max-w-[110px] md:text-[13px] text-[10px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-1 placeholder:text-gray-300 resize-none overflow-y-hidden leading-[1.4]"
           />
         </div>
         <div className="mb-4">
