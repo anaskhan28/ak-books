@@ -335,7 +335,20 @@ export const quotationTemplates = pgTable("quotation_templates", {
   phone: text("phone"),
   email: text("email"),
   subjectPrefix: text("subject_prefix"),
+  invoicePrefix: text("invoice_prefix"),
   terms: text("terms"),
+  // Customization
+  headerImage: text("header_image"),
+  signatureImage: text("signature_image"),
+  primaryColor: text("primary_color"),
+  secondaryColor: text("secondary_color"),
+  layoutPreset: text("layout_preset"), // to store if it follows an existing design like 'akm', 'kgn', etc
+  // Bank details
+  bankName: text("bank_name"),
+  accountNumber: text("account_number"),
+  ifsc: text("ifsc"),
+  accountHolder: text("account_holder"),
+  pan: text("pan"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 export type QuotationTemplate = typeof quotationTemplates.$inferSelect;

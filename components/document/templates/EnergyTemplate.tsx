@@ -33,11 +33,17 @@ export function EnergyTemplate({
   signatureImage,
   formatINR,
   inputCls,
+  headerImage,
 }: TemplateProps) {
   const title = mode === "quotation" ? "Shifting Quotation" : "Invoice Bill";
 
   return (
     <div className="px-4 md:px-8 pt-4 pb-0">
+      {headerImage && (
+        <div className="w-full mb-6 -mt-3">
+          <img src={headerImage} alt="Header" className="w-full object-cover rounded" />
+        </div>
+      )}
       {/* To + Date row */}
       <div className="flex justify-between items-start mb-6">
         <div className="flex-1 pr-4">

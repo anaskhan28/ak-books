@@ -14,6 +14,7 @@ type Quotation = {
   quotationDate: string | null;
   subject: string | null;
   notes: string | null;
+  status: string;
   createdAt: Date;
   items: { description: string; quantity: number; rate: number; taxed: string | null; amount: number }[];
 };
@@ -35,6 +36,7 @@ export default function EditQuotationClient({ quotation }: Props) {
     subject: quotation.subject || "",
     notes: quotation.notes || "",
     terms: quotation.notes || "",
+    status: quotation.status,
     items: quotation.items.map((i) => ({
       id: generateId(),
       description: i.description,

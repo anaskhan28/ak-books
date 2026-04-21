@@ -69,6 +69,7 @@ export function AKEnterpriseTemplate({
   signatureImage,
   formatINR,
   inputCls,
+  headerImage,
 }: TemplateProps) {
   // GST calc for invoice
   const gstRate = 18;
@@ -80,6 +81,11 @@ export function AKEnterpriseTemplate({
 
   return (
     <div className="text-[11px] text-gray-800">
+      {headerImage && (
+        <div className="w-full">
+          <img src={headerImage} alt="Header" className="w-full object-cover" />
+        </div>
+      )}
       {/* ── Company info box + doc title ── */}
       <div className={`flex justify-between items-start p-3 mx-0 md:mx-5 mt-3 ${BDR}`}>
         <div className="flex flex-col gap-1">

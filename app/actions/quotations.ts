@@ -94,17 +94,17 @@ export async function getQuotation(id: number) {
 // ── Number generation ────────────────────────────────────────────────────────
 
 export async function getNextDocumentNumber(templateId: number | null, isInvoice: boolean) {
-  let templateName: string | null = null;
+  let dbTemplate = null;
   if (templateId) {
     const [row] = await db
-      .select({ name: quotationTemplates.name })
+      .select()
       .from(quotationTemplates)
       .where(eq(quotationTemplates.id, templateId));
-    templateName = row?.name ?? null;
+    dbTemplate = row ?? null;
   }
 
   const { getTemplateConfig } = await import("@/lib/pdf-templates/registry");
-  const cfg = getTemplateConfig(templateName);
+  const cfg = getTemplateConfig(dbTemplate?.name, dbTemplate);
   const prefix = isInvoice ? cfg.invoicePrefix : cfg.prefix;
 
   const existing = await db

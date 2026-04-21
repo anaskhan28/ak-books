@@ -33,11 +33,17 @@ export function ATKTemplate({
   signatureImage,
   formatINR,
   inputCls,
+  headerImage,
 }: TemplateProps) {
   const title = mode === "quotation" ? "Quotation" : "Invoice Bill";
 
   return (
     <>
+      {headerImage && (
+        <div className="w-full mb-4">
+          <img src={headerImage} alt="Header" className="w-full object-cover rounded" />
+        </div>
+      )}
       <div className="px-4 md:px-8 pt-3">
         <div className="border-t border-gray-800" />
         <h2 className="text-center text-[14px] md:text-[20px] italic font-normal text-gray-800 py-1 font-serif leading-tight">

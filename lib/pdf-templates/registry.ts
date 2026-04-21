@@ -21,146 +21,133 @@ export interface TemplateConfig {
   prefix: string;
   invoicePrefix: string;
   bank: BankDefaults;
+  displayName: string;
+  primaryColor?: string;
+  secondaryColor?: string;
 }
 
-const TEMPLATES: Record<string, TemplateConfig> = {
-  "anas khan merchant": {
-    headerImage: "/templates/anaskhanmerchant.png",
-    signatureImage: "/templates/anas-sign.png",
+import type { QuotationTemplate } from "@/app/db/schema";
+
+/**
+ * These are "Design Engines". 
+ * They define the visual structure and default assets.
+ * All specific business data comes from the Database.
+ */
+const PRESETS: Record<string, TemplateConfig> = {
+  "akm": {
+    displayName: "Anas Khan Merchant (Bold)",
+    headerImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784326/templates/anaskhanmerchant.png",
+    signatureImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784325/templates/anas-sign.png",
     generator: "akm",
-    prefix: "QT-AKM",
-    invoicePrefix: "INV-AKM",
-    bank: {
-      bankName: "State Bank of India",
-      accountNumber: "41447171789",
-      ifsc: "SBIN0014748",
-      accountHolder: "Mohammed Anas Atique Khan",
-      pan: "LLTPK1955R",
-    },
+    prefix: "QT-",
+    invoicePrefix: "INV-",
+    bank: { bankName: "", accountNumber: "", ifsc: "", accountHolder: "", pan: "" },
   },
-  "atique khan": {
-    headerImage: "/templates/atiquekhan.jpg",
-    signatureImage: "/templates/atique-sign.jpg",
+  "atk": {
+    displayName: "Atique Khan (Clean)",
+    headerImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784329/templates/atiquekhan.jpg",
+    signatureImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784328/templates/atique-sign.jpg",
     generator: "atk",
-    prefix: "QT-ATK",
-    invoicePrefix: "INV-ATK",
-    bank: {
-      bankName: "Canara Bank",
-      accountNumber: "5079101002721",
-      ifsc: "CNRB0005079",
-      accountHolder: "Atique Mobin Khan",
-      pan: "BAPPK9432C",
-    },
+    prefix: "QT-",
+    invoicePrefix: "INV-",
+    bank: { bankName: "", accountNumber: "", ifsc: "", accountHolder: "", pan: "" },
   },
-  "vedant enterprises": {
-    headerImage: "/templates/vedant.png",
-    signatureImage: "/templates/vedant-sign.jpg",
+  "vedant": {
+    displayName: "Vedant (Industrial)",
+    headerImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784344/templates/vedant.png",
+    signatureImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784341/templates/vedant-sign.jpg",
     generator: "vedant",
-    prefix: "QT-VED",
-    invoicePrefix: "INV-VED",
-    bank: {
-      bankName: "Bank of India",
-      accountNumber: "201120110001590",
-      ifsc: "BKID0002011",
-      accountHolder: "Vedant Enterprises",
-      pan: "AERPK7415K",
-    },
+    prefix: "QT-",
+    invoicePrefix: "INV-",
+    bank: { bankName: "", accountNumber: "", ifsc: "", accountHolder: "", pan: "" },
   },
-  "k.g.n. enterprises": {
-    headerImage: "/templates/kgn.png",
-    signatureImage: "/templates/kgn-sign.png",
+  "kgn": {
+    displayName: "KGN (Standard)",
+    headerImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784333/templates/kgn.png",
+    signatureImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784332/templates/kgn-sign.png",
     generator: "kgn",
-    prefix: "QT-KGN",
-    invoicePrefix: "INV-KGN",
-    bank: {
-      bankName: "State Bank of India",
-      accountNumber: "41447171789",
-      ifsc: "SBIN0014748",
-      accountHolder: "Mohammed Anas Atique Khan",
-      pan: "LLTPK1955R",
-    },
+    prefix: "QT-",
+    invoicePrefix: "INV-",
+    bank: { bankName: "", accountNumber: "", ifsc: "", accountHolder: "", pan: "" },
   },
-
-  "madhu neil safes & securities": {
-    // NOTE: filename uses "madhuneil" in `public/templates`
-    headerImage: "/templates/madhuneil.png",
-    signatureImage: "/templates/madhu-sign.png",
+  "madhu": {
+    displayName: "Madhu Neil (Professional)",
+    headerImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784337/templates/madhuneil.png",
+    signatureImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784334/templates/madhu-sign.png",
     generator: "madhu",
-    prefix: "QT-MADHUNEIL",
-    invoicePrefix: "INV-MADHUNEIL",
-    bank: {
-      bankName: "State Bank of India",
-      accountNumber: "41447171789",
-      ifsc: "SBIN0014748",
-      accountHolder: "Mohammed Anas Atique Khan",
-      pan: "LLTPK1955R",
-    },
+    prefix: "QT-",
+    invoicePrefix: "INV-",
+    bank: { bankName: "", accountNumber: "", ifsc: "", accountHolder: "", pan: "" },
   },
-  "energy security": {
-    headerImage: "/templates/energy.jpg",
-    signatureImage: "/templates/energy-sign.png",
+  "energy": {
+    displayName: "Energy (Bold Borders)",
+    headerImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784331/templates/energy.jpg",
+    signatureImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784330/templates/energy-sign.png",
     generator: "energy",
-    prefix: "QT-ENERGY",
-    invoicePrefix: "INV-ENERGY",
-    bank: {
-      bankName: "State Bank of India",
-      accountNumber: "41447171789",
-      ifsc: "SBIN0014748",
-      accountHolder: "Mohammed Anas Atique Khan",
-      pan: "LLTPK1955R",
-    },
+    prefix: "QT-",
+    invoicePrefix: "INV-",
+    bank: { bankName: "", accountNumber: "", ifsc: "", accountHolder: "", pan: "" },
   },
-
-  " ak enterprises": {
-    generator: "ak-enterprises",
-    headerImage: "/templates/ak-enterprises.png", // header used for quotation only
-    signatureImage: "/templates/ak-enterprises-sign.jpg",
-    prefix: "QT-AK/26-27/",
-    invoicePrefix: "AK/26-27/",
-    bank: {
-      bankName: "Canara Bank",
-      accountNumber: "120002367872",
-      ifsc: "CNRB0005079",
-      accountHolder: "AK Enterprises",
-      pan: "BAPPK9432C",
-    },
-  },
-  vijay: {
+  "vijay": {
+    displayName: "Vijay (Simple)",
+    headerImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784346/templates/vijay.png",
+    signatureImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784345/templates/vijay-sign.png",
     generator: "vijay",
-    prefix: "QT-VIJAY",
-    invoicePrefix: "INV-VIJAY",
-    headerImage: "/templates/vijay.png",
-    signatureImage: "/templates/vijay-sign.png",
-    bank: {
-      bankName: "State Bank of India",
-      accountNumber: "41447171789",
-      ifsc: "SBIN0014748",
-      accountHolder: "Mohammed Anas Atique Khan",
-      pan: "LLTPK1955R",
-    },
+    prefix: "QT-",
+    invoicePrefix: "INV-",
+    bank: { bankName: "", accountNumber: "", ifsc: "", accountHolder: "", pan: "" },
+  },
+  "ak-enterprises": {
+    displayName: "AK Enterprises (Elite)",
+    headerImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784324/templates/ak-enterprises.png",
+    signatureImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784323/templates/ak-enterprises-sign.jpg",
+    generator: "ak-enterprises",
+    prefix: "QT-",
+    invoicePrefix: "INV-",
+    bank: { bankName: "", accountNumber: "", ifsc: "", accountHolder: "", pan: "" },
   },
 };
 
-const DEFAULT_CONFIG: TemplateConfig = TEMPLATES["anas khan merchant"];
+const DEFAULT_CONFIG: TemplateConfig = PRESETS["akm"];
 
 export function getTemplateConfig(
   templateName?: string | null,
+  dbTemplate?: QuotationTemplate | null,
 ): TemplateConfig {
-  if (!templateName) return DEFAULT_CONFIG;
-  const normalized = templateName.toLowerCase().trim();
+  let baseConfig = DEFAULT_CONFIG;
 
-  // Exact match first (expected in most cases)
-  const direct = TEMPLATES[normalized];
-  if (direct) return direct;
+  // 1. Identify which PRESET (Design Engine) to use
+  if (dbTemplate?.layoutPreset && PRESETS[dbTemplate.layoutPreset]) {
+    baseConfig = PRESETS[dbTemplate.layoutPreset];
+  } else if (templateName) {
+    const normalized = templateName.toLowerCase().trim();
+    const match = Object.entries(PRESETS).find(([key]) => 
+      normalized.includes(key) || key.includes(normalized)
+    );
+    if (match) baseConfig = match[1];
+  }
 
-  // Fallback: tolerate extra words / slightly different DB names.
-  const partialMatch =
-    Object.entries(TEMPLATES).find(
-      ([knownKey]) =>
-        normalized.includes(knownKey) || knownKey.includes(normalized),
-    ) ?? null;
+  // 2. Override preset defaults with specific DB values
+  if (dbTemplate) {
+    return {
+      ...baseConfig,
+      headerImage: dbTemplate.headerImage || baseConfig.headerImage,
+      signatureImage: dbTemplate.signatureImage || baseConfig.signatureImage,
+      prefix: dbTemplate.subjectPrefix || baseConfig.prefix,
+      invoicePrefix: dbTemplate.invoicePrefix || baseConfig.invoicePrefix,
+      primaryColor: dbTemplate.primaryColor || baseConfig.primaryColor,
+      secondaryColor: dbTemplate.secondaryColor || baseConfig.secondaryColor,
+      bank: {
+        bankName: dbTemplate.bankName || "",
+        accountNumber: dbTemplate.accountNumber || "",
+        ifsc: dbTemplate.ifsc || "",
+        accountHolder: dbTemplate.accountHolder || "",
+        pan: dbTemplate.pan || "",
+      },
+    };
+  }
 
-  return (partialMatch?.[1] as TemplateConfig | null) ?? DEFAULT_CONFIG;
+  return baseConfig;
 }
 
 export function getTemplatePrefixById(

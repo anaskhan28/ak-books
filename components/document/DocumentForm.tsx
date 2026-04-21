@@ -278,7 +278,7 @@ export function DocumentForm({
       getNextDocumentNumber(tpl.id, isInvoice).then(setDocNumber);
     }
 
-    const cfg = getTemplateConfig(tpl.name);
+    const cfg = getTemplateConfig(tpl.name, tpl);
     if (tpl.terms && !initialValues?.terms) setTerms(tpl.terms);
     if (cfg.bank) {
       if (!initialValues?.accountBankName)
@@ -296,7 +296,7 @@ export function DocumentForm({
   const subtotal = items.reduce((s, i) => s + i.amount, 0);
 
   const activeTemplate = templates.find((t) => t.id === templateId);
-  const tplConfig = getTemplateConfig(activeTemplate?.name);
+  const tplConfig = getTemplateConfig(activeTemplate?.name, activeTemplate);
   const isAKEnterprise = tplConfig.generator === "ak-enterprises";
 
   // Item helpers

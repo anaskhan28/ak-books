@@ -1,9 +1,12 @@
 import { getTemplateConfig } from "@/lib/pdf-templates/registry";
 import { type LineItem, type DocumentMode } from "@/lib/types/document";
 
+import type { QuotationTemplate } from "@/app/db/schema";
+
 export interface DocumentPdfData {
   mode: DocumentMode;
   templateName?: string | null;
+  dbTemplate?: QuotationTemplate | null;
   docNumber: string;
   filenamePrefix: string;
   date: string;
@@ -25,6 +28,7 @@ export interface DocumentPdfData {
 export async function generateAndDownloadPdf({
   mode,
   templateName,
+  dbTemplate,
   docNumber,
   filenamePrefix,
   date,
@@ -36,7 +40,7 @@ export async function generateAndDownloadPdf({
   terms,
   accountInfo,
 }: DocumentPdfData) {
-  const tplConfig = getTemplateConfig(templateName || undefined);
+  const tplConfig = getTemplateConfig(templateName || undefined, dbTemplate);
   const finalAccountInfo = {
     bankName: accountInfo?.bankName || tplConfig.bank.bankName,
     accountNumber: accountInfo?.accountNumber || tplConfig.bank.accountNumber,
@@ -198,6 +202,9 @@ export async function generateAndDownloadPdf({
       accountInfo: mode === "invoice" ? accountInfo : undefined,
       headerImageUrl: hdr,
       signatureImageUrl: sig,
+      primaryColor: tplConfig.primaryColor,
+      secondaryColor: tplConfig.secondaryColor,
+      templateName: dbTemplate?.name || tplConfig.displayName,
     });
   }
 

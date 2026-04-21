@@ -2,9 +2,21 @@
 
 import { db } from "@/app/db";
 import { projects, clients, type NewProject } from "@/app/db/schema";
-import { eq, ne, sql } from "drizzle-orm";
+import { eq, ne, sql, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
+/**
+ * Standard revalidation for projects
+ */
+function revalidateProjects(id?: number) {
+  revalidatePath("/projects");
+  revalidatePath("/");
+  if (id) revalidatePath(`/projects/${id}`);
+}
+
+/**
+ * Fetches all projects with client names, ordered by newest first
+ */
 export async function getProjects() {
   return db
     .select({
@@ -23,9 +35,12 @@ export async function getProjects() {
     })
     .from(projects)
     .leftJoin(clients, eq(projects.clientId, clients.id))
-    .orderBy(projects.createdAt);
+    .orderBy(desc(projects.createdAt));
 }
 
+/**
+ * Fetches a single project record with client details
+ */
 export async function getProject(id: number) {
   const rows = await db
     .select({
@@ -49,35 +64,43 @@ export async function getProject(id: number) {
   return rows[0] ?? null;
 }
 
+/**
+ * Creates a new project
+ */
 export async function createProject(data: NewProject) {
-  const rows = await db.insert(projects).values(data).returning();
-  revalidatePath("/projects");
-  revalidatePath("/");
-  return rows[0];
+  const [project] = await db.insert(projects).values(data).returning();
+  revalidateProjects();
+  return project;
 }
 
+/**
+ * Updates an existing project
+ */
 export async function updateProject(id: number, data: Partial<NewProject>) {
-  const rows = await db
+  const [project] = await db
     .update(projects)
     .set(data)
     .where(eq(projects.id, id))
     .returning();
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${id}`);
-  revalidatePath("/");
-  return rows[0];
+  revalidateProjects(id);
+  return project;
 }
 
+/**
+ * Deletes a project
+ */
 export async function deleteProject(id: number) {
   await db.delete(projects).where(eq(projects.id, id));
-  revalidatePath("/projects");
-  revalidatePath("/");
+  revalidateProjects();
 }
 
+/**
+ * Counts all non-completed projects
+ */
 export async function getActiveProjectCount() {
-  const rows = await db
+  const [result] = await db
     .select({ count: sql<number>`count(*)` })
     .from(projects)
     .where(ne(projects.status, "completed"));
-  return Number(rows[0].count);
+  return Number(result.count);
 }

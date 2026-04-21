@@ -20,9 +20,15 @@ export function MadhuTemplate({
   signatureImage,
   inputCls,
   formatINR,
+  headerImage,
 }: TemplateProps) {
   return (
     <div className="px-4 md:px-8 pt-3">
+      {headerImage && (
+        <div className="w-full mb-6 -mt-3">
+          <img src={headerImage} alt="Header" className="w-full object-cover rounded" />
+        </div>
+      )}
       <div className="flex justify-between items-start">
         <div className="flex-1 pr-4">
           <div className="text-[10px] md:text-[12px] text-gray-700 mb-1">To,</div>

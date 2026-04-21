@@ -48,7 +48,7 @@ interface Props {
 
 export default function QuotationDetailClient({ quotation, clients }: Props) {
   const router = useRouter();
-  const tplConfig = getTemplateConfig(quotation.template?.name);
+  const tplConfig = getTemplateConfig(quotation.template?.name, quotation.template);
 
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
@@ -90,6 +90,7 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
       accountHolder: tplConfig.bank.accountHolder,
       pan: tplConfig.bank.pan,
     },
+    template: quotation.template,
   });
 
   async function handleSave() {
@@ -258,9 +259,6 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
           className="bg-white border border-gray-200 overflow-hidden px-2 md:px-8 w-full max-w-none origin-top"
           style={{ zoom: "min(1, calc((100vw - 32px) / 820))" } as any}
         >
-          <div className="border-b border-gray-100">
-            <img src={tplConfig.headerImage} alt="Header" className="w-full" />
-          </div>
           <TemplateRenderer
             generator={tplConfig.generator}
             mode="quotation"
@@ -292,6 +290,10 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
             tableRef={editor.tableRef as React.RefObject<HTMLTableElement>}
             clients={clients}
             signatureImage={tplConfig.signatureImage}
+            primaryColor={tplConfig.primaryColor}
+            secondaryColor={tplConfig.secondaryColor}
+            headerImage={tplConfig.headerImage}
+            templateName={quotation.template?.name || ""}
             formatINR={formatINR}
             inputCls={editor.inputCls}
           />

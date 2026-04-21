@@ -5,7 +5,7 @@ export default function InvoiceDetailLoading() {
       <div className="flex items-center p-2 justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="h-4 w-12 bg-slate-200 rounded" />
-          <div className="h-5 w-16 bg-green-100 rounded-lg" />
+          <div className="h-5 w-16 bg-slate-200 rounded-lg" />
           <div className="h-5 w-36 bg-slate-200 rounded" />
         </div>
         <div className="flex items-center gap-2">

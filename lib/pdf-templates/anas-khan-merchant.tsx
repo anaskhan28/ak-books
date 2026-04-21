@@ -51,153 +51,159 @@ export interface AKMPdfProps {
   };
   headerImageUrl: string;
   signatureImageUrl: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  templateName?: string;
 }
 
 const EMPTY_TABLE_ROWS = 15;
 const COL_W = ["65%", "11%", "6%", "6%", "12%"] as const;
 
-const s = StyleSheet.create({
-  page: {
-    fontFamily: "Helvetica",
-    fontSize: 10,
-    color: "#333",
-    paddingBottom: 20,
-  },
-  headerImg: { width: "100%" },
+const createStyles = (primary?: string) => {
+  const accent = primary || RED;
+  return StyleSheet.create({
+    page: {
+      fontFamily: "Helvetica",
+      fontSize: 10,
+      color: "#333",
+      paddingBottom: 20,
+    },
+    headerImg: { width: "100%" },
 
-  dateRowContainer: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    paddingTop: 4,
-    gap: 6,
-  },
-  dateRow: {
-    textAlign: "right",
-    paddingRight: 40,
-    fontSize: 11,
-    color: "#444",
-  },
+    dateRowContainer: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+      paddingTop: 4,
+      gap: 6,
+    },
+    dateRow: {
+      textAlign: "right",
+      paddingRight: 40,
+      fontSize: 11,
+      color: "#444",
+    },
 
-  badgeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingLeft: 40,
-    paddingTop: 10,
-    gap: 10,
-  },
-  badge: {
-    backgroundColor: RED,
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: 700,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-  },
-  badgeNum: {
-    backgroundColor: RED,
-    color: "#fff",
-    fontSize: 9,
-    fontWeight: 700,
-    paddingHorizontal: 2,
-    paddingVertical: 2,
-  },
+    badgeRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingLeft: 40,
+      paddingTop: 10,
+      gap: 10,
+    },
+    badge: {
+      backgroundColor: accent,
+      color: "#fff",
+      fontSize: 10,
+      fontWeight: 700,
+      paddingHorizontal: 10,
+      paddingVertical: 3,
+    },
+    badgeNum: {
+      backgroundColor: accent,
+      color: "#fff",
+      fontSize: 9,
+      fontWeight: 700,
+      paddingHorizontal: 2,
+      paddingVertical: 2,
+    },
 
-  clientSection: { paddingHorizontal: 40, paddingTop: 6 },
-  clientName: { fontSize: 10, fontWeight: 700, color: "#111", marginBottom: 3 },
-  clientBranch: { fontSize: 10, color: "#555", marginBottom: 6, maxWidth: 110 },
-  subjectLine: { fontSize: 10, color: "#333", marginBottom: 12, marginTop: 8 },
-  subjectVal: { fontWeight: 700, color: "#222" },
+    clientSection: { paddingHorizontal: 40, paddingTop: 6 },
+    clientName: { fontSize: 10, fontWeight: 700, color: "#111", marginBottom: 3 },
+    clientBranch: { fontSize: 10, color: "#555", marginBottom: 6, maxWidth: 110 },
+    subjectLine: { fontSize: 10, color: "#333", marginBottom: 12, marginTop: 8 },
+    subjectVal: { fontWeight: 700, color: "#222" },
 
-  tableWrap: { paddingHorizontal: 40 },
-  tHead: {
-    flexDirection: "row",
-    backgroundColor: RED,
-  },
-  th: {
-    color: "#fff",
-    fontSize: 9,
-    fontWeight: 700,
-    paddingVertical: 6,
-    paddingHorizontal: 6,
-    borderRightWidth: 1,
-    borderRightColor: "#a93226",
-  },
-  thFirst: { borderLeftWidth: 1, borderLeftColor: "#333" },
-  thLast: { borderRightWidth: 1, borderRightColor: "#333" },
-  tRow: {
-    flexDirection: "row",
-    borderBottomWidth: 0.2,
-    borderBottomColor: "#333",
-    minHeight: 22,
-  },
-  td: {
-    fontSize: 8,
-    paddingVertical: 5,
-    paddingHorizontal: 6,
-    color: "#333",
-    borderRightWidth: 1,
-    borderRightColor: "#333",
-  },
-  tdFirst: { borderLeftWidth: 1, borderLeftColor: "#333" },
-  tdLast: { borderRightWidth: 1, borderRightColor: "#333" },
+    tableWrap: { paddingHorizontal: 40 },
+    tHead: {
+      flexDirection: "row",
+      backgroundColor: accent,
+    },
+    th: {
+      color: "#fff",
+      fontSize: 9,
+      fontWeight: 700,
+      paddingVertical: 6,
+      paddingHorizontal: 6,
+      borderRightWidth: 1,
+      borderRightColor: "#ffffff22",
+    },
+    thFirst: { borderLeftWidth: 1, borderLeftColor: "#333" },
+    thLast: { borderRightWidth: 1, borderRightColor: "#333" },
+    tRow: {
+      flexDirection: "row",
+      borderBottomWidth: 0.2,
+      borderBottomColor: "#333",
+      minHeight: 22,
+    },
+    td: {
+      fontSize: 8,
+      paddingVertical: 5,
+      paddingHorizontal: 6,
+      color: "#333",
+      borderRightWidth: 1,
+      borderRightColor: "#333",
+    },
+    tdFirst: { borderLeftWidth: 1, borderLeftColor: "#333" },
+    tdLast: { borderRightWidth: 1, borderRightColor: "#333" },
 
-  subtotalRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    borderTopWidth: 1,
-    borderBottomWidth: 0.2,
-    borderTopColor: "#222",
-    paddingVertical: 6,
-    marginHorizontal: 40,
-  },
-  subtotalLbl: { fontSize: 11, fontWeight: 700, color: "#555" },
-  subtotalVal: { fontSize: 11, fontWeight: 700, color: "#111" },
+    subtotalRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      borderTopWidth: 1,
+      borderBottomWidth: 0.2,
+      borderTopColor: "#222",
+      paddingVertical: 6,
+      marginHorizontal: 40,
+    },
+    subtotalLbl: { fontSize: 11, fontWeight: 700, color: "#555" },
+    subtotalVal: { fontSize: 11, fontWeight: 700, color: "#111" },
 
-  bottom: {
-    flexDirection: "row",
-    paddingHorizontal: 40,
-    paddingTop: 6,
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  leftCol: { flex: 1, maxWidth: "58%", paddingRight: 10 },
-  rightCol: { alignItems: "flex-end" },
+    bottom: {
+      flexDirection: "row",
+      paddingHorizontal: 40,
+      paddingTop: 6,
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+    },
+    leftCol: { flex: 1, maxWidth: "58%", paddingRight: 10 },
+    rightCol: { alignItems: "flex-end" },
 
-  sectionBadge: {
-    backgroundColor: RED,
-    color: "#fff",
-    fontSize: 8,
-    fontWeight: 700,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    alignSelf: "flex-start",
-    marginBottom: 5,
-  },
-  termsText: { fontSize: 9, color: "#555", lineHeight: 1.7 },
+    sectionBadge: {
+      backgroundColor: accent,
+      color: "#fff",
+      fontSize: 8,
+      fontWeight: 700,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      alignSelf: "flex-start",
+      marginBottom: 5,
+    },
+    termsText: { fontSize: 9, color: "#555", lineHeight: 1.7 },
 
-  acctRow: { flexDirection: "row", marginBottom: 2 },
-  acctLbl: { fontWeight: 700, fontSize: 9, color: "#555", width: 95 },
-  acctVal: { fontSize: 9, color: "#444" },
+    acctRow: { flexDirection: "row", marginBottom: 2 },
+    acctLbl: { fontWeight: 700, fontSize: 9, color: "#555", width: 95 },
+    acctVal: { fontSize: 9, color: "#444" },
 
-  totalBar: { flexDirection: "row", backgroundColor: RED },
-  totalLbl: {
-    color: "#fff",
-    fontSize: 11,
-    fontWeight: 700,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-  },
-  totalVal: {
-    color: "#fff",
-    fontSize: 11,
-    fontWeight: 700,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    textAlign: "right",
-  },
-  sigImg: { width: 80, height: 80, marginTop: 4, objectFit: "cover" },
-});
+    totalBar: { flexDirection: "row", backgroundColor: accent },
+    totalLbl: {
+      color: "#fff",
+      fontSize: 11,
+      fontWeight: 700,
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+    },
+    totalVal: {
+      color: "#fff",
+      fontSize: 11,
+      fontWeight: 700,
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+      textAlign: "right",
+    },
+    sigImg: { width: 80, height: 80, marginTop: 4, objectFit: "cover" },
+  });
+};
 
 function AKMDocument({
   type,
@@ -212,7 +218,11 @@ function AKMDocument({
   accountInfo,
   headerImageUrl,
   signatureImageUrl,
+  primaryColor,
+  secondaryColor,
+  templateName,
 }: AKMPdfProps) {
+  const s = createStyles(primaryColor);
   const filled = items.filter(
     (i) => i.description || Math.abs(i.rate) > 0 || Math.abs(i.qty) > 0 || Math.abs(i.amount) > 0,
   );
@@ -226,15 +236,19 @@ function AKMDocument({
 
         {/* Date */}
         <View style={s.dateRowContainer}>
-          <Text style={s.badgeNum}>{number}</Text>
+          {templateName?.toLowerCase().includes("anas khan merchant") && (
+            <Text style={s.badgeNum}>{number}</Text>
+          )}
           <Text style={s.dateRow}>{date}</Text>
         </View>
         {/* Badge row */}
-        <View style={s.badgeRow}>
-          <Text style={s.badge}>
-            {type === "quotation" ? "Quotation" : "Invoice"}
-          </Text>
-        </View>
+        {templateName?.toLowerCase().includes("anas khan merchant") && (
+          <View style={s.badgeRow}>
+            <Text style={s.badge}>
+              {type === "quotation" ? "Quotation" : "Invoice"}
+            </Text>
+          </View>
+        )}
 
         {/* Client info */}
         <View style={s.clientSection}>

@@ -25,6 +25,7 @@ interface UseDocumentEditorOptions {
     accountHolder: string;
     pan: string;
   };
+  template?: import("@/app/db/schema").QuotationTemplate | null;
 }
 
 const EMPTY_ROWS = 10;
@@ -41,8 +42,9 @@ export function useDocumentEditor({
   initialNotes,
   initialItems,
   initialAccount,
+  template,
 }: UseDocumentEditorOptions) {
-  const tplConfig = getTemplateConfig(templateName);
+  const tplConfig = getTemplateConfig(templateName, template);
   const isATK = tplConfig.generator === "atk";
   const isVE = tplConfig.generator === "vedant";
   const isKGN = tplConfig.generator === "kgn";
@@ -340,6 +342,9 @@ export function useDocumentEditor({
         accountInfo: mode === "invoice" ? acct : undefined,
         headerImageUrl: hdr,
         signatureImageUrl: sig,
+        primaryColor: tplConfig.primaryColor,
+        secondaryColor: tplConfig.secondaryColor,
+        templateName: template?.name || tplConfig.displayName,
       });
     }
 

@@ -31,6 +31,7 @@ export function VijayTemplate({
   signatureImage,
   inputCls,
   formatINR,
+  headerImage,
 }: TemplateProps) {
   // Format matching image 1: Rs- 60,300/– [18% GST Extra]
   const totalFormatted = `Rs- ${formatINR(subtotal)}`;
@@ -40,6 +41,11 @@ export function VijayTemplate({
       className="px-4 md:px-10 pt-4 pb-6"
       style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
     >
+      {headerImage && (
+        <div className="w-full mb-6">
+          <img src={headerImage} alt="Header" className="w-full object-cover rounded" />
+        </div>
+      )}
       {/* Date — right aligned */}
       <div className="flex justify-end mb-5">
         <input

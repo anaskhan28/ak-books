@@ -34,11 +34,17 @@ export function KGNTemplate({
   clients,
   signatureImage,
   inputCls,
+  headerImage,
 }: TemplateProps) {
   const title = mode === "quotation" ? "Quotation" : "Invoice Bill";
 
   return (
     <>
+      {headerImage && (
+        <div className="w-full mb-4">
+          <img src={headerImage} alt="Header" className="w-full object-cover rounded" />
+        </div>
+      )}
       <div className="w-full  text-[15px] border-2 border-gray-800">
         <h2 className="text-center text-[18px] font-normal text-black py-1 font-serif underline">
           {title}

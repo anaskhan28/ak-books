@@ -34,15 +34,28 @@ export function AKMTemplate({
   signatureImage,
   formatINR,
   inputCls,
+  primaryColor,
+  headerImage,
+  templateName,
 }: TemplateProps) {
   const docLabel = mode === "quotation" ? "Quotation" : "Invoice";
 
   return (
     <>
-      <div className="flex justify-end items-center pt-2 gap-4">
-        <div className="inline-block bg-[#c0392b] text-white md:text-[15px] text-[8px] font-bold px-2 py-1">
-          {qtNumber}
+      {headerImage && (
+        <div className="w-full mb-4">
+          <img src={headerImage} alt="Header" className="w-full object-cover rounded" />
         </div>
+      )}
+      <div className="flex justify-end items-center pt-2 gap-4">
+        {templateName?.toLowerCase().includes("anas khan merchant") && (
+          <div 
+            className="inline-block text-white md:text-[15px] text-[8px] font-bold px-2 py-1"
+            style={{ backgroundColor: primaryColor || "#c0392b" }}
+          >
+            {qtNumber}
+          </div>
+        )}
         <input
           type="date"
           value={date}
@@ -53,7 +66,10 @@ export function AKMTemplate({
 
       <div className="px-0 md:px-8 pt-0 md:pt-3 pb-0 md:pb-2">
         <div className="flex items-center gap-3 mb-3">
-          <div className="inline-block bg-[#c0392b] text-white md:text-[15px] text-[8px] font-bold px-3 py-1">
+          <div 
+            className="inline-block text-white md:text-[15px] text-[8px] font-bold px-3 py-1"
+            style={{ backgroundColor: primaryColor || "#c0392b" }}
+          >
             {docLabel}
           </div>
         </div>
@@ -96,19 +112,34 @@ export function AKMTemplate({
         <table ref={tableRef} className="w-full border-collapse text-[8px] md:text-[12px]">
           <thead>
             <tr>
-              <th className="bg-[#c0392b] text-white font-bold text-left px-3 py-2 w-[65%]">
+              <th 
+                className="text-white font-bold text-left px-3 py-2 w-[65%]"
+                style={{ backgroundColor: primaryColor || "#c0392b" }}
+              >
                 DESCRIPTION
               </th>
-              <th className="bg-[#c0392b] text-white font-bold text-right px-3 py-2 w-[11%]">
+              <th 
+                className="text-white font-bold text-right px-3 py-2 w-[11%]"
+                style={{ backgroundColor: primaryColor || "#c0392b" }}
+              >
                 PER UNIT
               </th>
-              <th className="bg-[#c0392b] text-white font-bold text-center px-3 py-2 w-[6%]">
+              <th 
+                className="text-white font-bold text-center px-3 py-2 w-[6%]"
+                style={{ backgroundColor: primaryColor || "#c0392b" }}
+              >
                 QTY
               </th>
-              <th className="bg-[#c0392b] text-white font-bold text-center px-3 py-2 w-[6%]">
+              <th 
+                className="text-white font-bold text-center px-3 py-2 w-[6%]"
+                style={{ backgroundColor: primaryColor || "#c0392b" }}
+              >
                 TAX
               </th>
-              <th className="bg-[#c0392b] text-white font-bold text-right px-3 py-2 w-[12%]">
+              <th 
+                className="text-white font-bold text-right px-3 py-2 w-[12%]"
+                style={{ backgroundColor: primaryColor || "#c0392b" }}
+              >
                 AMOUNT
               </th>
             </tr>
@@ -193,7 +224,10 @@ export function AKMTemplate({
       <div className="px-0 md:px-8 pb-0 md:pb-6 pt-0 md:pt-2">
         <div className="flex gap-6">
           <div className="flex-1">
-            <div className="inline-block bg-[#c0392b] text-white md:text-[10px] text-[8px] font-bold px-2 py-0.5 mb-2">
+            <div 
+              className="inline-block text-white md:text-[10px] text-[8px] font-bold px-2 py-0.5 mb-2"
+              style={{ backgroundColor: primaryColor || "#c0392b" }}
+            >
               {mode === "invoice" ? "Account Info" : "Terms & Condition"}
             </div>
             {mode === "invoice" ? (
@@ -232,10 +266,16 @@ export function AKMTemplate({
           </div>
           <div className="flex flex-col items-end gap-3">
             <div className="flex items-center">
-              <span className="bg-[#c0392b] text-white md:text-[15px] text-[10px] font-bold px-4 py-1.5">
+              <span 
+                className="text-white md:text-[15px] text-[10px] font-bold px-4 py-1.5"
+                style={{ backgroundColor: primaryColor || "#c0392b" }}
+              >
                 TOTAL
               </span>
-              <span className="bg-[#c0392b] text-white md:text-[13px] text-[10px] font-bold px-4 py-1.5 min-w-[120px] text-right">
+              <span 
+                className="text-white md:text-[13px] text-[10px] font-bold px-4 py-1.5 min-w-[120px] text-right"
+                style={{ backgroundColor: primaryColor || "#c0392b" }}
+              >
                 {formatINR(subtotal)}
               </span>
             </div>

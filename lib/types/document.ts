@@ -49,4 +49,8 @@ export interface TemplateProps {
   signatureImage: string;
   formatINR: (n: number) => string;
   inputCls: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  headerImage?: string;
+  templateName?: string;
 }

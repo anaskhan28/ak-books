@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Plus, ChevronDown, Settings2 } from "lucide-react";
 import { deleteQuotation } from "@/app/actions/quotations";
 import StatusBadge from "@/components/ui/status-badge";
 import { formatINR } from "@/lib/utils";
@@ -12,6 +12,14 @@ import type { QuotationTemplate } from "@/app/db/schema";
 import DocumentCard from "@/components/common/document-card";
 import QuotationRowActions from "@/components/quotations/QuotationRowActions";
 import PageHeader from "@/components/ui/page-header";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 type QuotationRow = {
   id: number;
@@ -64,11 +72,12 @@ export default function QuotationsClient({ quotations, templates }: Props) {
       if (!dbQuotation) throw new Error("Quotation not found");
 
       const { getTemplateConfig } = await import("@/lib/pdf-templates/registry");
-      const tplConfig = getTemplateConfig(dbQuotation.template?.name);
+      const tplConfig = getTemplateConfig(dbQuotation.template?.name, dbQuotation.template);
 
       await generateAndDownloadPdf({
         mode: "quotation",
         templateName: dbQuotation.template?.name,
+        dbTemplate: dbQuotation.template,
         docNumber: dbQuotation.quotationNumber,
         filenamePrefix: dbQuotation.quotationNumber,
         date: new Date(dbQuotation.createdAt).toISOString().split("T")[0],
@@ -124,29 +133,84 @@ export default function QuotationsClient({ quotations, templates }: Props) {
 
       </PageHeader>
 
-      {/* Template Tabs */}
-      <div className="flex items-center gap-1 pt-1  md:pt-0 mb-0 md:mb-5 md:border-b border-b-0 border-border overflow-x-auto md:overflow-hidden pb-0">
-        <button
-          onClick={() => setActiveTab("all")}
-          className={`px-2 py-1.5 text-[13px] font-bold border-b-2 whitespace-nowrap transition-all ${activeTab === "all"
-            ? "text-primary border-primary"
-            : "text-muted border-transparent hover:text-foreground"
-            }`}
-        >
-          All ({quotations.length})
-        </button>
-        {templates.map((t) => (
+      {/* Template Tabs - Scrollable on mobile, bordered on desktop */}
+      <div className="flex items-center gap-1 pt-1 md:pt-0 mb-0 md:mb-5 overflow-x-auto md:overflow-x-visible custom-scrollbar-hide md:border-b border-border pb-0 whitespace-nowrap">
+        <div className="flex items-center gap-1 min-w-max md:min-w-0">
           <button
-            key={t.id}
-            onClick={() => setActiveTab(String(t.id))}
-            className={`px-2 py-1.5 text-[13px] font-bold border-b-2 whitespace-nowrap transition-all ${activeTab === String(t.id)
+            onClick={() => setActiveTab("all")}
+            className={`px-2 py-1.5 text-[13px] font-bold border-b-2 whitespace-nowrap transition-all ${activeTab === "all"
               ? "text-primary border-primary"
               : "text-muted border-transparent hover:text-foreground"
               }`}
           >
-            {t.name}
+            All ({quotations.length})
           </button>
-        ))}
+
+          {/* Show first 6 templates as tabs with truncated names */}
+          {templates.slice(0, 6).map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(String(t.id))}
+              className={`px-2 py-1.5 text-[13px] font-bold border-b-2 whitespace-nowrap transition-all ${activeTab === String(t.id)
+                ? "text-primary border-primary"
+                : "text-muted border-transparent hover:text-foreground"
+                }`}
+              title={t.name}
+            >
+              {t.name.length > 14 ? t.name.substring(0, 26) : t.name}
+            </button>
+          ))}
+
+          {/* Create Template button if no templates exist */}
+          {templates.length === 0 && (
+            <Link href="/quotations/templates/new">
+              <button className="px-2 py-1.5 text-[13px] font-bold text-primary hover:text-primary-dark transition-all flex items-center gap-1 border-b-2 border-transparent">
+                <Plus size={14} /> Create Template
+              </button>
+            </Link>
+          )}
+
+          {/* More dropdown if > 6 templates or if we want to manage templates */}
+          {(templates.length > 6 || templates.length > 0) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className={`px-2 py-1.5 text-[13px] font-bold border-b-2 whitespace-nowrap transition-all flex items-center gap-1 ${templates.slice(6).some(t => String(t.id) === activeTab)
+                    ? "text-primary border-primary"
+                    : "text-muted border-transparent hover:text-foreground"
+                    }`}
+                >
+                  {templates.length > 6 ? "More" : <Settings2 size={16} />}
+                  {templates.length > 6 && <ChevronDown size={14} />}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {templates.slice(6).map((t) => (
+                  <DropdownMenuItem
+                    key={t.id}
+                    onClick={() => setActiveTab(String(t.id))}
+                    className={activeTab === String(t.id) ? "text-primary font-semibold" : ""}
+                  >
+                    {t.name}
+                  </DropdownMenuItem>
+                ))}
+                {templates.length > 6 && <DropdownMenuSeparator />}
+                <DropdownMenuItem asChild>
+                  <Link href="/quotations/templates/new" className="flex items-center gap-2 text-primary font-semibold">
+                    <Plus size={14} />
+                    <span>Create Template</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/quotations/templates" className="flex items-center gap-2">
+                    <Settings2 size={14} />
+                    <span>Manage Templates</span>
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
 
       {/* Horizontal Divider for mobile header feeling */}

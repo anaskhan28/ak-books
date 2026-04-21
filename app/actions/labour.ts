@@ -6,6 +6,18 @@ import { eq, sql, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { todayISO } from "@/lib/utils";
 
+/**
+ * Standard revalidation for labour entries
+ */
+function revalidateLabour(projectId?: number) {
+  revalidatePath("/labour");
+  revalidatePath("/");
+  if (projectId) revalidatePath(`/projects/${projectId}`);
+}
+
+/**
+ * Fetches labour entries with project names, newest first
+ */
 export async function getLabourEntries(projectId?: number) {
   const query = db
     .select({
@@ -27,41 +39,59 @@ export async function getLabourEntries(projectId?: number) {
   return query;
 }
 
+/**
+ * Adds a new labour entry
+ */
 export async function addLabourEntry(data: NewLabourEntry) {
-  const rows = await db.insert(labourEntries).values(data).returning();
-  revalidatePath("/labour");
-  revalidatePath(`/projects/${data.projectId}`);
-  revalidatePath("/");
-  return rows[0];
+  const [entry] = await db.insert(labourEntries).values(data).returning();
+  revalidateLabour(data.projectId);
+  return entry;
 }
 
+/**
+ * Deletes a labour entry record
+ */
 export async function deleteLabourEntry(id: number) {
+  const [entry] = await db
+    .select({ projectId: labourEntries.projectId })
+    .from(labourEntries)
+    .where(eq(labourEntries.id, id))
+    .limit(1);
+
   await db.delete(labourEntries).where(eq(labourEntries.id, id));
-  revalidatePath("/labour");
-  revalidatePath("/");
+  revalidateLabour(entry?.projectId);
 }
 
+/**
+ * Optimized fetch of total workers count for today
+ */
 export async function getWorkersToday() {
   const today = todayISO();
-  const rows = await db
+  const [result] = await db
     .select({
       total: sql<number>`coalesce(sum(${labourEntries.workersCount}), 0)`,
     })
     .from(labourEntries)
     .where(eq(labourEntries.date, today));
-  return Number(rows[0].total);
+  return Number(result.total);
 }
 
+/**
+ * Calculates sum of labour costs for a project
+ */
 export async function getProjectLabourTotal(projectId: number) {
-  const rows = await db
+  const [result] = await db
     .select({
       total: sql<number>`coalesce(sum(${labourEntries.totalCost}), 0)`,
     })
     .from(labourEntries)
     .where(eq(labourEntries.projectId, projectId));
-  return Number(rows[0].total);
+  return Number(result.total);
 }
 
+/**
+ * Optimized fetch of all project labour statistics in one go
+ */
 export async function getAllProjectLabourStats() {
   const rows = await db
     .select({
@@ -71,12 +101,14 @@ export async function getAllProjectLabourStats() {
     })
     .from(labourEntries)
     .groupBy(labourEntries.projectId);
-  const map = new Map<number, { workers: number; cost: number }>();
-  for (const r of rows) {
-    map.set(r.projectId, {
-      workers: Number(r.totalWorkers),
-      cost: Number(r.totalCost),
-    });
-  }
-  return map;
+
+  return new Map(
+    rows.map((r) => [
+      r.projectId,
+      {
+        workers: Number(r.totalWorkers),
+        cost: Number(r.totalCost),
+      },
+    ])
+  );
 }
