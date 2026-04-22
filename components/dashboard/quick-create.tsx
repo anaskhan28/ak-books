@@ -53,9 +53,8 @@ export default function QuickCreate() {
       </div>
       <div className="grid grid-cols-4 gap-10 px-2">
         {actions.map((action) => (
-          <div className="flex flex-col items-center ">
+          <div key={action.label} className="flex flex-col items-center ">
             <Link
-              key={action.label}
               href={action.href}
               className="flex flex-col items-center gap-3 p-3.5 bg-white rounded-2xl border border-slate-100 hover:border-slate-200 active:bg-slate-50 transition-all shadow-sm shadow-slate-200/50"
             >
