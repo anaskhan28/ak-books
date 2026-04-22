@@ -181,8 +181,12 @@ export function useDocumentEditor({
     filenamePrefix: string,
   ) {
     const origin = window.location.origin;
-    const hdr = `${origin}${tplConfig.headerImage}`;
-    const sig = `${origin}${tplConfig.signatureImage}`;
+    const hdr = tplConfig.headerImage.startsWith("http")
+      ? tplConfig.headerImage
+      : `${origin}${tplConfig.headerImage}`;
+    const sig = tplConfig.signatureImage.startsWith("http")
+      ? tplConfig.signatureImage
+      : `${origin}${tplConfig.signatureImage}`;
     const acct = {
       bankName: accountBankName,
       accountNumber,

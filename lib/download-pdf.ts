@@ -49,8 +49,12 @@ export async function generateAndDownloadPdf({
     pan: accountInfo?.pan || tplConfig.bank.pan,
   };
   const origin = window.location.origin;
-  const hdr = `${origin}${tplConfig.headerImage}`;
-  const sig = `${origin}${tplConfig.signatureImage}`;
+  const hdr = tplConfig.headerImage.startsWith("http")
+    ? tplConfig.headerImage
+    : `${origin}${tplConfig.headerImage}`;
+  const sig = tplConfig.signatureImage.startsWith("http")
+    ? tplConfig.signatureImage
+    : `${origin}${tplConfig.signatureImage}`;
   const displayDate = new Date(date + "T00:00:00").toLocaleDateString(
     "en-IN",
     { day: "2-digit", month: "short", year: "2-digit" }
