@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { alerts } from "@/lib/alerts";
 import { Plus, ChevronDown, Settings2 } from "lucide-react";
 import { deleteQuotation } from "@/app/actions/quotations";
 import StatusBadge from "@/components/ui/status-badge";
@@ -41,6 +42,7 @@ interface Props {
   templates: QuotationTemplate[];
 }
 
+
 export default function QuotationsClient({ quotations, templates }: Props) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>("all");
@@ -57,9 +59,19 @@ export default function QuotationsClient({ quotations, templates }: Props) {
       e.preventDefault();
       e.stopPropagation();
     }
-    if (!confirm("Delete this quotation?")) return;
-    await deleteQuotation(id);
-    router.refresh();
+    if (!(await alerts.confirm("Delete this quotation?", "This action cannot be undone."))) return;
+    
+    try {
+      const result = await deleteQuotation(id);
+      if (result.success) {
+        alerts.success("Quotation deleted successfully");
+        router.refresh();
+      } else {
+        alerts.error("Delete failed", result.error);
+      }
+    } catch (error: any) {
+      alerts.error("Delete failed", "An unexpected error occurred.");
+    }
   }
 
   async function handleDownloadPDF(quotationId: number | number) {
@@ -103,7 +115,7 @@ export default function QuotationsClient({ quotations, templates }: Props) {
       });
     } catch (err) {
       console.error(err);
-      alert("Failed to download PDF. Please try again.");
+      alerts.error("Failed to download PDF", "Please try again later.");
     } finally {
       setDownloadingId(null);
     }

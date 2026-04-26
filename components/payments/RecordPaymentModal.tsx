@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, Fragment } from "react";
+import { alerts } from "@/lib/alerts";
 import { X, Trash2, Loader2, AlertCircle } from "lucide-react";
 import {
   recordPayment,
@@ -190,30 +191,35 @@ export default function RecordPaymentModal({
     }
   }
 
+
+
   async function handleDeletePayment(id: number) {
-    if (!confirm("Are you sure you want to delete this payment?")) return;
+    if (!(await alerts.confirm("Delete this payment?", "This action cannot be undone."))) return;
     setDeletingId(id);
     try {
       await deletePayment(id);
+      alerts.success("Payment deleted");
       onSuccess?.();
       await loadPayments();
     } catch (err) {
       console.error(err);
-      alert("Failed to delete payment.");
+      alerts.error("Failed to delete payment");
     } finally {
       setDeletingId(null);
     }
   }
 
   async function handleFixStatus() {
-    if (!confirm("Remove the Paid status from this invoice?")) return;
+    if (!(await alerts.confirm("Remove the Paid status from this invoice?"))) return;
     setSaving(true);
     try {
       await updateInvoiceStatus(invoiceId, "unpaid");
+      alerts.success("Invoice status updated to Unpaid");
       onSuccess?.();
       onClose();
     } catch (err) {
       console.error(err);
+      alerts.error("Failed to update status");
     } finally {
       setSaving(false);
     }

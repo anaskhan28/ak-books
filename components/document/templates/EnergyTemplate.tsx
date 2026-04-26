@@ -86,15 +86,15 @@ export function EnergyTemplate({
       <div className="text-[12px] text-gray-900 mb-6">Dear Sir,</div>
 
       {/* Sub — centered, bold */}
-      <div className="text-center mb-4">
-        <span className="text-[12px] font-semibold text-gray-900 mr-1">
-          Sub:
+      <div className="text-center mb-4 flex items-center justify-center gap-1">
+        <span className="text-[12px] font-semibold text-gray-900 flex items-center gap-1">
+          Sub: <span className="text-red-500 font-bold">*</span>
         </span>
         <input
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           placeholder={title}
-          className="text-[11px] md:text-[13px] font-semibold text-gray-800 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 w-[70%] placeholder:text-gray-300 placeholder:font-normal"
+          className={`text-[11px] md:text-[13px] font-semibold text-gray-800 bg-transparent border-0 border-b border-dashed ${!subject ? 'border-red-300' : 'border-gray-300'} focus:border-primary focus:outline-none py-0.5 w-[70%] placeholder:text-gray-300 placeholder:font-normal transition-colors`}
         />
       </div>
 

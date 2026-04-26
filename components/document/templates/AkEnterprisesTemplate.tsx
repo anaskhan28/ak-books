@@ -4,11 +4,7 @@ import type { TemplateProps } from "@/lib/types/document";
 
 const BDR = "border border-gray-400";
 
-// Default HSN codes used frequently
-const HSN_PRESETS = [
-  { code: "996793", label: "Shifting" },
-  { code: "998533", label: "Cleaning" },
-];
+import { HSN_PRESETS } from "@/lib/constants";
 
 // Shared address block used in both To/Consignee and Bill To/Consignee
 function AddressBlock({
@@ -40,6 +36,7 @@ function AddressBlock({
 
 export function AKEnterpriseTemplate({
   mode,
+  isReadOnly,
   items,
   subtotal,
   clientName,
@@ -78,6 +75,10 @@ export function AKEnterpriseTemplate({
 
   const isInvoice = mode === "invoice";
   const docTitle = isInvoice ? "TAX INVOICE" : "Quotation";
+
+  const displayItems = isReadOnly 
+    ? items.filter(i => (i.description && i.description.trim()) || i.amount > 0)
+    : items;
 
   return (
     <div className="text-[11px] text-gray-800">
@@ -197,13 +198,15 @@ export function AKEnterpriseTemplate({
       </div>
 
       {/* ── Subject ── */}
-      <div className="mx-0 md:mx-5 border border-t-0 border-gray-400 px-2 md:px-3 py-1 md:py-2">
-        <div className="text-[7px] md:text-[9px] text-gray-400 mb-0.5 md:mb-1">Subject :</div>
+      <div className="mx-0 md:mx-5 border border-t-0 border-gray-400 px-2 md:px-3 py-1 md:py-2 flex items-center gap-2">
+        <div className="text-[7px] md:text-[9px] text-gray-400 flex items-center gap-1 shrink-0">
+          Subject: <span className="text-red-500 font-bold">*</span>
+        </div>
         <input
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           placeholder={isInvoice ? "Shifting Invoice" : "Shifting Quotation"}
-          className="w-full text-[9px] md:text-[11px] text-gray-800 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300"
+          className={`w-full text-[9px] md:text-[11px] text-gray-800 bg-transparent border-0 border-b border-dashed ${!subject ? 'border-red-300' : 'border-gray-300'} focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300 transition-colors`}
         />
       </div>
 
@@ -273,9 +276,14 @@ export function AKEnterpriseTemplate({
               </tr>
             </thead>
             <tbody>
-              {items.map((item, idx) => {
+              {displayItems.map((item, idx) => {
                 const taxable = item.amount;
                 const gstItemTotal = taxable * (gstRate / 100);
+                const hasContent =
+                  item.description ||
+                  Math.abs(item.qty) > 0 ||
+                  Math.abs(item.rate) > 0 ||
+                  Math.abs(item.amount) > 0;
                 return (
                   <tr
                     key={idx}
@@ -285,73 +293,93 @@ export function AKEnterpriseTemplate({
                       {item.description || Math.abs(item.amount) > 0 ? idx + 1 : ""}
                     </td>
                     <td className="border-x border-gray-200 px-1 py-0">
-                      <textarea
-                        value={item.description}
-                        onChange={(e) => {
-                          updateItem(idx, "description", e.target.value);
-                          autoResize(e.target);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Tab") handleKeyDown(e, idx, 0);
-                        }}
-                        ref={(el) => {
-                          if (el && item.description) autoResize(el);
-                        }}
-                        rows={1}
-                        placeholder={idx === 0 ? "Type description..." : ""}
-                        className="w-full px-1 py-1.5 bg-transparent text-[10px] text-gray-800 border-0 focus:outline-none focus:bg-blue-50/30 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.5]"
-                      />
+                      {isReadOnly ? (
+                        <div className="w-full px-1 py-1.5 text-[10px] text-gray-800 whitespace-pre-wrap min-h-[30px]">
+                          {item.description}
+                        </div>
+                      ) : (
+                        <textarea
+                          value={item.description}
+                          onChange={(e) => {
+                            updateItem(idx, "description", e.target.value);
+                            autoResize(e.target);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Tab") handleKeyDown(e, idx, 0);
+                          }}
+                          ref={(el) => {
+                            if (el && item.description) autoResize(el);
+                          }}
+                          rows={1}
+                          placeholder={idx === 0 ? "Type description..." : ""}
+                          className="w-full px-1 py-1.5 bg-transparent text-[10px] text-gray-800 border-0 focus:outline-none focus:bg-blue-50/30 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.5]"
+                        />
+                      )}
                     </td>
                     <td className="border-x border-gray-200 px-1 py-0">
-                      <select
-                        value={
-                          HSN_PRESETS.some((p) => p.code === item.taxed)
-                            ? item.taxed
-                            : ""
-                        }
-                        onChange={(e) => {
-                          if (e.target.value) updateItem(idx, "taxed", e.target.value);
-                        }}
-                        className="w-full bg-transparent text-[10px] text-gray-400 border-0 focus:outline-none cursor-pointer py-0.5 appearance-none text-center"
-                      >
-                        <option value="">— pick —</option>
-                        {HSN_PRESETS.map((p) => (
-                          <option key={p.code} value={p.code}>
-                            {p.code} ({p.label})
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        value={item.taxed}
-                        onChange={(e) =>
-                          updateItem(idx, "taxed", e.target.value)
-                        }
-                        onKeyDown={(e) => handleKeyDown(e, idx, 1)}
-                        className={`${inputCls} text-center text-[10px] border-t border-dashed border-gray-200`}
-                        placeholder="HSN"
-                      />
+                      {isReadOnly ? (
+                        <div className="w-full px-1 py-2 text-center text-[10px] text-gray-800">
+                          {item.taxed}
+                        </div>
+                      ) : (
+                        <>
+                          <select
+                            value={item.taxed || ""}
+                            onChange={(e) => updateItem(idx, "taxed", e.target.value)}
+                            className="w-full bg-gray-50 text-[10px] text-gray-900 border border-gray-300 rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          >
+                            <option value="">Select HSN</option>
+                            {HSN_PRESETS.map((p) => (
+                              <option key={p.code} value={p.code}>
+                                {p.code} - {p.label}
+                              </option>
+                            ))}
+                          </select>
+                          <input
+                            value={item.taxed}
+                            onChange={(e) =>
+                              updateItem(idx, "taxed", e.target.value)
+                            }
+                            onKeyDown={(e) => handleKeyDown(e, idx, 1)}
+                            className={`${inputCls} text-center text-[10px] border-t border-dashed border-gray-200`}
+                            placeholder="HSN"
+                          />
+                        </>
+                      )}
                     </td>
                     <td className="border-x border-gray-200 px-1 py-0">
-                      <input
-                        type="number"
-                        min={0}
-                        value={item.qty || ""}
-                        onChange={(e) => updateItem(idx, "qty", e.target.value)}
-                        onKeyDown={(e) => handleKeyDown(e, idx, 2)}
-                        className={`${inputCls} text-center text-[10px]`}
-                      />
+                      {isReadOnly ? (
+                        <div className="w-full px-1 py-2 text-center text-[10px] text-gray-800">
+                          {item.qty > 0 ? item.qty : ""}
+                        </div>
+                      ) : (
+                        <input
+                          type="number"
+                          min={0}
+                          value={item.qty || ""}
+                          onChange={(e) => updateItem(idx, "qty", e.target.value)}
+                          onKeyDown={(e) => handleKeyDown(e, idx, 2)}
+                          className={`${inputCls} text-center text-[10px]`}
+                        />
+                      )}
                     </td>
                     <td className="border-x border-gray-200 px-1 py-0">
-                      <input
-                        type="number"
-                        min={0}
-                        value={item.rate || ""}
-                        onChange={(e) =>
-                          updateItem(idx, "rate", e.target.value)
-                        }
-                        onKeyDown={(e) => handleKeyDown(e, idx, 3)}
-                        className={`${inputCls} text-right text-[10px]`}
-                      />
+                      {isReadOnly ? (
+                        <div className="w-full px-1 py-2 text-right text-[10px] text-gray-800">
+                          {item.rate > 0 ? item.rate : ""}
+                        </div>
+                      ) : (
+                        <input
+                          type="number"
+                          min={0}
+                          value={item.rate || ""}
+                          onChange={(e) =>
+                            updateItem(idx, "rate", e.target.value)
+                          }
+                          onKeyDown={(e) => handleKeyDown(e, idx, 3)}
+                          className={`${inputCls} text-right text-[10px]`}
+                        />
+                      )}
                     </td>
                     <td className="border-x border-gray-200 text-center text-[9px] py-2 text-gray-500">
                       {gstRate}%
@@ -360,16 +388,22 @@ export function AKEnterpriseTemplate({
                       {taxable > 0 ? formatINR(gstItemTotal) : ""}
                     </td>
                     <td className="border-x border-gray-400 px-1 py-0">
-                      <input
-                        type="number"
-                        min={0}
-                        value={item.amount || ""}
-                        onChange={(e) =>
-                          updateItem(idx, "amount", e.target.value)
-                        }
-                        onKeyDown={(e) => handleKeyDown(e, idx, 4)}
-                        className={`${inputCls} text-right font-semibold text-[10px]`}
-                      />
+                      {isReadOnly ? (
+                        <div className="w-full px-1 py-2 text-right font-semibold text-[10px] text-gray-800">
+                          {item.amount > 0 ? item.amount : ""}
+                        </div>
+                      ) : (
+                        <input
+                          type="number"
+                          min={0}
+                          value={item.amount || ""}
+                          onChange={(e) =>
+                            updateItem(idx, "amount", e.target.value)
+                          }
+                          onKeyDown={(e) => handleKeyDown(e, idx, 4)}
+                          className={`${inputCls} text-right font-semibold text-[10px]`}
+                        />
+                      )}
                     </td>
                   </tr>
                 );
@@ -404,7 +438,7 @@ export function AKEnterpriseTemplate({
               </tr>
             </thead>
             <tbody>
-              {items.map((item, idx) => {
+              {displayItems.map((item, idx) => {
                 const hasContent =
                   item.description ||
                   Math.abs(item.qty) > 0 ||
@@ -419,56 +453,80 @@ export function AKEnterpriseTemplate({
                       {hasContent ? idx + 1 : ""}
                     </td>
                     <td className="border-x border-gray-200 px-1 py-0">
-                      <textarea
-                        value={item.description}
-                        onChange={(e) => {
-                          updateItem(idx, "description", e.target.value);
-                          autoResize(e.target);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Tab") handleKeyDown(e, idx, 0);
-                        }}
-                        ref={(el) => {
-                          if (el && item.description) autoResize(el);
-                        }}
-                        rows={1}
-                        placeholder={idx === 0 ? "Type description..." : ""}
-                        className="w-full px-2 py-2 bg-transparent text-[11px] text-gray-800 border-0 focus:outline-none focus:bg-blue-50/30 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.5]"
-                      />
+                      {isReadOnly ? (
+                        <div className="w-full px-2 py-2 text-[11px] text-gray-800 whitespace-pre-wrap min-h-[30px]">
+                          {item.description}
+                        </div>
+                      ) : (
+                        <textarea
+                          value={item.description}
+                          onChange={(e) => {
+                            updateItem(idx, "description", e.target.value);
+                            autoResize(e.target);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Tab") handleKeyDown(e, idx, 0);
+                          }}
+                          ref={(el) => {
+                            if (el && item.description) autoResize(el);
+                          }}
+                          rows={1}
+                          placeholder={idx === 0 ? "Type description..." : ""}
+                          className="w-full px-2 py-2 bg-transparent text-[11px] text-gray-800 border-0 focus:outline-none focus:bg-blue-50/30 placeholder:text-gray-300 resize-none overflow-hidden leading-[1.5]"
+                        />
+                      )}
                     </td>
                     <td className="border-x border-gray-200 px-1 py-0">
-                      <input
-                        type="number"
-                        min={0}
-                        value={item.qty || ""}
-                        onChange={(e) => updateItem(idx, "qty", e.target.value)}
-                        onKeyDown={(e) => handleKeyDown(e, idx, 1)}
-                        className={`${inputCls} text-center`}
-                      />
+                      {isReadOnly ? (
+                        <div className="w-full px-1 py-2 text-center text-[11px] text-gray-800">
+                          {item.qty > 0 ? item.qty : ""}
+                        </div>
+                      ) : (
+                        <input
+                          type="number"
+                          min={0}
+                          value={item.qty || ""}
+                          onChange={(e) => updateItem(idx, "qty", e.target.value)}
+                          onKeyDown={(e) => handleKeyDown(e, idx, 1)}
+                          className={`${inputCls} text-center`}
+                        />
+                      )}
                     </td>
                     <td className="border-x border-gray-200 px-1 py-0">
-                      <input
-                        type="number"
-                        min={0}
-                        value={item.rate || ""}
-                        onChange={(e) =>
-                          updateItem(idx, "rate", e.target.value)
-                        }
-                        onKeyDown={(e) => handleKeyDown(e, idx, 2)}
-                        className={`${inputCls} text-right`}
-                      />
+                      {isReadOnly ? (
+                        <div className="w-full px-1 py-2 text-right text-[11px] text-gray-800">
+                          {item.rate > 0 ? item.rate : ""}
+                        </div>
+                      ) : (
+                        <input
+                          type="number"
+                          min={0}
+                          value={item.rate || ""}
+                          onChange={(e) =>
+                            updateItem(idx, "rate", e.target.value)
+                          }
+                          onKeyDown={(e) => handleKeyDown(e, idx, 2)}
+                          className={`${inputCls} text-right`}
+                        />
+                      )}
                     </td>
                     <td className="border-x border-gray-400 px-1 py-0">
-                      <input
-                        type="number"
-                        min={0}
-                        value={item.amount || ""}
-                        onChange={(e) =>
-                          updateItem(idx, "amount", e.target.value)
-                        }
-                        onKeyDown={(e) => handleKeyDown(e, idx, 3)}
-                        className={`${inputCls} text-right font-semibold`}
-                      />
+                      {isReadOnly ? (
+                        <div className="w-full px-1 py-2 text-right font-bold text-[11px] text-gray-800">
+                          {item.amount > 0 ? item.amount : ""}
+                        </div>
+                      ) : (
+                        <input
+                          type="number"
+                          min={0}
+                          value={item.amount || ""}
+                          onChange={(e) =>
+                            updateItem(idx, "amount", e.target.value)
+                          }
+                          onKeyDown={(e) => handleKeyDown(e, idx, 3)}
+                          className={`${inputCls} text-right font-bold`}
+                        />
+                      )}
                     </td>
                   </tr>
                 );
@@ -489,7 +547,7 @@ export function AKEnterpriseTemplate({
               </div>
               <div className="text-[10px] italic font-semibold text-gray-800 mb-3">
                 {/* simplified display */}
-                {grandTotal > 0 ? `₹${formatINR(grandTotal)}` : "—"}
+                {grandTotal > 0 ? formatINR(grandTotal) : "—"}
               </div>
               {/* <div className="text-[10px] font-bold text-gray-700 mb-1">
                 Notes

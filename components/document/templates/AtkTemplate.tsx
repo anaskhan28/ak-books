@@ -90,13 +90,15 @@ export function ATKTemplate({
         />
       </div>
 
-      <div className="px-4 md:px-8 pt-2 pb-3">
-        <span className="text-[12px] md:text-[15px] text-gray-400 mr-1">Subject:</span>
+      <div className="px-4 md:px-8 pt-2 pb-3 flex items-center gap-2">
+        <span className="text-[12px] md:text-[15px] text-gray-400 flex items-center gap-1">
+          Subject: <span className="text-red-500 font-bold">*</span>
+        </span>
         <input
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           placeholder="Quotation for Scrap"
-          className="text-[11px] md:text-[13px] font-semibold text-gray-800 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 w-[80%] placeholder:text-gray-300 placeholder:font-normal"
+          className={`text-[11px] md:text-[13px] font-semibold text-gray-800 bg-transparent border-0 border-b border-dashed ${!subject ? 'border-red-300' : 'border-gray-300'} focus:border-primary focus:outline-none py-0.5 w-[80%] placeholder:text-gray-300 placeholder:font-normal transition-colors`}
         />
       </div>
 

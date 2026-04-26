@@ -7,6 +7,7 @@ import {
   quotationTemplates,
   clients,
   projects,
+  invoices,
   type NewQuotation,
   type NewQuotationItem,
 } from "@/app/db/schema";
@@ -107,12 +108,19 @@ export async function getNextDocumentNumber(templateId: number | null, isInvoice
   const cfg = getTemplateConfig(dbTemplate?.name, dbTemplate);
   const prefix = isInvoice ? cfg.invoicePrefix : cfg.prefix;
 
-  const existing = await db
-    .select({ num: quotations.quotationNumber })
-    .from(quotations)
-    .where(like(quotations.quotationNumber, `${prefix}%`))
-    .orderBy(desc(quotations.id))
-    .limit(50);
+  const existing = isInvoice
+    ? await db
+        .select({ num: invoices.invoiceNumber })
+        .from(invoices)
+        .where(like(invoices.invoiceNumber, `${prefix}%`))
+        .orderBy(desc(invoices.id))
+        .limit(50)
+    : await db
+        .select({ num: quotations.quotationNumber })
+        .from(quotations)
+        .where(like(quotations.quotationNumber, `${prefix}%`))
+        .orderBy(desc(quotations.id))
+        .limit(50);
 
   let nextSeq = 1;
   const escaped = prefix.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
@@ -190,8 +198,22 @@ export async function updateQuotationStatus(id: number, status: string) {
 }
 
 export async function deleteQuotation(id: number) {
-  await db.delete(quotations).where(eq(quotations.id, id));
-  revalidatePath("/quotations");
+  try {
+    await db.delete(quotations).where(eq(quotations.id, id));
+    revalidatePath("/quotations");
+    return { success: true };
+  } catch (error: any) {
+    if (error.code === "23503") {
+      return { 
+        success: false, 
+        error: "This quotation is linked to an invoice and cannot be deleted. Please delete the invoice first." 
+      };
+    }
+    return { 
+      success: false, 
+      error: "Failed to delete quotation. Please try again." 
+    };
+  }
 }
 
 export async function cloneQuotation(id: number) {

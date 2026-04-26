@@ -50,6 +50,8 @@ const STATUS_COLORS: Record<string, string> = {
   gray: "text-gray-400",
 };
 
+import { alerts } from "@/lib/alerts";
+
 export default function InvoicesClient({ invoices: initialInvoices, pendingQuotations }: InvoicesClientProps) {
   const router = useRouter();
   const [showGenerate, setShowGenerate] = useState(false);
@@ -69,8 +71,9 @@ export default function InvoicesClient({ invoices: initialInvoices, pendingQuota
 
   async function handleDelete(e: React.MouseEvent | null, id: number) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
-    if (!confirm("Delete this invoice?")) return;
+    if (!(await alerts.confirm("Delete this invoice?", "This action cannot be undone."))) return;
     await deleteInvoice(id);
+    alerts.success("Invoice deleted");
     router.refresh();
   }
 
@@ -111,7 +114,7 @@ export default function InvoicesClient({ invoices: initialInvoices, pendingQuota
       });
     } catch (err) {
       console.error(err);
-      alert("Failed to download PDF. Please try again or download from the editor.");
+      alerts.error("Failed to download PDF", "Please try again or download from the editor.");
     } finally {
       setDownloadingId(null);
     }

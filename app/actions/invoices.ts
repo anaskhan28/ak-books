@@ -12,33 +12,35 @@ import {
   type NewInvoice,
   type NewInvoiceItem,
 } from "@/app/db/schema";
-import { eq, sql, desc, like } from "drizzle-orm";
+import { eq, sql, desc, like, and, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-async function resolveTemplateName(templateId: number | null) {
-  if (!templateId) return null;
-  const [row] = await db
-    .select({ name: quotationTemplates.name })
-    .from(quotationTemplates)
-    .where(eq(quotationTemplates.id, templateId));
-  return row?.name ?? null;
-}
 
 async function generateInvoiceNumber(prefix: string) {
   const rows = await db
     .select({ num: invoices.invoiceNumber })
     .from(invoices)
-    .where(like(invoices.invoiceNumber, `${prefix}-%`))
-    .orderBy(desc(invoices.id));
+    .where(like(invoices.invoiceNumber, `${prefix}%`))
+    .orderBy(desc(invoices.id))
+    .limit(50);
 
   let nextSeq = 1;
+  const escaped = prefix.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+  const regex = new RegExp(`${escaped}-?(\\d+)`);
+
   for (const { num } of rows) {
-    const match = num.match(new RegExp(`${prefix}-(\\d+)`));
-    if (match) nextSeq = Math.max(nextSeq, parseInt(match[1], 10) + 1);
+    const match = num.match(regex);
+    if (match) {
+      const n = parseInt(match[1], 10);
+      if (n >= nextSeq) nextSeq = n + 1;
+    }
   }
-  return `${prefix}-${String(nextSeq).padStart(2, "0")}`;
+
+  // Check if prefix already ends with a separator
+  const separator = prefix.endsWith("/") || prefix.endsWith("-") ? "" : "-";
+  return `${prefix}${separator}${String(nextSeq).padStart(2, "0")}`;
 }
 
 function todayAndDueDate(daysOut = 30) {
@@ -89,8 +91,8 @@ export async function getInvoices() {
 
 /** Single optimized fetch: invoice + items + payments + template in parallel */
 export async function getInvoice(id: number) {
-  // Batch: core row + items + payments in one Promise.all
-  const [rows, items, invoicePayments] = await Promise.all([
+  // Step 1: Fetch core row
+  const [rows] = await Promise.all([
     db
       .select({
         id: invoices.id,
@@ -121,28 +123,19 @@ export async function getInvoice(id: number) {
       .leftJoin(quotations, eq(invoices.quotationId, quotations.id))
       .leftJoin(clients, eq(invoices.clientId, clients.id))
       .where(eq(invoices.id, id)),
-    db.select().from(invoiceItems).where(eq(invoiceItems.invoiceId, id)),
-    db.select().from(payments).where(eq(payments.invoiceId, id)),
   ]);
 
   const row = rows[0];
   if (!row) return null;
 
-  // Resolve template: invoice's own → quotation's → null
-  let tplId = row.templateId;
-  if (!tplId && row.quotationId) {
-    const [qt] = await db
-      .select({ templateId: quotations.templateId })
-      .from(quotations)
-      .where(eq(quotations.id, row.quotationId));
-    tplId = qt?.templateId ?? null;
-  }
-
-  let template = null;
-  if (tplId) {
-    const [t] = await db.select().from(quotationTemplates).where(eq(quotationTemplates.id, tplId));
-    template = t ?? null;
-  }
+  // Step 2: Fetch items, payments, and template in parallel
+  const [items, invoicePayments, template] = await Promise.all([
+    db.select().from(invoiceItems).where(eq(invoiceItems.invoiceId, id)),
+    db.select().from(payments).where(eq(payments.invoiceId, id)),
+    row.templateId
+      ? db.select().from(quotationTemplates).where(eq(quotationTemplates.id, row.templateId)).then(r => r[0] ?? null)
+      : Promise.resolve(null),
+  ]);
 
   return { ...row, items, payments: invoicePayments, template };
 }
@@ -156,42 +149,61 @@ export async function createInvoice(
   },
   items: Omit<NewInvoiceItem, "invoiceId">[],
 ) {
-  const tplName = await resolveTemplateName(data.templateId ?? null);
+  let dbTemplate = null;
+  if (data.templateId) {
+    const [row] = await db.select().from(quotationTemplates).where(eq(quotationTemplates.id, data.templateId));
+    dbTemplate = row ?? null;
+  }
   const { getTemplateConfig } = await import("@/lib/pdf-templates/registry");
-  const cfg = getTemplateConfig(tplName);
+  const cfg = getTemplateConfig(dbTemplate?.name, dbTemplate);
 
   const { today, dueDate } = todayAndDueDate();
   const invoiceNumber = await generateInvoiceNumber(cfg.invoicePrefix);
   const totalAmount = data.totalAmount || items.reduce((s, i) => s + i.amount, 0);
 
-  const [invoice] = await db
-    .insert(invoices)
-    .values({
-      ...data,
-      templateId: data.templateId as number | null,
-      invoiceNumber: data.invoiceNumber || invoiceNumber,
-      totalAmount,
-      invoiceDate: data.invoiceDate || today,
-      dueDate,
-    })
-    .returning();
+  try {
+    const [invoice] = await db
+      .insert(invoices)
+      .values({
+        ...data,
+        templateId: data.templateId as number | null,
+        invoiceNumber: data.invoiceNumber || invoiceNumber,
+        totalAmount,
+        invoiceDate: data.invoiceDate || today,
+        dueDate,
+      })
+      .returning();
 
-  await insertItems(invoice.id, items);
-  revalidateInvoices();
-  return invoice;
+    await insertItems(invoice.id, items);
+    revalidateInvoices();
+    return { success: true, invoice };
+  } catch (error: any) {
+    if (error.code === "23505") {
+      return { 
+        success: false, 
+        error: "This invoice number already exists. Please try a different one or refresh the page." 
+      };
+    }
+    return { 
+      success: false, 
+      error: error.message || "Failed to create invoice." 
+    };
+  }
 }
 
 export async function generateInvoice(quotationId: number) {
   const [quotation] = await db.select().from(quotations).where(eq(quotations.id, quotationId));
   if (!quotation) throw new Error("Quotation not found");
 
-  const [qtItems, tplName] = await Promise.all([
+  const [qtItems, dbTemplate] = await Promise.all([
     db.select().from(quotationItems).where(eq(quotationItems.quotationId, quotationId)),
-    resolveTemplateName(quotation.templateId),
+    quotation.templateId
+      ? db.select().from(quotationTemplates).where(eq(quotationTemplates.id, quotation.templateId)).then(r => r[0] ?? null)
+      : Promise.resolve(null),
   ]);
 
   const { getTemplateConfig } = await import("@/lib/pdf-templates/registry");
-  const cfg = getTemplateConfig(tplName);
+  const cfg = getTemplateConfig(dbTemplate?.name, dbTemplate);
 
   const [invoiceNumber, dates] = await Promise.all([
     generateInvoiceNumber(cfg.invoicePrefix),
@@ -253,12 +265,71 @@ export async function updateInvoice(
 }
 
 export async function updateInvoiceStatus(id: number, status: string) {
+  // Step 1: Update the invoice status
   await db.update(invoices).set({ status }).where(eq(invoices.id, id));
+
+  // Step 2: If cancelled, check if we should reset the quotation status
+  if (status === "cancelled") {
+    const [row] = await db
+      .select({ quotationId: invoices.quotationId })
+      .from(invoices)
+      .where(eq(invoices.id, id));
+
+    if (row?.quotationId) {
+      // Check if any OTHER active invoices exist for this quotation
+      const otherInvoices = await db
+        .select({ id: invoices.id })
+        .from(invoices)
+        .where(
+          and(
+            eq(invoices.quotationId, row.quotationId),
+            ne(invoices.id, id),
+            ne(invoices.status, "cancelled")
+          )
+        );
+
+      if (otherInvoices.length === 0) {
+        await db
+          .update(quotations)
+          .set({ status: "accepted" })
+          .where(eq(quotations.id, row.quotationId));
+      }
+    }
+  }
+
   revalidateInvoices();
 }
 
 export async function deleteInvoice(id: number) {
+  // Step 1: Fetch invoice info before deletion
+  const [row] = await db
+    .select({ quotationId: invoices.quotationId, status: invoices.status })
+    .from(invoices)
+    .where(eq(invoices.id, id));
+
+  // Step 2: Delete the invoice
   await db.delete(invoices).where(eq(invoices.id, id));
+
+  // Step 3: Reset quotation status if this was the last active invoice
+  if (row?.quotationId && row.status !== "cancelled") {
+    const remainingInvoices = await db
+      .select({ id: invoices.id })
+      .from(invoices)
+      .where(
+        and(
+          eq(invoices.quotationId, row.quotationId),
+          ne(invoices.status, "cancelled")
+        )
+      );
+
+    if (remainingInvoices.length === 0) {
+      await db
+        .update(quotations)
+        .set({ status: "accepted" })
+        .where(eq(quotations.id, row.quotationId));
+    }
+  }
+
   revalidateInvoices();
 }
 

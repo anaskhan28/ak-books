@@ -23,6 +23,8 @@ export const metadata: Metadata = {
     "Integrated business operations, finance, and site management for AK Enterprise Group",
 };
 
+import { Toaster } from "@/components/providers/sonner-provider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,6 +36,7 @@ export default function RootLayout({
         className={`${dmSans.variable} ${jetbrainsMono.variable} antialiased`}
       >
         {children}
+        <Toaster />
       </body>
     </html>
   );

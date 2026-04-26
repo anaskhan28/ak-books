@@ -74,7 +74,7 @@ export function useDocumentEditor({
   );
   const [accountPan, setAccountPan] = useState(initialAccount.pan);
 
-  const emptyRowCount = isMADHU ? MADHU_EMPTY_ROWS : EMPTY_ROWS;
+  const emptyRowCount = isMADHU ? MADHU_EMPTY_ROWS : (isAKE ? 1 : EMPTY_ROWS);
   const padded: LineItem[] = [
     ...initialItems,
     ...Array.from(
@@ -408,5 +408,17 @@ export function useDocumentEditor({
     // helpers
     inputCls,
     formatINR,
+    validate: () => {
+      if (!clientName) {
+        return { valid: false, message: "Client Name is required" };
+      }
+      if (!subject) {
+        return { valid: false, message: "Subject is required" };
+      }
+      if (filledItems.length === 0) {
+        return { valid: false, message: "Add at least one item" };
+      }
+      return { valid: true };
+    },
   };
 }

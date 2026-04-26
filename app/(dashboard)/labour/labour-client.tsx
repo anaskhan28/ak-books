@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { alerts } from "@/lib/alerts";
 import { Plus, Check, Trash2, Users, Receipt, Info } from "lucide-react";
 import { addLabourEntry, deleteLabourEntry } from "@/app/actions/labour";
 import PageHeader from "@/components/ui/page-header";
@@ -63,15 +64,16 @@ export default function LabourClient({ entries, projects }: LabourClientProps) {
       if (window.innerWidth < 768) setShowForm(false);
     } catch (err) {
       console.error(err);
-      alert("Failed to save entry");
+      alerts.error("Failed to save entry");
     } finally {
       setSaving(false);
     }
   }
 
   async function handleDelete(id: number) {
-    if (!confirm("Delete this entry?")) return;
+    if (!(await alerts.confirm("Delete this entry?"))) return;
     await deleteLabourEntry(id);
+    alerts.success("Entry deleted");
     router.refresh();
   }
 

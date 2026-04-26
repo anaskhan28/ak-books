@@ -34,6 +34,7 @@ import { getClients } from "@/app/actions/clients";
 import { getTemplates } from "@/app/actions/templates";
 import { getNextDocumentNumber } from "@/app/actions/quotations";
 import { getTemplateConfig } from "@/lib/pdf-templates/registry";
+import { HSN_PRESETS } from "@/lib/constants";
 import type { Client, QuotationTemplate } from "@/app/db/schema";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -326,7 +327,26 @@ export function DocumentForm({
     );
 
   async function handleSave(forcedStatus?: string) {
-    if (!clientName.trim()) return;
+    const alertsImport = await import("@/lib/alerts");
+    const alerts = alertsImport.alerts;
+
+    if (!clientName.trim()) {
+      alerts.error("Validation Error", "Customer Name is required.");
+      return;
+    }
+    if (!templateId) {
+      alerts.error("Validation Error", "Please select a template.");
+      return;
+    }
+    if (!subject.trim()) {
+      alerts.error("Validation Error", "Subject is required.");
+      return;
+    }
+    if (filledItems.length === 0) {
+      alerts.error("Validation Error", "Please add at least one item with a description.");
+      return;
+    }
+
     setSaving(true);
     const clientId = clients.find((c) => c.name === clientName)?.id;
     const finalStatus = forcedStatus || status;
@@ -352,6 +372,8 @@ export function DocumentForm({
         },
         subtotal,
       );
+    } catch (error: any) {
+      alerts.error("Save failed", error.message || "An unexpected error occurred.");
     } finally {
       setSaving(false);
     }
@@ -505,7 +527,7 @@ export function DocumentForm({
             </div>
           </div>
 
-          <FieldRow label="Subject">
+          <FieldRow label="Subject" required>
             <textarea
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
@@ -587,12 +609,29 @@ export function DocumentForm({
                       </td>
 
                       {isAKEnterprise && isInvoice && (
-                        <td className="p-0 border-r border-border">
-                          <input
-                            value={item.hsn}
-                            onChange={(e) => updateItem(item.id, "hsn", e.target.value)}
-                            className="w-full px-2 py-3 text-center text-[14px] text-foreground bg-transparent border-0 focus:outline-none"
-                          />
+                        <td className="p-0 border-r border-border min-w-[100px]">
+                          <div className="flex flex-col">
+                            <select
+                              value={HSN_PRESETS.some(p => p.code === item.hsn) ? item.hsn : ""}
+                              onChange={(e) => {
+                                if (e.target.value) updateItem(item.id, "hsn", e.target.value);
+                              }}
+                              className="w-full px-2 py-1.5 text-[12px] text-primary font-medium bg-primary/5 border-b border-dashed border-primary/20 focus:outline-none cursor-pointer"
+                            >
+                              <option value="">— HSN —</option>
+                              {HSN_PRESETS.map((p) => (
+                                <option key={p.code} value={p.code}>
+                                  {p.code} ({p.label})
+                                </option>
+                              ))}
+                            </select>
+                            <input
+                              value={item.hsn}
+                              onChange={(e) => updateItem(item.id, "hsn", e.target.value)}
+                              placeholder="Manual"
+                              className="w-full px-2 py-1.5 text-center text-[12px] text-foreground bg-transparent border-0 focus:outline-none placeholder:text-muted-foreground/30"
+                            />
+                          </div>
                         </td>
                       )}
 

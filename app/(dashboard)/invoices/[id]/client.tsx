@@ -22,6 +22,7 @@ import {
   Plus,
   Ban,
 } from "lucide-react";
+import { alerts } from "@/lib/alerts";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,7 +49,7 @@ interface Props {
 export default function InvoiceDetailClient({ invoice, clients }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const tplConfig = getTemplateConfig(invoice.template?.name);
+  const tplConfig = getTemplateConfig(invoice.template?.name, invoice.template);
 
   const [saving, setSaving] = useState(false);
   const [markingPaid, setMarkingPaid] = useState(false);
@@ -84,6 +85,7 @@ export default function InvoiceDetailClient({ invoice, clients }: Props) {
       accountHolder: invoice.accountHolder || tplConfig.bank.accountHolder,
       pan: invoice.accountPan || tplConfig.bank.pan,
     },
+    template: invoice.template,
   });
 
   // Auto-download PDF when navigated with ?download=true
@@ -104,6 +106,7 @@ export default function InvoiceDetailClient({ invoice, clients }: Props) {
   }, []);
 
   async function handleSave() {
+    if (!editor.validate()) return;
     setSaving(true);
     const matchedClient = clients.find(
       (c) => c.name.toLowerCase() === editor.clientName.toLowerCase(),
@@ -144,6 +147,7 @@ export default function InvoiceDetailClient({ invoice, clients }: Props) {
       })),
     );
     setSaving(false);
+    alerts.success("Invoice saved successfully");
     router.refresh();
   }
 
@@ -168,17 +172,19 @@ export default function InvoiceDetailClient({ invoice, clients }: Props) {
   const onRefresh = () => router.refresh();
 
   async function handleDelete() {
-    if (!confirm("Delete this invoice?")) return;
+    if (!(await alerts.confirm("Delete this invoice?", "This action cannot be undone."))) return;
     const { deleteInvoice } = await import("@/app/actions/invoices");
     await deleteInvoice(invoice.id);
+    alerts.success("Invoice deleted");
     router.push("/invoices");
   }
 
   async function handleVoid() {
-    if (!confirm("Are you sure you want to void this invoice? This will mark it as Cancelled and cannot be undone.")) return;
+    if (!(await alerts.confirm("Void this invoice?", "This will mark it as Cancelled and cannot be undone."))) return;
     setSaving(true);
     await updateInvoiceStatus(invoice.id, "cancelled");
     setSaving(false);
+    alerts.success("Invoice voided");
     onRefresh();
   }
 
@@ -298,9 +304,7 @@ export default function InvoiceDetailClient({ invoice, clients }: Props) {
           className="bg-white border border-gray-200 overflow-hidden px-2 md:px-8 w-full max-w-none origin-top"
           style={{ zoom: "min(1, calc((100vw - 32px) / 820))" } as any}
         >
-          <div className="border-b border-gray-100">
-            <img src={tplConfig.headerImage} alt="Header" className="w-full" />
-          </div>
+
           <TemplateRenderer
             generator={tplConfig.generator}
             mode="invoice"
@@ -332,7 +336,12 @@ export default function InvoiceDetailClient({ invoice, clients }: Props) {
             clients={clients}
             qtNumber={editor.docNumber}
             signatureImage={tplConfig.signatureImage}
+            primaryColor={tplConfig.primaryColor}
+            secondaryColor={tplConfig.secondaryColor}
+            headerImage={tplConfig.headerImage}
+            templateName={invoice.template?.name || tplConfig.displayName}
             formatINR={formatINR}
+            isReadOnly={true}
             inputCls={editor.inputCls}
           />
         </div>

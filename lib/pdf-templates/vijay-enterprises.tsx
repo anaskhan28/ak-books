@@ -141,7 +141,7 @@ function VijayDoc({
     (i) => i.description.trim() || Math.abs(i.amount) > 0 || Math.abs(i.qty) > 0 || Math.abs(i.rate) > 0,
   );
   const displayDate = fmtDate(date);
-  const subjectLabel = subject || "Quotation for work";
+  const subjectLabel = subject || "Quotation";
 
   // Format total as: Rs- 60,300/– [18% GST Extra]
   const totalFormatted = `Rs- ${fmtINR0(total)}/\u2013  `;

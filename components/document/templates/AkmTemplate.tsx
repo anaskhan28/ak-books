@@ -98,12 +98,14 @@ export function AKMTemplate({
           />
         </div>
         <div className="mb-4">
-          <span className="md:text-[15px] text-[8px] text-gray-400 mr-1">Subject:</span>
+          <span className="md:text-[15px] text-[8px] text-gray-400 mr-1 flex items-center gap-1">
+            Subject: <span className="text-red-500 font-bold">*</span>
+          </span>
           <input
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="Labour Assistance Work"
-            className="md:text-[13px] text-[10px] font-semibold text-gray-800 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 w-[80%] placeholder:text-gray-300 placeholder:font-normal"
+            className={`md:text-[13px] text-[10px] font-semibold text-gray-800 bg-transparent border-0 border-b border-dashed ${!subject ? 'border-red-300 bg-red-50/10' : 'border-gray-300 focus:border-primary'} focus:outline-none py-0.5 w-[80%] placeholder:text-gray-300 placeholder:font-normal transition-all`}
           />
         </div>
       </div>

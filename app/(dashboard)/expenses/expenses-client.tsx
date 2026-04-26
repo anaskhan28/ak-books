@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { alerts } from "@/lib/alerts";
 import { Plus, Check, Trash2, Calendar, Tag, FileText } from "lucide-react";
 import { addExpense, deleteExpense } from "@/app/actions/expenses";
 import PageHeader from "@/components/ui/page-header";
@@ -72,15 +73,16 @@ export default function ExpensesClient({ expenses, projects }: ExpensesClientPro
       if (window.innerWidth < 768) setShowForm(false);
     } catch (err) {
       console.error(err);
-      alert("Failed to save expense");
+      alerts.error("Failed to save expense");
     } finally {
       setSaving(false);
     }
   }
 
   async function handleDelete(id: number) {
-    if (!confirm("Delete this expense?")) return;
+    if (!(await alerts.confirm("Delete this expense?"))) return;
     await deleteExpense(id);
+    alerts.success("Expense deleted");
     router.refresh();
   }
 

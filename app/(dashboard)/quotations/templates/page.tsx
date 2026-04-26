@@ -9,6 +9,7 @@ import PageHeader from "@/components/ui/page-header";
 import { getTemplates, deleteTemplate } from "@/app/actions/templates";
 import type { QuotationTemplate } from "@/app/db/schema";
 import { useRouter } from "next/navigation";
+import { alerts } from "@/lib/alerts";
 
 export default function TemplatesPage() {
   const router = useRouter();
@@ -24,10 +25,13 @@ export default function TemplatesPage() {
     load();
   }, []);
 
+
+
   async function handleDelete(id: number) {
-    if (!confirm("Are you sure you want to delete this template? This will not affect existing quotations.")) return;
+    if (!(await alerts.confirm("Delete this template?", "This will not affect existing quotations."))) return;
     await deleteTemplate(id);
     setTemplates(templates.filter(t => t.id !== id));
+    alerts.success("Template deleted");
   }
 
   return (

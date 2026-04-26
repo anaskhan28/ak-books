@@ -23,7 +23,9 @@ export function formatCurrency(amount: number): string {
 }
 
 export function formatINR(amount: number): string {
-  return `₹${amount.toLocaleString("en-IN")}`;
+  const formatted = amount.toLocaleString("en-IN");
+  if (formatted.includes("₹")) return formatted;
+  return `₹${formatted}`;
 }
 
 export function generateNumber(prefix: string): string {

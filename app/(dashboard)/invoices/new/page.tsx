@@ -34,7 +34,7 @@ function NewInvoiceContent() {
       clientId = newClient.id;
     }
 
-    const inv = await createInvoice(
+    const result = await createInvoice(
       {
         invoiceNumber: values.docNumber || undefined,
         templateId: values.templateId,
@@ -62,7 +62,12 @@ function NewInvoiceContent() {
         })),
     );
 
-    router.push(`/invoices/${inv.id}`);
+    if (result.success && result.invoice) {
+      router.push(`/invoices/${result.invoice.id}`);
+    } else {
+      const { alerts } = await import("@/lib/alerts");
+      alerts.error("Save failed", result.error);
+    }
   }
 
   return (

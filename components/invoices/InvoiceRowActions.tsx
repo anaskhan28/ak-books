@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { alerts } from "@/lib/alerts";
 import { ChevronDown, Pencil, Download, CreditCard, Loader2, Copy, Trash2, Ban, RotateCcw } from "lucide-react";
 import { cloneInvoice, updateInvoiceStatus } from "@/app/actions/invoices";
 import {
@@ -39,30 +40,35 @@ export default function InvoiceRowActions({
   const router = useRouter();
   const [isCloning, setIsCloning] = useState(false);
 
+
+
   const handleClone = async () => {
     if (isCloning) return;
     setIsCloning(true);
     try {
       const cloned = await cloneInvoice(invoiceId);
+      alerts.success("Invoice cloned");
       router.push(`/invoices/${cloned.id}`);
     } catch (err) {
       console.error(err);
-      alert("Failed to clone invoice");
+      alerts.error("Failed to clone invoice");
     } finally {
       setIsCloning(false);
     }
   };
 
   const handleVoid = async () => {
-    if (!confirm("Are you sure you want to void this invoice? This will mark it as Cancelled and cannot be undone.")) return;
+    if (!(await alerts.confirm("Void this invoice?", "This will mark it as Cancelled and cannot be undone."))) return;
     await updateInvoiceStatus(invoiceId, "cancelled");
+    alerts.success("Invoice voided");
     router.refresh();
     if (onRefresh) onRefresh();
   };
 
   const handleRestore = async () => {
-    if (!confirm("Are you sure you want to restore this invoice? It will be marked as Unpaid.")) return;
+    if (!(await alerts.confirm("Restore this invoice?", "It will be marked as Unpaid."))) return;
     await updateInvoiceStatus(invoiceId, "unpaid");
+    alerts.success("Invoice restored");
     router.refresh();
     if (onRefresh) onRefresh();
   };

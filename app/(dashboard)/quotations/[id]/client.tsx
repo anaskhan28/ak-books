@@ -46,6 +46,8 @@ interface Props {
   clients: Client[];
 }
 
+import { alerts } from "@/lib/alerts";
+
 export default function QuotationDetailClient({ quotation, clients }: Props) {
   const router = useRouter();
   const tplConfig = getTemplateConfig(quotation.template?.name, quotation.template);
@@ -94,6 +96,12 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
   });
 
   async function handleSave() {
+    const { valid, message } = editor.validate();
+    if (!valid) {
+      alerts.warning(message);
+      return;
+    }
+
     setSaving(true);
     const matchedClient = clients.find(
       (c) => c.name.toLowerCase() === editor.clientName.toLowerCase(),
@@ -128,6 +136,7 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
       })),
     );
     setSaving(false);
+    alerts.success("Quotation updated");
     router.refresh();
   }
 
@@ -135,6 +144,7 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
     setSending(true);
     await updateQuotationStatus(quotation.id, "sent");
     setSending(false);
+    alerts.success("Quotation marked as sent");
     router.refresh();
   }
 
@@ -219,6 +229,7 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
                 onClick={async () => {
                   const { generateInvoice } = await import("@/app/actions/invoices");
                   const invoice = await generateInvoice(quotation.id);
+                  alerts.success("Converted to Invoice");
                   router.push(`/invoices/${invoice.id}`);
                 }}
               >
@@ -228,6 +239,7 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
                 onClick={async () => {
                   const { cloneQuotation } = await import("@/app/actions/quotations");
                   const cloned = await cloneQuotation(quotation.id);
+                  alerts.success("Quotation cloned");
                   router.push(`/quotations/${cloned.id}`);
                 }}
               >
@@ -235,9 +247,10 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={async () => {
-                  if (confirm("Delete this quotation?")) {
+                  if (await alerts.confirm("Delete this quotation?", "This action cannot be undone.")) {
                     const { deleteQuotation } = await import("@/app/actions/quotations");
                     await deleteQuotation(quotation.id);
+                    alerts.success("Quotation deleted");
                     router.push("/quotations");
                   }
                 }}
@@ -295,6 +308,7 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
             headerImage={tplConfig.headerImage}
             templateName={quotation.template?.name || ""}
             formatINR={formatINR}
+            isReadOnly={true}
             inputCls={editor.inputCls}
           />
         </div>

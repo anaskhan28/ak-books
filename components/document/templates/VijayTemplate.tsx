@@ -90,12 +90,14 @@ export function VijayTemplate({
 
       {/* Subject — left aligned, plain (not bold) */}
       <div className="mb-5">
-        <span className="text-[11px] md:text-[13px] text-gray-900 mr-1">Subject:</span>
+        <span className="text-[11px] md:text-[13px] text-gray-900 mr-1 flex items-center gap-1">
+          Subject: <span className="text-red-500 font-bold">*</span>
+        </span>
         <input
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           placeholder="Quotation for work"
-          className="text-[11px] md:text-[13px] text-gray-800 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 w-[80%] placeholder:text-gray-300"
+          className={`text-[11px] md:text-[13px] text-gray-800 bg-transparent border-0 border-b border-dashed ${!subject ? 'border-red-300 bg-red-50/10' : 'border-gray-300 focus:border-primary'} focus:outline-none py-0.5 w-[80%] placeholder:text-gray-300 transition-all`}
           style={{ fontFamily: "inherit" }}
         />
       </div>
