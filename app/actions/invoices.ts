@@ -174,6 +174,10 @@ export async function createInvoice(
       })
       .returning();
 
+    if (!invoice) {
+      throw new Error("Failed to create invoice record");
+    }
+
     await insertItems(invoice.id, items);
     revalidateInvoices();
     return { success: true, invoice };
@@ -337,7 +341,7 @@ export async function cloneInvoice(id: number) {
   const original = await getInvoice(id);
   if (!original) throw new Error("Invoice not found");
 
-  return createInvoice(
+  const result = await createInvoice(
     {
       templateId: original.templateId,
       clientId: original.clientId,
@@ -357,4 +361,10 @@ export async function cloneInvoice(id: number) {
       description, quantity, rate, taxed, amount,
     })),
   );
+
+  if (!result.success || !result.invoice) {
+    throw new Error(result.error || "Failed to clone invoice");
+  }
+
+  return result.invoice;
 }

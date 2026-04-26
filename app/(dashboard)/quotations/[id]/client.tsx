@@ -98,7 +98,7 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
   async function handleSave() {
     const { valid, message } = editor.validate();
     if (!valid) {
-      alerts.warning(message);
+      alerts.warning(message || "Please check the required fields");
       return;
     }
 

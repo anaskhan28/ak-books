@@ -106,7 +106,11 @@ export default function InvoiceDetailClient({ invoice, clients }: Props) {
   }, []);
 
   async function handleSave() {
-    if (!editor.validate()) return;
+    const { valid, message } = editor.validate();
+    if (!valid) {
+      alerts.warning(message || "Please check the required fields");
+      return;
+    }
     setSaving(true);
     const matchedClient = clients.find(
       (c) => c.name.toLowerCase() === editor.clientName.toLowerCase(),
