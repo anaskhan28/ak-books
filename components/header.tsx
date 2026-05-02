@@ -1,10 +1,23 @@
 "use client";
 
-import { Search, Bell, Calendar, ChevronDown, Download, Menu, FileOutput } from "lucide-react";
-import { useSidebar } from "./sidebar-context";
+import { Search, Bell, Calendar, ChevronDown, Download, Menu, FileOutput, Sparkles, BadgeCheck, CreditCard, LogOut } from "lucide-react";
+import { useSidebar } from "@/components/ui/sidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { authClient } from "@/lib/auth/client";
+import { useRouter } from "next/navigation";
 
-export default function Header() {
+export default function Header({ user }: { user: any | null }) {
   const { toggleSidebar } = useSidebar();
+  const router = useRouter();
 
   return (
     <header className="h-16 bg-white md:bg-surface border-b border-border flex items-center justify-between px-2 md:px-6 z-30">
@@ -74,19 +87,74 @@ export default function Header() {
           </span>
         </button> */}
 
-        {/* User / Admin (Compact on Mobile) */}
-        <div className="flex items-center gap-2 md:gap-2.5 cursor-pointer group">
-          <div className="w-9 h-9 rounded-xl bg-linear-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-sm font-medium shadow-sm">
-            A
-          </div>
-          <div className="hidden md:block">
-            <p className="text-[13px] font-normal text-muted leading-tight group-hover:text-primary transition-colors">
-              Anas Khan
-            </p>
-            <p className="text-[11px] text-muted font-medium">Admin</p>
-          </div>
-          <ChevronDown size={14} className="text-muted hidden md:block" />
-        </div>
+        {/* User / Admin (Dropdown Menu) */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="flex items-center gap-2 md:gap-2.5 cursor-pointer group outline-none">
+              <Avatar className="w-9 h-9 rounded-md shadow-sm">
+                <AvatarImage src={user.image} alt={user.name} />
+                <AvatarFallback className="rounded-md bg-linear-to-br from-amber-400 to-orange-500 text-white text-sm font-medium">
+                  {user.name?.[0] || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="hidden md:block">
+                <p className="text-[13px] font-normal text-muted leading-tight group-hover:text-primary transition-colors">
+                  {user.name}
+                </p>
+                <p className="text-[11px] text-muted font-medium">{user.role || "Operator"}</p>
+              </div>
+              <ChevronDown size={14} className="text-muted hidden md:block" />
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-56 rounded-md"
+            align="end"
+            sideOffset={8}
+          >
+            <DropdownMenuLabel className="p-0 font-normal">
+              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                <Avatar className="h-8 w-8 rounded-md">
+                  <AvatarImage src={user.image} alt={user.name} />
+                  <AvatarFallback className="rounded-md bg-linear-to-br from-amber-400 to-orange-500 text-white">
+                    {user.name?.[0] || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">{user.name}</span>
+                  <span className="truncate text-xs text-muted-foreground">{user.email}</span>
+                </div>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+
+            <DropdownMenuGroup>
+              <DropdownMenuItem className="cursor-pointer">
+                <BadgeCheck className="mr-2 h-4 w-4" />
+                Account
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">
+                <CreditCard className="mr-2 h-4 w-4" />
+                Billing
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">
+                <Bell className="mr-2 h-4 w-4" />
+                Notifications
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              className="cursor-pointer"
+              onClick={async () => {
+                await authClient.signOut();
+                router.push("/login");
+                router.refresh();
+              }}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Log out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

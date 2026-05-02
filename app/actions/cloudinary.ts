@@ -1,6 +1,7 @@
 "use server";
 
 import { v2 as cloudinary } from "cloudinary";
+import { requireAuth } from "@/lib/auth/guard";
 
 // Configuration is automatically picked up from CLOUDINARY_URL in .env
 cloudinary.config({
@@ -8,6 +9,7 @@ cloudinary.config({
 });
 
 export async function uploadImage(base64Data: string) {
+  await requireAuth();
   try {
     const result = await cloudinary.uploader.upload(base64Data, {
       folder: "templates", // As requested by user

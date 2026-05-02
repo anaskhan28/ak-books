@@ -5,6 +5,7 @@ import { labourEntries, projects, type NewLabourEntry } from "@/app/db/schema";
 import { eq, sql, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { todayISO } from "@/lib/utils";
+import { requireAuth } from "@/lib/auth/guard";
 
 /**
  * Standard revalidation for labour entries
@@ -43,6 +44,7 @@ export async function getLabourEntries(projectId?: number) {
  * Adds a new labour entry
  */
 export async function addLabourEntry(data: NewLabourEntry) {
+  await requireAuth();
   const [entry] = await db.insert(labourEntries).values(data).returning();
   revalidateLabour(data.projectId);
   return entry;
@@ -52,6 +54,7 @@ export async function addLabourEntry(data: NewLabourEntry) {
  * Deletes a labour entry record
  */
 export async function deleteLabourEntry(id: number) {
+  await requireAuth();
   const [entry] = await db
     .select({ projectId: labourEntries.projectId })
     .from(labourEntries)

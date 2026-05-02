@@ -4,6 +4,7 @@ import { db } from "@/app/db";
 import { quotationTemplates, type NewQuotationTemplate } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { requireAuth } from "@/lib/auth/guard";
 
 export async function getTemplates() {
   return db.select().from(quotationTemplates).orderBy(quotationTemplates.name);
@@ -18,6 +19,7 @@ export async function getTemplate(id: number) {
 }
 
 export async function createTemplate(data: NewQuotationTemplate) {
+  await requireAuth();
   const [row] = await db
     .insert(quotationTemplates)
     .values(data)
@@ -29,6 +31,7 @@ export async function createTemplate(data: NewQuotationTemplate) {
 }
 
 export async function updateTemplate(id: number, data: Partial<NewQuotationTemplate>) {
+  await requireAuth();
   const [row] = await db
     .update(quotationTemplates)
     .set(data)
@@ -41,6 +44,7 @@ export async function updateTemplate(id: number, data: Partial<NewQuotationTempl
 }
 
 export async function deleteTemplate(id: number) {
+  await requireAuth();
   await db.delete(quotationTemplates).where(eq(quotationTemplates.id, id));
   revalidatePath("/quotations");
   revalidatePath("/quotations/templates");

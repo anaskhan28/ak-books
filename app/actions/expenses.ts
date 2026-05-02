@@ -5,6 +5,7 @@ import { expenses, projects, type NewExpense } from "@/app/db/schema";
 import { eq, sql, and, gte, lte, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { startOfMonthISO, todayISO } from "@/lib/utils";
+import { requireAuth } from "@/lib/auth/guard";
 
 /**
  * Standard revalidation for expenses
@@ -43,6 +44,7 @@ export async function getExpenses(projectId?: number) {
  * Adds a new expense record
  */
 export async function addExpense(data: NewExpense) {
+  await requireAuth();
   const [rows] = await db.insert(expenses).values(data).returning();
   revalidateExpenses(data.projectId);
   return rows;
@@ -52,6 +54,7 @@ export async function addExpense(data: NewExpense) {
  * Deletes an expense record
  */
 export async function deleteExpense(id: number) {
+  await requireAuth();
   const [expense] = await db
     .select({ projectId: expenses.projectId })
     .from(expenses)

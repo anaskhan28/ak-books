@@ -4,6 +4,7 @@ import { db } from "@/app/db";
 import { scrapEntries, projects, type NewScrapEntry } from "@/app/db/schema";
 import { eq, sql, and, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { requireAuth } from "@/lib/auth/guard";
 
 export async function getScrapEntries(projectId: number) {
   return db
@@ -23,12 +24,14 @@ export async function getScrapEntries(projectId: number) {
 }
 
 export async function addScrapEntry(data: NewScrapEntry) {
+  await requireAuth();
   const rows = await db.insert(scrapEntries).values(data).returning();
   revalidatePath(`/projects/${data.projectId}`);
   return rows[0];
 }
 
 export async function deleteScrapEntry(id: number) {
+  await requireAuth();
   await db.delete(scrapEntries).where(eq(scrapEntries.id, id));
   revalidatePath("/");
 }

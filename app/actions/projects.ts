@@ -4,6 +4,7 @@ import { db } from "@/app/db";
 import { projects, clients, type NewProject } from "@/app/db/schema";
 import { eq, ne, sql, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { requireAuth } from "@/lib/auth/guard";
 
 /**
  * Standard revalidation for projects
@@ -68,6 +69,7 @@ export async function getProject(id: number) {
  * Creates a new project
  */
 export async function createProject(data: NewProject) {
+  await requireAuth();
   const [project] = await db.insert(projects).values(data).returning();
   revalidateProjects();
   return project;
@@ -77,6 +79,7 @@ export async function createProject(data: NewProject) {
  * Updates an existing project
  */
 export async function updateProject(id: number, data: Partial<NewProject>) {
+  await requireAuth();
   const [project] = await db
     .update(projects)
     .set(data)
@@ -90,6 +93,7 @@ export async function updateProject(id: number, data: Partial<NewProject>) {
  * Deletes a project
  */
 export async function deleteProject(id: number) {
+  await requireAuth();
   await db.delete(projects).where(eq(projects.id, id));
   revalidateProjects();
 }
