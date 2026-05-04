@@ -41,6 +41,7 @@ export interface AKMPdfProps {
   subject: string;
   items: LineItem[];
   subtotal: number;
+  showTotal?: boolean;
   terms?: string;
   accountInfo?: {
     bankName: string;
@@ -214,6 +215,7 @@ function AKMDocument({
   subject,
   items,
   subtotal,
+  showTotal,
   terms,
   accountInfo,
   headerImageUrl,
@@ -307,7 +309,7 @@ function AKMDocument({
                   { width: COL_W[4], textAlign: "right", fontWeight: 700 },
                 ]}
               >
-                {Math.abs(item.amount) > 0 ? fmtNum(item.amount) : ""}
+                {!showTotal ? "-" : (Math.abs(item.amount) > 0 ? fmtNum(item.amount) : "")}
               </Text>
             </View>
           ))}
@@ -324,10 +326,12 @@ function AKMDocument({
         </View>
 
         {/* Subtotal */}
-        <View style={s.subtotalRow}>
-          <Text style={s.subtotalLbl}>Subtotal</Text>
-          <Text style={s.subtotalVal}>{fmtNum(subtotal)}</Text>
-        </View>
+        {showTotal && (
+          <View style={s.subtotalRow}>
+            <Text style={s.subtotalLbl}>Subtotal</Text>
+            <Text style={s.subtotalVal}>{fmtNum(subtotal)}</Text>
+          </View>
+        )}
 
         {/* Bottom section */}
         <View style={s.bottom}>
@@ -357,10 +361,12 @@ function AKMDocument({
           </View>
 
           <View style={s.rightCol}>
-            <View style={s.totalBar}>
-              <Text style={s.totalLbl}>TOTAL</Text>
-              <Text style={s.totalVal}>{fmtINR(subtotal)}</Text>
-            </View>
+            {showTotal && (
+              <View style={s.totalBar}>
+                <Text style={s.totalLbl}>TOTAL</Text>
+                <Text style={s.totalVal}>{fmtINR(subtotal)}</Text>
+              </View>
+            )}
             {/* eslint-disable-next-line jsx-a11y/alt-text */}
             <Image src={signatureImageUrl} style={s.sigImg} />
           </View>

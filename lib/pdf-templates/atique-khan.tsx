@@ -40,6 +40,7 @@ export interface ATKPdfProps {
   subject: string;
   items: LineItem[];
   total: number;
+  showTotal?: boolean;
   terms?: string;
   accountInfo?: {
     bankName: string;
@@ -192,6 +193,7 @@ function ATKDocument({
   subject,
   items,
   total,
+  showTotal,
   terms,
   accountInfo,
   headerImageUrl,
@@ -281,7 +283,7 @@ function ATKDocument({
                   { width: COL_W[3], textAlign: "right" },
                 ]}
               >
-                {Math.abs(item.amount) > 0 ? fmtINR(item.amount) : ""}
+                {!showTotal ? "-" : (Math.abs(item.amount) > 0 ? fmtNum(item.amount) : "")}
               </Text>
             </View>
           ))}
@@ -296,22 +298,24 @@ function ATKDocument({
           ))}
 
           {/* Total row */}
-          <View style={s.totalRow}>
-            <Text style={[s.totalCell, s.totalFirst, { width: COL_W[0] }]}>
-              Total
-            </Text>
-            <Text style={[s.totalCell, { width: COL_W[1] }]}> </Text>
-            <Text style={[s.totalCell, { width: COL_W[2] }]}> </Text>
-            <Text
-              style={[
-                s.totalCell,
-                s.totalLast,
-                { width: COL_W[3], textAlign: "right" },
-              ]}
-            >
-              {fmtINR(total)}
-            </Text>
-          </View>
+          {showTotal && (
+            <View style={s.totalRow}>
+              <Text style={[s.totalCell, s.totalFirst, { width: COL_W[0] }]}>
+                Total
+              </Text>
+              <Text style={[s.totalCell, { width: COL_W[1] }]}> </Text>
+              <Text style={[s.totalCell, { width: COL_W[2] }]}> </Text>
+              <Text
+                style={[
+                  s.totalCell,
+                  s.totalLast,
+                  { width: COL_W[3], textAlign: "right" },
+                ]}
+              >
+                {fmtINR(total)}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Bottom: Bank Details / Terms + Signature */}

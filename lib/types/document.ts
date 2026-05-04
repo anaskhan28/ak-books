@@ -53,4 +53,6 @@ export interface TemplateProps {
   secondaryColor?: string;
   headerImage?: string;
   templateName?: string;
+  showTotal: boolean;
+  setShowTotal: (v: boolean) => void;
 }

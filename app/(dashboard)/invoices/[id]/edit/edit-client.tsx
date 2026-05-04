@@ -19,6 +19,7 @@ type Invoice = {
   accountIfsc: string | null;
   accountHolder: string | null;
   accountPan: string | null;
+  showTotal: boolean;
   createdAt: Date;
   items: { description: string; quantity: number; rate: number; taxed: string | null; amount: number }[];
 };
@@ -45,6 +46,7 @@ export default function EditInvoiceClient({ invoice }: Props) {
     accountIfsc: invoice.accountIfsc || "",
     accountHolder: invoice.accountHolder || "",
     accountPan: invoice.accountPan || "",
+    showTotal: invoice.showTotal,
     items: invoice.items.map((i) => ({
       id: generateId(),
       description: i.description,
@@ -79,6 +81,7 @@ export default function EditInvoiceClient({ invoice }: Props) {
         accountHolder: values.accountHolder || null,
         accountPan: values.accountPan || null,
         status: values.status,
+        showTotal: values.showTotal,
       },
       values.items
         .filter((i) => i.description || i.amount > 0)

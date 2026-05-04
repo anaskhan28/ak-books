@@ -37,6 +37,7 @@ export function AKMTemplate({
   primaryColor,
   headerImage,
   templateName,
+  showTotal,
 }: TemplateProps) {
   const docLabel = mode === "quotation" ? "Quotation" : "Invoice";
 
@@ -200,12 +201,10 @@ export function AKMTemplate({
                 </td>
                 <td className="px-1 py-0">
                   <input
-                    type="number"
-                    min={0}
-                    value={item.amount || ""}
-                    onChange={(e) => updateItem(idx, "amount", e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(e, idx, 4)}
-                    className={`${inputCls} text-right font-semibold`}
+                    type="text"
+                    readOnly
+                    value={!showTotal ? "—" : (item.amount || "")}
+                    className={`${inputCls} text-right font-semibold bg-gray-50/30`}
                   />
                 </td>
               </tr>
@@ -214,14 +213,16 @@ export function AKMTemplate({
         </table>
       </div>
 
-      <div className="px-0 md:px-8">
-        <div className="flex justify-between items-center border-t-2 border-gray-800 py-2">
-          <span className="md:text-[15px] text-[10px] font-bold text-gray-600">Subtotal</span>
-          <span className="md:text-[13px] text-[10px] font-bold text-gray-900">
-            {subtotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-          </span>
+      {showTotal && (
+        <div className="px-0 md:px-8">
+          <div className="flex justify-between items-center border-t-2 border-gray-800 py-2">
+            <span className="md:text-[15px] text-[10px] font-bold text-gray-600">Subtotal</span>
+            <span className="md:text-[13px] text-[10px] font-bold text-gray-900">
+              {subtotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="px-0 md:px-8 pb-0 md:pb-6 pt-0 md:pt-2">
         <div className="flex gap-6">
@@ -267,20 +268,22 @@ export function AKMTemplate({
             )}
           </div>
           <div className="flex flex-col items-end gap-3">
-            <div className="flex items-center">
-              <span 
-                className="text-white md:text-[15px] text-[10px] font-bold px-4 py-1.5"
-                style={{ backgroundColor: primaryColor || "#c0392b" }}
-              >
-                TOTAL
-              </span>
-              <span 
-                className="text-white md:text-[13px] text-[10px] font-bold px-4 py-1.5 min-w-[120px] text-right"
-                style={{ backgroundColor: primaryColor || "#c0392b" }}
-              >
-                {formatINR(subtotal)}
-              </span>
-            </div>
+            {showTotal && (
+              <div className="flex items-center">
+                <span 
+                  className="text-white md:text-[15px] text-[10px] font-bold px-4 py-1.5"
+                  style={{ backgroundColor: primaryColor || "#c0392b" }}
+                >
+                  TOTAL
+                </span>
+                <span 
+                  className="text-white md:text-[13px] text-[10px] font-bold px-4 py-1.5 min-w-[120px] text-right"
+                  style={{ backgroundColor: primaryColor || "#c0392b" }}
+                >
+                  {formatINR(subtotal)}
+                </span>
+              </div>
+            )}
             <img
               src={signatureImage}
               alt="Signature"

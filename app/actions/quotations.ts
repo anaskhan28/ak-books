@@ -35,6 +35,7 @@ export async function getQuotations(templateId?: number) {
       status: quotations.status,
       notes: quotations.notes,
       quotationDate: quotations.quotationDate,
+      showTotal: quotations.showTotal,
       createdAt: quotations.createdAt,
     })
     .from(quotations)
@@ -70,6 +71,7 @@ export async function getQuotation(id: number) {
         status: quotations.status,
         notes: quotations.notes,
         quotationDate: quotations.quotationDate,
+        showTotal: quotations.showTotal,
         createdAt: quotations.createdAt,
       })
       .from(quotations)
@@ -148,6 +150,7 @@ export async function createQuotation(
       totalAmount,
       quotationDate: data.quotationDate || new Date().toISOString().split("T")[0],
       notes: data.notes,
+      showTotal: data.showTotal ?? true,
     })
     .returning();
 
@@ -254,6 +257,7 @@ export async function cloneQuotation(id: number) {
       status: "draft",
       notes: original.notes,
       quotationDate: original.quotationDate,
+      showTotal: original.showTotal,
     },
     original.items.map(({ description, quantity, rate, taxed, amount }) => ({
       description,

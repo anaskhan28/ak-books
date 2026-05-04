@@ -49,6 +49,7 @@ export interface KGNPdfProps {
   subject: string;
   items: LineItem[];
   total: number;
+  showTotal?: boolean;
   totalLabel?: string;
   terms?: string;
   accountInfo?: {
@@ -192,6 +193,7 @@ function KGNDocument({
   items,
   total,
   totalLabel,
+  showTotal,
   terms,
   accountInfo,
   headerImageUrl,
@@ -269,7 +271,7 @@ function KGNDocument({
                   { width: COL_W[3], textAlign: "right" },
                 ]}
               >
-                {Math.abs(item.amount) > 0 ? fmtNum(item.amount) : ""}
+                {!showTotal ? "-" : (Math.abs(item.amount) > 0 ? fmtNum(item.amount) : "")}
               </Text>
             </View>
           ))}
@@ -283,26 +285,28 @@ function KGNDocument({
             </View>
           ))}
 
-          <View style={s.totalRow}>
-            <Text style={[s.totalCell, { width: COL_W[0] }]}>
-              {totalLabel ?? "Total"}
-            </Text>
-            <Text style={[s.totalCell, { width: COL_W[1] }]}> </Text>
-            <Text
-              style={[s.totalCell, { width: COL_W[2], textAlign: "center" }]}
-            >
-              Rs
-            </Text>
-            <Text
-              style={[
-                s.totalCell,
-                s.totalCellLast,
-                { width: COL_W[3], textAlign: "right" },
-              ]}
-            >
-              {fmtINR(total)}
-            </Text>
-          </View>
+          {showTotal && (
+            <View style={s.totalRow}>
+              <Text style={[s.totalCell, { width: COL_W[0] }]}>
+                {totalLabel ?? "Total"}
+              </Text>
+              <Text style={[s.totalCell, { width: COL_W[1] }]}> </Text>
+              <Text
+                style={[s.totalCell, { width: COL_W[2], textAlign: "center" }]}
+              >
+                Rs
+              </Text>
+              <Text
+                style={[
+                  s.totalCell,
+                  s.totalCellLast,
+                  { width: COL_W[3], textAlign: "right" },
+                ]}
+              >
+                {fmtINR(total)}
+              </Text>
+            </View>
+          )}
 
           <View style={s.footerWrap}>
             <View>

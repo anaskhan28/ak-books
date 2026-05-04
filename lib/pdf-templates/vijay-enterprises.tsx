@@ -41,6 +41,7 @@ export interface VijayPdfProps {
   subject: string;
   items: LineItem[];
   total: number;
+  showTotal?: boolean;
   terms?: string;
   accountInfo?: {
     bankName: string;
@@ -132,6 +133,7 @@ function VijayDoc({
   subject,
   items,
   total,
+  showTotal,
   terms,
   accountInfo,
   headerImageUrl,
@@ -206,15 +208,17 @@ function VijayDoc({
           </View>
 
           {/* Total — centered */}
-          <View style={s.totalWrap}>
-            <Text style={s.totalLabel}>All total amount of will be</Text>
-            <Text style={s.totalAmount}>{totalFormatted}</Text>
-            {terms && type !== "invoice" ? (
-              <Text style={{ fontSize: 18, color: "#111", marginTop: 8 }}>
-                {terms}
-              </Text>
-            ) : null}
-          </View>
+          {showTotal && (
+            <View style={s.totalWrap}>
+              <Text style={s.totalLabel}>All total amount of will be</Text>
+              <Text style={s.totalAmount}>{totalFormatted}</Text>
+              {terms && type !== "invoice" ? (
+                <Text style={{ fontSize: 18, color: "#111", marginTop: 8 }}>
+                  {terms}
+                </Text>
+              ) : null}
+            </View>
+          )}
 
           {/* Bank details for invoice */}
           {type === "invoice" && accountInfo ? (

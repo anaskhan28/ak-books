@@ -41,6 +41,7 @@ export interface EnergyPdfProps {
   subject: string;
   items: LineItem[];
   total: number;
+  showTotal?: boolean;
   terms?: string;
   accountInfo?: {
     bankName: string;
@@ -168,6 +169,7 @@ function EnergyDoc({
   subject,
   items,
   total,
+  showTotal,
   terms,
   accountInfo,
   headerImageUrl,
@@ -247,14 +249,14 @@ function EnergyDoc({
                   {Math.abs(item.qty) > 0 ? String(item.qty) : ""}
                 </Text>
                 <Text
-                  style={[
-                    s.td,
-                    s.tdLast,
-                    { width: COL_W[3], textAlign: "right" },
-                  ]}
-                >
-                  {Math.abs(item.amount) > 0 ? fmtINR(item.amount) : ""}
-                </Text>
+                style={[
+                  s.td,
+                  s.tdLast,
+                  { width: COL_W[3], textAlign: "right" },
+                ]}
+              >
+                {!showTotal ? "-" : (Math.abs(item.amount) > 0 ? fmtINR(item.amount) : "")}
+              </Text>
               </View>
             ))}
 
@@ -267,7 +269,19 @@ function EnergyDoc({
                 <Text style={[s.td, s.tdLast, { width: COL_W[3] }]}> </Text>
               </View>
             ))}
-          </View>
+
+          {/* Total row */}
+          {showTotal && (
+            <View style={s.totalRow}>
+              <View style={[s.totalCell, { width: COL_W[0] + COL_W[1] + COL_W[2] }]}>
+                <Text>Total</Text>
+              </View>
+              <View style={[s.totalCell, s.totalCellLast, { width: COL_W[3], textAlign: "right" }]}>
+                <Text>{fmtINR(total)}</Text>
+              </View>
+            </View>
+          )}
+        </View>
 
           {/* Terms / Bank Details */}
           {type === "invoice" && accountInfo ? (

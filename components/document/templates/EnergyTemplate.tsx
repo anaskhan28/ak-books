@@ -34,6 +34,8 @@ export function EnergyTemplate({
   formatINR,
   inputCls,
   headerImage,
+  showTotal,
+  setShowTotal,
 }: TemplateProps) {
   const title = mode === "quotation" ? "Shifting Quotation" : "Invoice Bill";
 
@@ -165,18 +167,28 @@ export function EnergyTemplate({
                   </td>
                   <td className="border-x border-gray-700 px-1 py-0">
                     <input
-                      type="number"
-                      min={0}
-                      value={item.amount || ""}
-                      onChange={(e) => updateItem(idx, "amount", e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(e, idx, 2)}
-                      className={`${inputCls} text-right font-semibold`}
+                      type="text"
+                      readOnly
+                      value={!showTotal ? "—" : (item.amount ? formatINR(item.amount) : "")}
+                      className={`${inputCls} text-right font-semibold bg-gray-50/30`}
                     />
                   </td>
                 </tr>
               );
             })}
           </tbody>
+          {showTotal && (
+            <tfoot>
+              <tr className="border-t border-gray-700 bg-gray-50/50">
+                <td colSpan={3} className="px-2 py-1.5 text-right font-bold text-gray-700 text-[10px] md:text-[12px]">
+                  Total
+                </td>
+                <td className="px-2 py-1.5 text-right font-bold text-gray-900 text-[10px] md:text-[12px] border-l border-gray-700">
+                  {formatINR(subtotal)}
+                </td>
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
 

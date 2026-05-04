@@ -34,6 +34,7 @@ export function ATKTemplate({
   formatINR,
   inputCls,
   headerImage,
+  showTotal,
 }: TemplateProps) {
   const title = mode === "quotation" ? "Quotation" : "Invoice Bill";
 
@@ -169,30 +170,30 @@ export function ATKTemplate({
                 </td>
                 <td className="border-x border-gray-800 px-1 py-0">
                   <input
-                    type="number"
-                    min={0}
-                    value={item.amount || ""}
-                    onChange={(e) => updateItem(idx, "amount", e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(e, idx, 3)}
-                    className={`${inputCls} text-center font-semibold`}
+                    type="text"
+                    readOnly
+                    value={!showTotal ? "—" : (item.amount ? formatINR(item.amount) : "")}
+                    className={`${inputCls} text-center font-semibold bg-gray-50/30`}
                   />
                 </td>
               </tr>
             ))}
           </tbody>
-          <tfoot>
-            <tr className="border-t border-gray-800">
-              <td
-                colSpan={3}
-                className="border border-gray-800 px-3 py-2 font-bold text-[12px]"
-              >
-                Total
-              </td>
-              <td className="border border-gray-800 px-3 py-2 text-right font-bold text-[9px] md:text-[12px]">
-                {formatINR(subtotal)}
-              </td>
-            </tr>
-          </tfoot>
+          {showTotal && (
+            <tfoot>
+              <tr className="border-t border-gray-800">
+                <td
+                  colSpan={3}
+                  className="border border-gray-800 px-3 py-2 font-bold text-[12px]"
+                >
+                  Total
+                </td>
+                <td className="border border-gray-800 px-3 py-2 text-right font-bold text-[9px] md:text-[12px]">
+                  {formatINR(subtotal)}
+                </td>
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
       <div className="px-4 md:px-8 pb-6 pt-3">

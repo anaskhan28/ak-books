@@ -117,6 +117,7 @@ export interface AKEnterprisePdfProps {
   subject: string;
   items: LineItem[];
   total: number;
+  showTotal?: boolean;
   gstRate?: number; // default 18
   notes?: string;
   terms?: string;
@@ -400,6 +401,7 @@ function AKQuotationDoc({
   subject,
   items,
   total,
+  showTotal,
   notes,
   terms,
   placeOfSupply,
@@ -539,7 +541,7 @@ function AKQuotationDoc({
               <Text
                 style={[s.td, s.tdLast, { width: cols[4], textAlign: "right" }]}
               >
-                {Math.abs(item.amount) > 0 ? fmtINR(item.amount) : ""}
+                {!showTotal ? "-" : (Math.abs(item.amount) > 0 ? fmtINR(item.amount) : "")}
               </Text>
             </View>
           ))}
@@ -562,10 +564,12 @@ function AKQuotationDoc({
             ) : null}
           </View>
           <View style={s.bottomRight}>
-            <View style={s.totalBoxRow}>
-              <Text style={s.totalBoxLabel}>Total</Text>
-              <Text style={s.totalBoxValue}>{`\u20B9${fmtINR(total)}`}</Text>
-            </View>
+            {showTotal && (
+              <View style={s.totalBoxRow}>
+                <Text style={s.totalBoxLabel}>Total</Text>
+                <Text style={s.totalBoxValue}>{`\u20B9${fmtINR(total)}`}</Text>
+              </View>
+            )}
             <View style={s.sigBlock}>
               {/* eslint-disable-next-line jsx-a11y/alt-text */}
               <Image src={signatureImageUrl} style={s.sigImg} />
@@ -595,6 +599,7 @@ function AKInvoiceDoc({
   subject,
   items,
   total,
+  showTotal,
   gstRate = 18,
   notes,
   accountInfo,
@@ -839,7 +844,7 @@ function AKInvoiceDoc({
                   {halfGst}%
                 </Text>
                 <Text style={[s.invTd, { width: cols[6], textAlign: "right" }]}>
-                  {fmtINR(cgst)}
+                  {!showTotal ? "-" : fmtINR(cgst)}
                 </Text>
                 <Text
                   style={[s.invTd, { width: cols[7], textAlign: "center" }]}
@@ -847,7 +852,7 @@ function AKInvoiceDoc({
                   {halfGst}%
                 </Text>
                 <Text style={[s.invTd, { width: cols[8], textAlign: "right" }]}>
-                  {fmtINR(sgst)}
+                  {!showTotal ? "-" : fmtINR(sgst)}
                 </Text>
                 <Text
                   style={[
@@ -856,7 +861,7 @@ function AKInvoiceDoc({
                     { width: cols[9], textAlign: "right" },
                   ]}
                 >
-                  {Math.abs(taxable) > 0 ? fmtINR(taxable) : ""}
+                  {!showTotal ? "-" : (Math.abs(taxable) > 0 ? fmtINR(taxable) : "")}
                 </Text>
               </View>
             );
@@ -866,8 +871,12 @@ function AKInvoiceDoc({
         {/* Bottom: left (words + notes + bank) | right (totals + signature) */}
         <View style={[s.invBottomRow, { marginHorizontal: 0 }]}>
           <View style={s.invBottomLeft}>
-            <Text style={s.notesLabel}>Total In Words</Text>
-            <Text style={s.inWordsText}>{amountInWords(grandTotal)}</Text>
+            {showTotal && (
+              <>
+                <Text style={s.notesLabel}>Total In Words</Text>
+                <Text style={s.inWordsText}>{amountInWords(grandTotal)}</Text>
+              </>
+            )}
 
             {notes ? (
               <>
@@ -900,21 +909,25 @@ function AKInvoiceDoc({
           </View>
 
           <View style={s.invBottomRight}>
-            <View style={s.invTotalRow}>
-              <Text style={s.invTotalLabel}>Total Taxable Amount</Text>
-              <Text style={s.invTotalValue}>{fmtINR(taxableAmount)}</Text>
-            </View>
-            <View
-              style={[
-                s.invTotalRow,
-                { borderTopWidth: 0.5, borderTopColor: BDR, paddingTop: 2 },
-              ]}
-            >
-              <Text style={s.invGrandLabel}>Total</Text>
-              <Text
-                style={s.invGrandValue}
-              >{`\u20B9${fmtINR(grandTotal)}`}</Text>
-            </View>
+            {showTotal && (
+              <>
+                <View style={s.invTotalRow}>
+                  <Text style={s.invTotalLabel}>Total Taxable Amount</Text>
+                  <Text style={s.invTotalValue}>{fmtINR(taxableAmount)}</Text>
+                </View>
+                <View
+                  style={[
+                    s.invTotalRow,
+                    { borderTopWidth: 0.5, borderTopColor: BDR, paddingTop: 2 },
+                  ]}
+                >
+                  <Text style={s.invGrandLabel}>Total</Text>
+                  <Text
+                    style={s.invGrandValue}
+                  >{`\u20B9${fmtINR(grandTotal)}`}</Text>
+                </View>
+              </>
+            )}
 
             {/* Signature */}
             <View style={[s.sigBlock, { marginTop: 12 }]}>

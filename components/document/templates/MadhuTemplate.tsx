@@ -21,6 +21,7 @@ export function MadhuTemplate({
   inputCls,
   formatINR,
   headerImage,
+  showTotal,
 }: TemplateProps) {
   return (
     <div className="px-4 md:px-8 pt-3">
@@ -110,27 +111,31 @@ export function MadhuTemplate({
                     ? "The amount would be:"
                     : "Amount:"}
                 </label>
-                <div className="bg-green-400 rounded-md px-2 flex items-center h-8">
-                  <span className="text-white text-[13px] md:text-[15px] mr-1">
-                    ₹
-                  </span>
-                  <input
-                    type="number"
-                    min={0}
-                    value={item.amount || ""}
-                    onChange={(e) => updateItem(idx, "amount", e.target.value)}
-                    className="bg-transparent text-[13px] md:text-[15px] text-white font-semibold w-[80px] focus:outline-none text-right"
-                    placeholder="0.00"
-                  />
-                </div>
+                {showTotal && (
+                  <div className="bg-green-400 rounded-md px-2 flex items-center h-8">
+                    <span className="text-white text-[13px] md:text-[15px] mr-1">
+                      ₹
+                    </span>
+                    <input
+                      type="number"
+                      min={0}
+                      value={item.amount || ""}
+                      onChange={(e) => updateItem(idx, "amount", e.target.value)}
+                      className="bg-transparent text-[13px] md:text-[15px] text-white font-semibold w-[80px] focus:outline-none text-right"
+                      placeholder="0.00"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           ))}
       </div>
 
-      <div className="mt-4 text-[12px] md:text-[15px] text-gray-900">
-        All Total Amount is Rs. /- {formatINR(subtotal)} /-
-      </div>
+      {showTotal && (
+        <div className="mt-4 text-[12px] md:text-[15px] text-gray-900">
+          All Total Amount is Rs. /- {formatINR(subtotal)} /-
+        </div>
+      )}
       <div className="mt-2 text-[12px] md:text-[15px] text-gray-900">
         <textarea
           value={terms}

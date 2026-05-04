@@ -50,6 +50,7 @@ function NewInvoiceContent() {
         accountIfsc: values.accountIfsc || null,
         accountHolder: values.accountHolder || null,
         accountPan: values.accountPan || null,
+        showTotal: values.showTotal,
       },
       values.items
         .filter((i) => i.description || i.amount > 0)

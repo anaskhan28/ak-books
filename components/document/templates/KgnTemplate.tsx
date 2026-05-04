@@ -35,6 +35,7 @@ export function KGNTemplate({
   signatureImage,
   inputCls,
   headerImage,
+  showTotal,
 }: TemplateProps) {
   const title = mode === "quotation" ? "Quotation" : "Invoice Bill";
 
@@ -214,7 +215,7 @@ export function KGNTemplate({
                   <td className="border-x border-gray-800 px-1 py-0">
                     {isReadOnly ? (
                       <div className="w-full py-2 text-right text-[9px] md:text-[12px] font-semibold text-gray-800 pr-2">
-                        {item.amount ? formatINR(item.amount) : ""}
+                        {!showTotal ? "—" : (item.amount ? formatINR(item.amount) : "")}
                       </div>
                     ) : (
                       <input
@@ -232,19 +233,21 @@ export function KGNTemplate({
                 </tr>
               ))}
             </tbody>
-            <tfoot>
-              <tr className="border-t border-gray-800">
-                <td
-                  colSpan={3}
-                  className="border border-gray-800 px-3 py-2 font-bold text-[12px]"
-                >
-                  Total
-                </td>
-                <td className="border border-gray-800 px-3 py-2 text-right font-bold text-[12px]">
-                  {formatINR(subtotal)}
-                </td>
-              </tr>
-            </tfoot>
+            {showTotal && (
+              <tfoot>
+                <tr className="border-t border-gray-800">
+                  <td
+                    colSpan={3}
+                    className="border border-gray-800 px-3 py-2 font-bold text-[12px]"
+                  >
+                    Total
+                  </td>
+                  <td className="border border-gray-800 px-3 py-2 text-right font-bold text-[12px]">
+                    {formatINR(subtotal)}
+                  </td>
+                </tr>
+              </tfoot>
+            )}
           </table>
         </div>
       </div>

@@ -33,6 +33,7 @@ export function VETemplate({
   signatureImage,
   inputCls,
   headerImage,
+  showTotal,
 }: TemplateProps) {
   const title = mode === "quotation" ? "Quotation" : "Invoice Bill";
 
@@ -182,36 +183,35 @@ export function VETemplate({
                   </td>
                   <td className="border-x border-gray-800 px-1 py-0">
                     <input
-                      type="number"
-                      value={item.amount || ""}
-                      onChange={(e) =>
-                        updateItem(idx, "amount", e.target.value)
-                      }
-                      onKeyDown={(e) => handleKeyDown(e, idx, 3)}
-                      className={`${inputCls} text-right font-semibold`}
+                      type="text"
+                      readOnly
+                      value={!showTotal ? "—" : (item.amount ? formatINR(item.amount) : "")}
+                      className={`${inputCls} text-right font-semibold bg-gray-50/30`}
                     />
                   </td>
                 </tr>
               );
             })}
           </tbody>
-          <tfoot>
-            <tr className="border-t border-gray-800">
-              <td className="border border-gray-800 px-2 py-2" />
-              <td className="border border-gray-800 px-3 py-2 font-bold text-[12px]">
-                Total amount
-              </td>
-              <td className="border border-gray-800 px-2 py-2" />
-              <td className="border border-gray-800 px-3 py-2 text-right text-[11px] text-gray-500">
-                Rs.
-              </td>
-              <td className="border border-gray-800 px-3 py-2 text-right font-bold text-[12px]">
-                {subtotal.toLocaleString("en-IN", {
-                  minimumFractionDigits: 2,
-                })}
-              </td>
-            </tr>
-          </tfoot>
+            {showTotal && (
+              <tfoot>
+                <tr className="border-t border-gray-800">
+                  <td className="border border-gray-800 px-2 py-2" />
+                  <td className="border border-gray-800 px-3 py-2 font-bold text-[12px]">
+                    Total amount
+                  </td>
+                  <td className="border border-gray-800 px-2 py-2" />
+                  <td className="border border-gray-800 px-3 py-2 text-right text-[11px] text-gray-500">
+                    Rs.
+                  </td>
+                  <td className="border border-gray-800 px-3 py-2 text-right font-bold text-[12px]">
+                    {subtotal.toLocaleString("en-IN", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </td>
+                </tr>
+              </tfoot>
+            )}
         </table>
       </div>
     </div>

@@ -368,6 +368,7 @@ export const quotations = pgTable("quotations", {
   status: text("status").notNull().default("draft"),
   notes: text("notes"),
   quotationDate: text("quotation_date"),
+  showTotal: boolean("show_total").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 export type Quotation = typeof quotations.$inferSelect;
@@ -406,6 +407,7 @@ export const invoices = pgTable("invoices", {
   accountIfsc: text("account_ifsc"),
   accountHolder: text("account_holder"),
   accountPan: text("account_pan"),
+  showTotal: boolean("show_total").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 export type Invoice = typeof invoices.$inferSelect;

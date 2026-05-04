@@ -92,6 +92,7 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
       accountHolder: tplConfig.bank.accountHolder,
       pan: tplConfig.bank.pan,
     },
+    initialShowTotal: quotation.showTotal,
     template: quotation.template,
   });
 
@@ -126,6 +127,7 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
         subject: editor.subject || null,
         clientBranch: editor.clientBranch || null,
         notes: editor.terms || null,
+        showTotal: editor.showTotal,
       },
       editor.filledItems.map((i) => ({
         description: i.description,
@@ -310,6 +312,8 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
             formatINR={formatINR}
             isReadOnly={true}
             inputCls={editor.inputCls}
+            showTotal={editor.showTotal}
+            setShowTotal={editor.setShowTotal}
           />
         </div>
       </div>

@@ -41,6 +41,7 @@ export interface MadhuNeilPdfProps {
   subject: string;
   items: LineItem[];
   total: number;
+  showTotal?: boolean;
   terms?: string;
   accountInfo?: {
     bankName: string;
@@ -155,6 +156,7 @@ function MadhuNeilDoc({
   number,
   items,
   total,
+  showTotal,
   terms,
   accountInfo,
   headerImageUrl,
@@ -217,7 +219,7 @@ function MadhuNeilDoc({
                   <Text style={s.itemPara}>
                     {desc}
                   </Text>
-                  {filled.length > 1 && (
+                  {showTotal && filled.length > 1 && (
                     <Text
                       style={{
                         fontSize: 12,
@@ -235,11 +237,13 @@ function MadhuNeilDoc({
           </View>
 
           {/* Total — centered, bold, matching image 3 format */}
-          <View style={s.totalWrap}>
-            <Text style={s.totalText}>
-              All Total Amount is RS-/-{fmtINR(total)}/-
-            </Text>
-          </View>
+          {showTotal && (
+            <View style={s.totalWrap}>
+              <Text style={s.totalText}>
+                All Total Amount is RS-/-{fmtINR(total)}/-
+              </Text>
+            </View>
+          )}
 
           {/* Bank details for invoice */}
           {/* {type === "invoice" && accountInfo ? (

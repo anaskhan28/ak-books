@@ -17,6 +17,7 @@ interface UseDocumentEditorOptions {
   initialClientBranch: string;
   initialSubject: string;
   initialNotes: string;
+  initialShowTotal?: boolean;
   initialItems: LineItem[];
   initialAccount: {
     bankName: string;
@@ -40,6 +41,7 @@ export function useDocumentEditor({
   initialClientBranch,
   initialSubject,
   initialNotes,
+  initialShowTotal = true,
   initialItems,
   initialAccount,
   template,
@@ -61,6 +63,7 @@ export function useDocumentEditor({
   const [clientBranch, setClientBranch] = useState(initialClientBranch);
   const [subject, setSubject] = useState(initialSubject);
   const [terms, setTerms] = useState(initialNotes);
+  const [showTotal, setShowTotal] = useState(initialShowTotal);
 
   const [accountBankName, setAccountBankName] = useState(
     initialAccount.bankName,
@@ -215,6 +218,7 @@ export function useDocumentEditor({
         subject,
         items: printItems,
         total: subtotal,
+        showTotal,
         terms,
         accountInfo: mode === "invoice" ? acct : undefined,
         headerImageUrl: hdrB64,
@@ -237,6 +241,7 @@ export function useDocumentEditor({
         subject,
         items: printItems,
         total: subtotal,
+        showTotal,
         terms,
         accountInfo: mode === "invoice" ? acct : undefined,
         headerImageUrl: hdrB64,
@@ -254,6 +259,7 @@ export function useDocumentEditor({
         subject,
         items: printItems,
         total: subtotal,
+        showTotal,
         terms,
         accountInfo: mode === "invoice" ? acct : undefined,
         headerImageUrl: hdr,
@@ -271,6 +277,7 @@ export function useDocumentEditor({
         subject,
         items: printItems,
         total: subtotal,
+        showTotal,
         terms,
         accountInfo: mode === "invoice" ? acct : undefined,
         headerImageUrl: hdr,
@@ -288,6 +295,7 @@ export function useDocumentEditor({
         subject,
         items: printItems,
         total: subtotal,
+        showTotal,
         terms,
         accountInfo: mode === "invoice" ? acct : undefined,
         headerImageUrl: hdr,
@@ -306,6 +314,7 @@ export function useDocumentEditor({
         items: printItems,
         total: subtotal,
         notes: "Looking forward for your business.",
+        showTotal,
         terms,
         accountInfo: mode === "invoice" ? acct : undefined,
         headerImageUrl: mode === "quotation" ? hdr : undefined,
@@ -325,6 +334,7 @@ export function useDocumentEditor({
         subject,
         items: printItems,
         total: subtotal,
+        showTotal,
         terms,
         accountInfo: mode === "invoice" ? acct : undefined,
         headerImageUrl: hdr,
@@ -342,6 +352,7 @@ export function useDocumentEditor({
         subject,
         items: printItems,
         subtotal,
+        showTotal,
         terms,
         accountInfo: mode === "invoice" ? acct : undefined,
         headerImageUrl: hdr,
@@ -384,6 +395,8 @@ export function useDocumentEditor({
     setSubject,
     terms,
     setTerms,
+    showTotal,
+    setShowTotal,
     // account
     accountBankName,
     setAccountBankName,

@@ -47,6 +47,7 @@ function NewQuotationContent() {
         status: values.status || "draft",
         notes: values.terms || null,
         quotationDate: values.date,
+        showTotal: values.showTotal,
       },
       values.items
         .filter((i) => i.description || i.amount > 0)

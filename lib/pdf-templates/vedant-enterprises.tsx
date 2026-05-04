@@ -49,6 +49,7 @@ export interface VEPdfProps {
   subject: string;
   items: LineItem[];
   total: number;
+  showTotal?: boolean;
   totalLabel?: string;
   currencyLabel?: string;
   terms?: string;
@@ -239,6 +240,7 @@ function VEDocument({
   total,
   totalLabel,
   currencyLabel,
+  showTotal,
   terms,
   accountInfo,
   headerImageUrl,
@@ -342,7 +344,7 @@ function VEDocument({
                   { width: COL_W[4], textAlign: "right" },
                 ]}
               >
-                {Math.abs(item.amount) > 0 ? fmtNum(item.amount) : ""}
+                {!showTotal ? "-" : (Math.abs(item.amount) > 0 ? fmtNum(item.amount) : "")}
               </Text>
             </View>
           ))}
@@ -359,27 +361,29 @@ function VEDocument({
           ))}
 
           {/* Total row */}
-          <View style={s.totalRow}>
-            <Text style={[s.totalCell, { width: COL_W[0] }]}> </Text>
-            <Text style={[s.totalCell, { width: COL_W[1], fontWeight: 700 }]}>
-              {totalLabel ?? "Total amount"}
-            </Text>
-            <Text style={[s.totalCell, { width: COL_W[2] }]}> </Text>
-            <Text
-              style={[s.totalCell, { width: COL_W[3], textAlign: "right" }]}
-            >
-              {currencyLabel ?? "Rs."}
-            </Text>
-            <Text
-              style={[
-                s.totalCell,
-                s.totalCellLast,
-                { width: COL_W[4], textAlign: "right" },
-              ]}
-            >
-              {fmtINR(total)}
-            </Text>
-          </View>
+          {showTotal && (
+            <View style={s.totalRow}>
+              <Text style={[s.totalCell, { width: COL_W[0] }]}> </Text>
+              <Text style={[s.totalCell, { width: COL_W[1], fontWeight: 700 }]}>
+                {totalLabel ?? "Total amount"}
+              </Text>
+              <Text style={[s.totalCell, { width: COL_W[2] }]}> </Text>
+              <Text
+                style={[s.totalCell, { width: COL_W[3], textAlign: "right" }]}
+              >
+                {currencyLabel ?? "Rs."}
+              </Text>
+              <Text
+                style={[
+                  s.totalCell,
+                  s.totalCellLast,
+                  { width: COL_W[4], textAlign: "right" },
+                ]}
+              >
+                {fmtINR(total)}
+              </Text>
+            </View>
+          )}
           <View style={s.bottomWrapContainer}>
             <View style={s.bottomWrap}>
               <Text style={s.termsLabel}>

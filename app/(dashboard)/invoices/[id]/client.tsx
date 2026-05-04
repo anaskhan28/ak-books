@@ -85,6 +85,7 @@ export default function InvoiceDetailClient({ invoice, clients }: Props) {
       accountHolder: invoice.accountHolder || tplConfig.bank.accountHolder,
       pan: invoice.accountPan || tplConfig.bank.pan,
     },
+    initialShowTotal: invoice.showTotal,
     template: invoice.template,
   });
 
@@ -141,6 +142,7 @@ export default function InvoiceDetailClient({ invoice, clients }: Props) {
         accountIfsc: editor.accountIfsc,
         accountHolder: editor.accountHolder,
         accountPan: editor.accountPan,
+        showTotal: editor.showTotal,
       },
       editor.filledItems.map((i) => ({
         description: i.description,
@@ -347,6 +349,8 @@ export default function InvoiceDetailClient({ invoice, clients }: Props) {
             formatINR={formatINR}
             isReadOnly={true}
             inputCls={editor.inputCls}
+            showTotal={editor.showTotal}
+            setShowTotal={editor.setShowTotal}
           />
         </div>
       </div>

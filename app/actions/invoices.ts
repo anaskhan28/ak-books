@@ -118,6 +118,7 @@ export async function getInvoice(id: number) {
         accountIfsc: invoices.accountIfsc,
         accountHolder: invoices.accountHolder,
         accountPan: invoices.accountPan,
+        showTotal: invoices.showTotal,
         createdAt: invoices.createdAt,
       })
       .from(invoices)
@@ -173,6 +174,7 @@ export async function createInvoice(
         totalAmount,
         invoiceDate: data.invoiceDate || today,
         dueDate,
+        showTotal: data.showTotal ?? true,
       })
       .returning();
 
@@ -235,6 +237,7 @@ export async function generateInvoice(quotationId: number) {
       accountIfsc: cfg.bank.ifsc,
       accountHolder: cfg.bank.accountHolder,
       accountPan: cfg.bank.pan,
+      showTotal: quotation.showTotal,
     })
     .returning();
 
@@ -363,6 +366,7 @@ export async function cloneInvoice(id: number) {
       accountIfsc: original.accountIfsc,
       accountHolder: original.accountHolder,
       accountPan: original.accountPan,
+      showTotal: original.showTotal,
     },
     original.items.map(({ description, quantity, rate, taxed, amount }) => ({
       description, quantity, rate, taxed, amount,

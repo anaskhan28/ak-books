@@ -67,6 +67,7 @@ export interface DocumentFormValues {
   accountIfsc: string;
   accountHolder: string;
   accountPan: string;
+  showTotal: boolean;
 }
 
 interface DocumentFormProps {
@@ -256,6 +257,7 @@ export function DocumentForm({
     initialValues?.accountHolder ?? "",
   );
   const [accountPan, setAccountPan] = useState(initialValues?.accountPan ?? "");
+  const [showTotal, setShowTotal] = useState(initialValues?.showTotal ?? true);
 
   const [showBank, setShowBank] = useState(isInvoice);
 
@@ -365,6 +367,7 @@ export function DocumentForm({
           accountIfsc,
           accountHolder,
           accountPan,
+          showTotal,
         },
         subtotal,
       );
@@ -686,9 +689,24 @@ export function DocumentForm({
                 <span className="text-foreground">{formatINR(subtotal)}</span>
               </div>
 
-              <div className="flex items-center justify-between text-[16px] font-bold text-foreground pt-4 border-t border-border">
-                <span>Total (₹)</span>
-                <span className="text-foreground">{formatINR(subtotal)}</span>
+              {showTotal && (
+                <div className="flex items-center justify-between text-[16px] font-bold text-foreground pt-4 border-t border-border">
+                  <span>Total (₹)</span>
+                  <span className="text-foreground">{formatINR(subtotal)}</span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="show-total"
+                  checked={showTotal}
+                  onChange={(e) => setShowTotal(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                />
+                <label htmlFor="show-total" className="text-[13px] text-muted-foreground cursor-pointer select-none">
+                  Show total amount on {isInvoice ? "invoice" : "quotation"}
+                </label>
               </div>
             </div>
           </div>

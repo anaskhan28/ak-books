@@ -67,6 +67,7 @@ export function AKEnterpriseTemplate({
   formatINR,
   inputCls,
   headerImage,
+  showTotal,
 }: TemplateProps) {
   // GST calc for invoice
   const gstRate = 18;
@@ -390,18 +391,14 @@ export function AKEnterpriseTemplate({
                     <td className="border-x border-gray-400 px-1 py-0">
                       {isReadOnly ? (
                         <div className="w-full px-1 py-2 text-right font-semibold text-[10px] text-gray-800">
-                          {item.amount > 0 ? item.amount : ""}
+                          {!showTotal ? "—" : (item.amount > 0 ? item.amount : "")}
                         </div>
                       ) : (
                         <input
-                          type="number"
-                          min={0}
-                          value={item.amount || ""}
-                          onChange={(e) =>
-                            updateItem(idx, "amount", e.target.value)
-                          }
-                          onKeyDown={(e) => handleKeyDown(e, idx, 4)}
-                          className={`${inputCls} text-right font-semibold text-[10px]`}
+                          type="text"
+                          readOnly
+                          value={!showTotal ? "—" : (item.amount || "")}
+                          className={`${inputCls} text-right font-semibold text-[10px] bg-gray-50/30`}
                         />
                       )}
                     </td>
@@ -513,18 +510,14 @@ export function AKEnterpriseTemplate({
                     <td className="border-x border-gray-400 px-1 py-0">
                       {isReadOnly ? (
                         <div className="w-full px-1 py-2 text-right font-bold text-[11px] text-gray-800">
-                          {item.amount > 0 ? item.amount : ""}
+                          {!showTotal ? "—" : (item.amount > 0 ? item.amount : "")}
                         </div>
                       ) : (
                         <input
-                          type="number"
-                          min={0}
-                          value={item.amount || ""}
-                          onChange={(e) =>
-                            updateItem(idx, "amount", e.target.value)
-                          }
-                          onKeyDown={(e) => handleKeyDown(e, idx, 3)}
-                          className={`${inputCls} text-right font-bold`}
+                          type="text"
+                          readOnly
+                          value={!showTotal ? "—" : (item.amount || "")}
+                          className={`${inputCls} text-right font-bold text-[11px] bg-gray-50/30`}
                         />
                       )}
                     </td>
@@ -542,13 +535,16 @@ export function AKEnterpriseTemplate({
         <div className="flex-1 p-3 border-r border-gray-400">
           {isInvoice ? (
             <>
-              <div className="text-[10px] font-bold text-gray-700 mb-1">
-                Total In Words
-              </div>
-              <div className="text-[10px] italic font-semibold text-gray-800 mb-3">
-                {/* simplified display */}
-                {grandTotal > 0 ? formatINR(grandTotal) : "—"}
-              </div>
+              {showTotal && (
+                <>
+                  <div className="text-[10px] font-bold text-gray-700 mb-1">
+                    Total In Words
+                  </div>
+                  <div className="text-[10px] italic font-semibold text-gray-800 mb-3">
+                    {grandTotal > 0 ? formatINR(grandTotal) : "—"}
+                  </div>
+                </>
+              )}
               {/* <div className="text-[10px] font-bold text-gray-700 mb-1">
                 Notes
               </div>
@@ -611,22 +607,24 @@ export function AKEnterpriseTemplate({
 
         {/* Right — totals + signature */}
         <div className="w-[35%] p-3 flex flex-col">
-          {isInvoice ? (
-            <>
-              <div className="flex justify-between text-[10px] text-gray-600 mb-1">
-                <span>Total Taxable Amount</span>
+          {showTotal && (
+            isInvoice ? (
+              <>
+                <div className="flex justify-between text-[10px] text-gray-600 mb-1">
+                  <span>Total Taxable Amount</span>
+                  <span>{formatINR(subtotal)}</span>
+                </div>
+                <div className="flex justify-between font-bold text-[12px] border-t border-gray-300 pt-1 mb-3">
+                  <span>Total</span>
+                  <span>{formatINR(grandTotal)}</span>
+                </div>
+              </>
+            ) : (
+              <div className="flex justify-between font-bold text-[12px] border-b border-gray-300 pb-2 mb-3">
+                <span>Total</span>
                 <span>{formatINR(subtotal)}</span>
               </div>
-              <div className="flex justify-between font-bold text-[12px] border-t border-gray-300 pt-1 mb-3">
-                <span>Total</span>
-                <span>{formatINR(grandTotal)}</span>
-              </div>
-            </>
-          ) : (
-            <div className="flex justify-between font-bold text-[12px] border-b border-gray-300 pb-2 mb-3">
-              <span>Total</span>
-              <span>{formatINR(subtotal)}</span>
-            </div>
+            )
           )}
 
           {/* Signature */}
