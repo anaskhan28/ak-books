@@ -13,6 +13,7 @@ import {
 } from "@/app/db/schema";
 import { eq, desc, like } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { requireAuth } from "@/lib/auth/guard";
 
 // ── Queries ──────────────────────────────────────────────────────────────────
 
@@ -143,6 +144,7 @@ export async function createQuotation(
   data: Omit<NewQuotation, "quotationNumber"> & { quotationNumber?: string },
   items: Omit<NewQuotationItem, "quotationId">[],
 ) {
+  await requireAuth();
   const finalQuotationNumber = data.quotationNumber || await getNextDocumentNumber(data.templateId ?? null, false);
   const totalAmount = data.totalAmount || items.reduce((sum, item) => sum + item.amount, 0);
 
@@ -173,6 +175,7 @@ export async function updateQuotation(
   data: Partial<NewQuotation>,
   items?: Omit<NewQuotationItem, "quotationId">[],
 ) {
+  await requireAuth();
   if (items) {
     const totalAmount = items.reduce((sum, i) => sum + i.amount, 0);
     await Promise.all([
@@ -192,12 +195,14 @@ export async function updateQuotation(
 }
 
 export async function updateQuotationStatus(id: number, status: string) {
+  await requireAuth();
   const [row] = await db.update(quotations).set({ status }).where(eq(quotations.id, id)).returning();
   revalidatePath("/quotations");
   return row;
 }
 
 export async function deleteQuotation(id: number) {
+  await requireAuth();
   try {
     await db.delete(quotations).where(eq(quotations.id, id));
     revalidatePath("/quotations");
@@ -217,6 +222,7 @@ export async function deleteQuotation(id: number) {
 }
 
 export async function cloneQuotation(id: number) {
+  await requireAuth();
   const original = await getQuotation(id);
   if (!original) throw new Error("Quotation not found");
 

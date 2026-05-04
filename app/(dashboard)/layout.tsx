@@ -1,21 +1,23 @@
 import Sidebar from "@/components/sidebar";
 import Header from "@/components/header";
-import { SidebarProvider } from "@/components/sidebar-context";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { auth } from "@/lib/auth/server";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Session fetch for user data — auth redirect is handled by middleware
+  const { data: session } = await auth.getSession();
+
   return (
     <SidebarProvider>
-      <div className="flex h-screen overflow-hidden">
-        <Sidebar className="hidden md:flex" />
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <Header />
-          <main className="flex-1 overflow-y-auto  md:p-6">{children}</main>
-        </div>
-      </div>
+      <Sidebar />
+      <SidebarInset className="flex flex-col overflow-hidden h-screen">
+        <Header user={session?.user ?? null} />
+        <main className="flex-1 overflow-y-auto md:p-6">{children}</main>
+      </SidebarInset>
     </SidebarProvider>
   );
 }

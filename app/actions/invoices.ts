@@ -14,6 +14,7 @@ import {
 } from "@/app/db/schema";
 import { eq, sql, desc, like, and, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { requireAuth } from "@/lib/auth/guard";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -149,6 +150,7 @@ export async function createInvoice(
   },
   items: Omit<NewInvoiceItem, "invoiceId">[],
 ) {
+  await requireAuth();
   let dbTemplate = null;
   if (data.templateId) {
     const [row] = await db.select().from(quotationTemplates).where(eq(quotationTemplates.id, data.templateId));
@@ -196,6 +198,7 @@ export async function createInvoice(
 }
 
 export async function generateInvoice(quotationId: number) {
+  await requireAuth();
   const [quotation] = await db.select().from(quotations).where(eq(quotations.id, quotationId));
   if (!quotation) throw new Error("Quotation not found");
 
@@ -255,6 +258,7 @@ export async function updateInvoice(
   data: Partial<NewInvoice>,
   items?: Omit<NewInvoiceItem, "invoiceId">[],
 ) {
+  await requireAuth();
   if (items) {
     const totalAmount = items.reduce((s, i) => s + i.amount, 0);
     await Promise.all([
@@ -269,6 +273,7 @@ export async function updateInvoice(
 }
 
 export async function updateInvoiceStatus(id: number, status: string) {
+  await requireAuth();
   // Step 1: Update the invoice status
   await db.update(invoices).set({ status }).where(eq(invoices.id, id));
 
@@ -305,6 +310,7 @@ export async function updateInvoiceStatus(id: number, status: string) {
 }
 
 export async function deleteInvoice(id: number) {
+  await requireAuth();
   // Step 1: Fetch invoice info before deletion
   const [row] = await db
     .select({ quotationId: invoices.quotationId, status: invoices.status })
@@ -338,6 +344,7 @@ export async function deleteInvoice(id: number) {
 }
 
 export async function cloneInvoice(id: number) {
+  await requireAuth();
   const original = await getInvoice(id);
   if (!original) throw new Error("Invoice not found");
 

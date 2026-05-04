@@ -4,6 +4,7 @@ import { db } from "@/app/db";
 import { clients, type NewClient } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { requireAuth } from "@/lib/auth/guard";
 
 export async function getClients() {
   return db.select().from(clients).orderBy(clients.name);
@@ -15,6 +16,7 @@ export async function getClient(id: number) {
 }
 
 export async function createClient(data: NewClient) {
+  await requireAuth();
   const rows = await db.insert(clients).values(data).returning();
   revalidatePath("/clients");
   revalidatePath("/");
@@ -22,6 +24,7 @@ export async function createClient(data: NewClient) {
 }
 
 export async function updateClient(id: number, data: Partial<NewClient>) {
+  await requireAuth();
   const rows = await db
     .update(clients)
     .set(data)
@@ -32,6 +35,7 @@ export async function updateClient(id: number, data: Partial<NewClient>) {
 }
 
 export async function deleteClient(id: number) {
+  await requireAuth();
   await db.delete(clients).where(eq(clients.id, id));
   revalidatePath("/clients");
   revalidatePath("/");

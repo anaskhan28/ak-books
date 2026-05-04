@@ -9,6 +9,7 @@ import {
 } from "@/app/db/schema";
 import { eq, sql, desc, and, or, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { requireAuth } from "@/lib/auth/guard";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -101,6 +102,7 @@ export async function getPaymentsForInvoice(invoiceId: number) {
  * Records a new payment and updates invoice status
  */
 export async function recordPayment(data: NewPayment) {
+  await requireAuth();
   const [payment] = await db.insert(payments).values(data).returning();
   await syncInvoiceStatus(data.invoiceId);
   revalidatePayments(data.invoiceId);
@@ -111,6 +113,7 @@ export async function recordPayment(data: NewPayment) {
  * Deletes a payment record and re-syncs invoice status
  */
 export async function deletePayment(id: number) {
+  await requireAuth();
   // 1. Get invoice id to re-sync later
   const [paymentRow] = await db
     .select({ invoiceId: payments.invoiceId })
