@@ -4,6 +4,7 @@ import { db } from "@/app/db";
 import { workers, type NewWorker } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { requireAuth } from "@/lib/auth/guard";
 
 export async function getWorkers() {
   return db.select().from(workers).orderBy(workers.name);
@@ -23,12 +24,14 @@ export async function getWorker(id: number) {
 }
 
 export async function createWorker(data: NewWorker) {
+  await requireAuth();
   const rows = await db.insert(workers).values(data).returning();
   revalidatePath("/workers");
   return rows[0];
 }
 
 export async function updateWorker(id: number, data: Partial<NewWorker>) {
+  await requireAuth();
   const rows = await db
     .update(workers)
     .set(data)
@@ -39,6 +42,7 @@ export async function updateWorker(id: number, data: Partial<NewWorker>) {
 }
 
 export async function deleteWorker(id: number) {
+  await requireAuth();
   await db.delete(workers).where(eq(workers.id, id));
   revalidatePath("/workers");
 }
