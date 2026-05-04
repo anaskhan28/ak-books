@@ -111,17 +111,17 @@ export async function getNextDocumentNumber(templateId: number | null, isInvoice
 
   const existing = isInvoice
     ? await db
-        .select({ num: invoices.invoiceNumber })
-        .from(invoices)
-        .where(like(invoices.invoiceNumber, `${prefix}%`))
-        .orderBy(desc(invoices.id))
-        .limit(50)
+      .select({ num: invoices.invoiceNumber })
+      .from(invoices)
+      .where(like(invoices.invoiceNumber, `${prefix}%`))
+      .orderBy(desc(invoices.id))
+      .limit(50)
     : await db
-        .select({ num: quotations.quotationNumber })
-        .from(quotations)
-        .where(like(quotations.quotationNumber, `${prefix}%`))
-        .orderBy(desc(quotations.id))
-        .limit(50);
+      .select({ num: quotations.quotationNumber })
+      .from(quotations)
+      .where(like(quotations.quotationNumber, `${prefix}%`))
+      .orderBy(desc(quotations.id))
+      .limit(50);
 
   let nextSeq = 1;
   const escaped = prefix.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
@@ -209,14 +209,14 @@ export async function deleteQuotation(id: number) {
     return { success: true };
   } catch (error: any) {
     if (error.code === "23503") {
-      return { 
-        success: false, 
-        error: "This quotation is linked to an invoice and cannot be deleted. Please delete the invoice first." 
+      return {
+        success: false,
+        error: "This quotation is linked to an invoice and cannot be deleted. Please delete the invoice first."
       };
     }
-    return { 
-      success: false, 
-      error: "Failed to delete quotation. Please try again." 
+    return {
+      success: false,
+      error: "Failed to delete quotation. Please try again."
     };
   }
 }
