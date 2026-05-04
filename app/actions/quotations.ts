@@ -14,6 +14,7 @@ import {
 import { eq, desc, like } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth/guard";
+import { getTemplateConfig } from "@/lib/pdf-templates/registry";
 
 // ── Queries ──────────────────────────────────────────────────────────────────
 
@@ -40,7 +41,7 @@ export async function getQuotations(templateId?: number) {
     .leftJoin(clients, eq(quotations.clientId, clients.id))
     .leftJoin(projects, eq(quotations.projectId, projects.id))
     .leftJoin(quotationTemplates, eq(quotations.templateId, quotationTemplates.id))
-    .orderBy(quotations.createdAt);
+    .orderBy(desc(quotations.createdAt)); // newest first
 
   if (templateId) {
     return query.where(eq(quotations.templateId, templateId));
@@ -48,9 +49,9 @@ export async function getQuotations(templateId?: number) {
   return query;
 }
 
-/** Single optimized query — fetches quotation + items + template in parallel */
+/** Fetches quotation + items + template in a single round-trip (3 parallel queries) */
 export async function getQuotation(id: number) {
-  const [rows, items] = await Promise.all([
+  const [rows, items, allTemplates] = await Promise.all([
     db
       .select({
         id: quotations.id,
@@ -76,19 +77,14 @@ export async function getQuotation(id: number) {
       .leftJoin(projects, eq(quotations.projectId, projects.id))
       .where(eq(quotations.id, id)),
     db.select().from(quotationItems).where(eq(quotationItems.quotationId, id)),
+    db.select().from(quotationTemplates), // small table, cached well by Neon
   ]);
 
   if (!rows[0]) return null;
 
-  // Resolve template only if needed (still fast — single indexed lookup)
-  let template = null;
-  if (rows[0].templateId) {
-    const [t] = await db
-      .select()
-      .from(quotationTemplates)
-      .where(eq(quotationTemplates.id, rows[0].templateId));
-    template = t ?? null;
-  }
+  const template = rows[0].templateId
+    ? allTemplates.find((t) => t.id === rows[0].templateId) ?? null
+    : null;
 
   return { ...rows[0], items, template };
 }
@@ -96,32 +92,26 @@ export async function getQuotation(id: number) {
 // ── Number generation ────────────────────────────────────────────────────────
 
 export async function getNextDocumentNumber(templateId: number | null, isInvoice: boolean) {
-  let dbTemplate = null;
-  if (templateId) {
-    const [row] = await db
-      .select()
-      .from(quotationTemplates)
-      .where(eq(quotationTemplates.id, templateId));
-    dbTemplate = row ?? null;
-  }
+  const [dbTemplate] = templateId
+    ? await db.select().from(quotationTemplates).where(eq(quotationTemplates.id, templateId))
+    : [null];
 
-  const { getTemplateConfig } = await import("@/lib/pdf-templates/registry");
-  const cfg = getTemplateConfig(dbTemplate?.name, dbTemplate);
+  const cfg = getTemplateConfig(dbTemplate?.name, dbTemplate ?? undefined);
   const prefix = isInvoice ? cfg.invoicePrefix : cfg.prefix;
 
   const existing = isInvoice
     ? await db
-      .select({ num: invoices.invoiceNumber })
-      .from(invoices)
-      .where(like(invoices.invoiceNumber, `${prefix}%`))
-      .orderBy(desc(invoices.id))
-      .limit(50)
+        .select({ num: invoices.invoiceNumber })
+        .from(invoices)
+        .where(like(invoices.invoiceNumber, `${prefix}%`))
+        .orderBy(desc(invoices.id))
+        .limit(50)
     : await db
-      .select({ num: quotations.quotationNumber })
-      .from(quotations)
-      .where(like(quotations.quotationNumber, `${prefix}%`))
-      .orderBy(desc(quotations.id))
-      .limit(50);
+        .select({ num: quotations.quotationNumber })
+        .from(quotations)
+        .where(like(quotations.quotationNumber, `${prefix}%`))
+        .orderBy(desc(quotations.id))
+        .limit(50);
 
   let nextSeq = 1;
   const escaped = prefix.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
@@ -145,7 +135,8 @@ export async function createQuotation(
   items: Omit<NewQuotationItem, "quotationId">[],
 ) {
   await requireAuth();
-  const finalQuotationNumber = data.quotationNumber || await getNextDocumentNumber(data.templateId ?? null, false);
+  const finalQuotationNumber =
+    data.quotationNumber || (await getNextDocumentNumber(data.templateId ?? null, false));
   const totalAmount = data.totalAmount || items.reduce((sum, item) => sum + item.amount, 0);
 
   const [quotation] = await db
@@ -161,9 +152,9 @@ export async function createQuotation(
     .returning();
 
   if (items.length > 0) {
-    await db.insert(quotationItems).values(
-      items.map((item) => ({ ...item, quotationId: quotation.id })),
-    );
+    await db
+      .insert(quotationItems)
+      .values(items.map((item) => ({ ...item, quotationId: quotation.id })));
   }
 
   revalidatePath("/quotations");
@@ -176,15 +167,20 @@ export async function updateQuotation(
   items?: Omit<NewQuotationItem, "quotationId">[],
 ) {
   await requireAuth();
-  if (items) {
+
+  if (items !== undefined) {
     const totalAmount = items.reduce((sum, i) => sum + i.amount, 0);
+
+    // Update quotation and wipe old items in parallel, then insert new items
     await Promise.all([
       db.update(quotations).set({ ...data, totalAmount }).where(eq(quotations.id, id)),
       db.delete(quotationItems).where(eq(quotationItems.quotationId, id)),
     ]);
 
     if (items.length > 0) {
-      await db.insert(quotationItems).values(items.map((item) => ({ ...item, quotationId: id })));
+      await db
+        .insert(quotationItems)
+        .values(items.map((item) => ({ ...item, quotationId: id })));
     }
   } else {
     await db.update(quotations).set(data).where(eq(quotations.id, id));
@@ -196,7 +192,11 @@ export async function updateQuotation(
 
 export async function updateQuotationStatus(id: number, status: string) {
   await requireAuth();
-  const [row] = await db.update(quotations).set({ status }).where(eq(quotations.id, id)).returning();
+  const [row] = await db
+    .update(quotations)
+    .set({ status })
+    .where(eq(quotations.id, id))
+    .returning();
   revalidatePath("/quotations");
   return row;
 }
@@ -211,19 +211,36 @@ export async function deleteQuotation(id: number) {
     if (error.code === "23503") {
       return {
         success: false,
-        error: "This quotation is linked to an invoice and cannot be deleted. Please delete the invoice first."
+        error: "This quotation is linked to an invoice and cannot be deleted. Please delete the invoice first.",
       };
     }
-    return {
-      success: false,
-      error: "Failed to delete quotation. Please try again."
-    };
+    return { success: false, error: "Failed to delete quotation. Please try again." };
   }
 }
 
 export async function cloneQuotation(id: number) {
   await requireAuth();
-  const original = await getQuotation(id);
+
+  // Retry up to 3 times to handle Neon cold-start connection timeouts
+  let original = null;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      original = await getQuotation(id);
+      break;
+    } catch (err: any) {
+      const isTimeout =
+        err?.cause?.code === "UND_ERR_CONNECT_TIMEOUT" ||
+        err?.message?.includes("fetch failed") ||
+        err?.message?.includes("Connect Timeout");
+      if (isTimeout && attempt < 3) {
+        console.warn(`cloneQuotation: DB timeout on attempt ${attempt}, retrying...`);
+        await new Promise((r) => setTimeout(r, 1500 * attempt));
+        continue;
+      }
+      throw new Error(`Failed to fetch quotation: ${err?.message ?? "Connection timeout"}`);
+    }
+  }
+
   if (!original) throw new Error("Quotation not found");
 
   return createQuotation(
@@ -239,7 +256,11 @@ export async function cloneQuotation(id: number) {
       quotationDate: original.quotationDate,
     },
     original.items.map(({ description, quantity, rate, taxed, amount }) => ({
-      description, quantity, rate, taxed, amount,
+      description,
+      quantity,
+      rate,
+      taxed,
+      amount,
     })),
   );
 }

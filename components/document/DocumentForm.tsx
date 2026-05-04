@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import {
   Plus,
@@ -11,7 +10,6 @@ import {
   GripVertical,
   Info,
   CalendarIcon,
-  ChevronDown,
   FileText,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
@@ -35,6 +33,7 @@ import { getTemplates } from "@/app/actions/templates";
 import { getNextDocumentNumber } from "@/app/actions/quotations";
 import { getTemplateConfig } from "@/lib/pdf-templates/registry";
 import { HSN_PRESETS } from "@/lib/constants";
+import { alerts } from "@/lib/alerts";
 import type { Client, QuotationTemplate } from "@/app/db/schema";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -215,7 +214,6 @@ export function DocumentForm({
   backHref,
   backLabel,
 }: DocumentFormProps) {
-  const router = useRouter();
   const isInvoice = mode === "invoice";
 
   const [clients, setClients] = useState<Client[]>([]);
@@ -327,8 +325,6 @@ export function DocumentForm({
     );
 
   async function handleSave(forcedStatus?: string) {
-    const alertsImport = await import("@/lib/alerts");
-    const alerts = alertsImport.alerts;
 
     if (!clientName.trim()) {
       alerts.error("Validation Error", "Customer Name is required.");
@@ -379,8 +375,9 @@ export function DocumentForm({
     }
   }
 
-  const filledItems = items.filter(
-    (i) => i.description || i.qty > 0 || i.rate > 0 || i.amount > 0,
+  const filledItems = useMemo(
+    () => items.filter((i) => i.description || i.qty > 0 || i.rate > 0 || i.amount > 0),
+    [items],
   );
 
   return (
