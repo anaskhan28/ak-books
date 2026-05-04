@@ -129,6 +129,7 @@ export default function TemplateEditor({ initialData }: TemplateEditorProps) {
       pan: "ABCDE1234F",
     }
   );
+  const [showTotal, setShowTotal] = useState(true);
 
   const handleChange = (field: keyof QuotationTemplate, value: any) => {
     setFormData((prev) => {
@@ -207,6 +208,8 @@ export default function TemplateEditor({ initialData }: TemplateEditorProps) {
       secondaryColor: formData.secondaryColor || undefined,
       headerImage: formData.headerImage || undefined,
       templateName: formData.name || undefined,
+      showTotal,
+      setShowTotal,
     };
   }, [formData]);
 

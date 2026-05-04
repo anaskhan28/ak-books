@@ -31,6 +31,7 @@ export function VETemplate({
   tableRef,
   clients,
   signatureImage,
+  formatINR,
   inputCls,
   headerImage,
   showTotal,
