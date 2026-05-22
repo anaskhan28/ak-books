@@ -1,4 +1,4 @@
-import { getClients } from "@/app/actions/clients";
+import { getClients, getBranches } from "@/app/actions/clients";
 import ClientsClient from "./clients-client";
 
 export const metadata = {
@@ -9,5 +9,13 @@ export const metadata = {
 export default async function ClientsPage() {
   const allClients = await getClients();
 
-  return <ClientsClient initialClients={allClients} />;
+  // Fetch branches for all clients in parallel
+  const clientsWithBranches = await Promise.all(
+    allClients.map(async (c) => ({
+      ...c,
+      branches: await getBranches(c.id),
+    }))
+  );
+
+  return <ClientsClient initialClients={clientsWithBranches} />;
 }

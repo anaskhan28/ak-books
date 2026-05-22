@@ -6,7 +6,8 @@ import { alerts } from "@/lib/alerts";
 import { Plus, Check, Trash2, Users, Receipt, Info } from "lucide-react";
 import { addLabourEntry, deleteLabourEntry } from "@/app/actions/labour";
 import PageHeader from "@/components/ui/page-header";
-import { formatINR, todayISO } from "@/lib/utils";
+import { formatINR, todayISO, formatDateDMY } from "@/lib/utils";
+import { DatePicker } from "@/components/ui/date-picker";
 import EmptyState from "@/components/ui/empty-state";
 
 interface LabourRow {
@@ -129,11 +130,9 @@ export default function LabourClient({ entries, projects }: LabourClientProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className={labelCls}>Date *</label>
-              <input
-                type="date"
+              <DatePicker
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
+                onChange={setDate}
                 className={inputCls}
               />
             </div>
@@ -223,10 +222,7 @@ export default function LabourClient({ entries, projects }: LabourClientProps) {
                       {formatINR(e.totalCost)}
                     </div>
                     <div className="text-[11px] text-gray-400">
-                      {new Date(e.date).toLocaleDateString("en-IN", {
-                        day: "2-digit",
-                        month: "short",
-                      })}
+                      {formatDateDMY(e.date)}
                     </div>
                   </div>
                 </div>
@@ -266,11 +262,7 @@ export default function LabourClient({ entries, projects }: LabourClientProps) {
                       className="hover:bg-gray-50/80 transition-colors group"
                     >
                       <td className="px-5 py-4 text-gray-600 whitespace-nowrap">
-                        {new Date(e.date).toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
+                        {formatDateDMY(e.date)}
                       </td>
                       <td className="px-5 py-4 text-gray-800 font-medium">{e.projectName}</td>
                       <td className="px-5 py-4">

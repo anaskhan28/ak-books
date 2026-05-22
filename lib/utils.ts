@@ -58,3 +58,49 @@ export async function toDataUrl(url: string): Promise<string> {
     reader.readAsDataURL(blob);
   });
 }
+
+export function formatDateDMY(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return "";
+  let dateObj: Date;
+  if (dateInput instanceof Date) {
+    dateObj = dateInput;
+  } else {
+    const parts = dateInput.split("T")[0].split("-");
+    if (parts.length === 3) {
+      if (parts[0].length === 4) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        const d = parseInt(parts[2], 10);
+        dateObj = new Date(y, m, d);
+      } else {
+        const d = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        const y = parseInt(parts[2], 10);
+        dateObj = new Date(y, m, d);
+      }
+    } else {
+      dateObj = new Date(dateInput);
+    }
+  }
+
+  if (isNaN(dateObj.getTime())) return "";
+  const dd = String(dateObj.getDate()).padStart(2, "0");
+  const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const yyyy = dateObj.getFullYear();
+  return `${dd}-${mm}-${yyyy}`;
+}
+
+export function parseDateDMYToISO(dmyStr: string | null | undefined): string {
+  if (!dmyStr) return "";
+  const parts = dmyStr.split("-");
+  if (parts.length === 3) {
+    if (parts[0].length === 4) {
+      return dmyStr;
+    }
+    const d = parts[0].padStart(2, "0");
+    const m = parts[1].padStart(2, "0");
+    const y = parts[2];
+    return `${y}-${m}-${d}`;
+  }
+  return dmyStr;
+}

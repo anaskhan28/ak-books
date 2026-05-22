@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import StatusBadge from "@/components/ui/status-badge";
-import { formatINR } from "@/lib/utils";
+import { formatINR, formatDateDMY } from "@/lib/utils";
+import { getDueDateStatus } from "@/lib/due-date";
 import QuotationRowActions from "@/components/quotations/QuotationRowActions";
 import InvoiceRowActions from "@/components/invoices/InvoiceRowActions";
 
@@ -17,6 +18,9 @@ interface DocumentCardProps {
     status: string;
     createdAt: Date;
     date?: string | null;
+    isComparative?: boolean;
+    dueDate?: string | null;
+    paidAmount?: number;
   };
   mode: "quotation" | "invoice";
   onDelete: (e: React.MouseEvent, id: number) => void;
@@ -52,7 +56,7 @@ export default function DocumentCard({
             <div className="flex items-start gap-1 font-normal text-muted">
               {data.clientBranch && (
                 <span className="text-muted shrink-0 font-normal text-[13px] pt-0.5">
-                  {data.clientBranch}
+                  {data.clientBranch.slice(0, 30)}
                 </span>
               )}
               {data.clientBranch && data.subject && <span>•</span>}
@@ -65,11 +69,7 @@ export default function DocumentCard({
             </div>
             <div className="flex items-center gap-1.5 text-[13px] font-normal text-muted mt-0.5">
               <span>
-                {new Date(data.date || data.createdAt).toLocaleDateString("en-IN", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                })}
+                {formatDateDMY(data.date || data.createdAt)}
               </span>
               <span>•</span>
               <span className="text-primary">{data.number}</span>
@@ -83,7 +83,37 @@ export default function DocumentCard({
         </div>
 
         <div className="flex items-center justify-between mb-3 pt-1 mt-1">
-          <StatusBadge status={data.status} />
+          <div className="flex items-center gap-1.5">
+            {mode === "quotation" ? (
+              <StatusBadge status={data.status} />
+            ) : (() => {
+              const isPaid = data.status === "paid" || (data.paidAmount !== undefined && Number(data.paidAmount) >= data.totalAmount);
+              if (isPaid) {
+                return (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[13px] md:text-[11px] font-semibold capitalize border bg-emerald-50 text-emerald-700 border-emerald-200">
+                    PAID
+                  </span>
+                );
+              }
+              const due = getDueDateStatus(data.dueDate ?? null);
+              const dueColors: Record<string, string> = {
+                blue: "bg-blue-50 text-blue-700 border-blue-200",
+                orange: "bg-orange-50 text-[#e67e22] border-orange-200",
+                red: "bg-red-50 text-[#e74c3c] border-red-200",
+                gray: "bg-gray-50 text-gray-500 border-gray-200",
+              };
+              return (
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[13px] md:text-[11px] font-medium border ${dueColors[due.color] || dueColors.gray}`}>
+                  {due.label}
+                </span>
+              );
+            })()}
+            {data.isComparative && (
+              <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-50 text-amber-600 border border-amber-200">
+                Comparative
+              </span>
+            )}
+          </div>
         </div>
       </Link>
 

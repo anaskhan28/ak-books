@@ -6,12 +6,13 @@ import {
   quotationItems,
   quotationTemplates,
   clients,
+  clientBranches,
   projects,
   invoices,
   type NewQuotation,
   type NewQuotationItem,
 } from "@/app/db/schema";
-import { eq, desc, like } from "drizzle-orm";
+import { eq, desc, like, and, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth/guard";
 import { getTemplateConfig } from "@/lib/pdf-templates/registry";
@@ -36,6 +37,7 @@ export async function getQuotations(templateId?: number) {
       notes: quotations.notes,
       quotationDate: quotations.quotationDate,
       showTotal: quotations.showTotal,
+      isComparative: quotations.isComparative,
       createdAt: quotations.createdAt,
     })
     .from(quotations)
@@ -62,6 +64,7 @@ export async function getQuotation(id: number) {
         clientPhone: clients.phone,
         clientEmail: clients.email,
         clientAddress: clients.address,
+        clientGstin: clients.gstin,
         projectId: quotations.projectId,
         projectName: projects.name,
         quotationNumber: quotations.quotationNumber,
@@ -72,6 +75,7 @@ export async function getQuotation(id: number) {
         notes: quotations.notes,
         quotationDate: quotations.quotationDate,
         showTotal: quotations.showTotal,
+        isComparative: quotations.isComparative,
         createdAt: quotations.createdAt,
       })
       .from(quotations)
@@ -82,13 +86,33 @@ export async function getQuotation(id: number) {
     db.select().from(quotationTemplates), // small table, cached well by Neon
   ]);
 
-  if (!rows[0]) return null;
+  const row = rows[0];
+  if (!row) return null;
 
-  const template = rows[0].templateId
-    ? allTemplates.find((t) => t.id === rows[0].templateId) ?? null
+  const template = row.templateId
+    ? allTemplates.find((t) => t.id === row.templateId) ?? null
     : null;
 
-  return { ...rows[0], items, template };
+  // Resolve branch-specific GSTIN if present
+  let resolvedGstin = row.clientGstin || null;
+  if (row.clientBranch && row.clientId) {
+    const branchName = row.clientBranch.split("\n")[0].trim();
+    const branchRows = await db
+      .select({ gstin: clientBranches.gstin })
+      .from(clientBranches)
+      .where(
+        and(
+          eq(clientBranches.clientId, row.clientId),
+          sql`lower(${clientBranches.branchName}) = ${branchName.toLowerCase()}`
+        )
+      )
+      .limit(1);
+    if (branchRows[0]?.gstin) {
+      resolvedGstin = branchRows[0].gstin;
+    }
+  }
+
+  return { ...row, clientGstin: resolvedGstin, items, template };
 }
 
 // ── Number generation ────────────────────────────────────────────────────────
@@ -151,6 +175,7 @@ export async function createQuotation(
       quotationDate: data.quotationDate || new Date().toISOString().split("T")[0],
       notes: data.notes,
       showTotal: data.showTotal ?? true,
+      isComparative: data.isComparative ?? false,
     })
     .returning();
 
@@ -258,6 +283,7 @@ export async function cloneQuotation(id: number) {
       notes: original.notes,
       quotationDate: original.quotationDate,
       showTotal: original.showTotal,
+      isComparative: original.isComparative,
     },
     original.items.map(({ description, quantity, rate, taxed, amount }) => ({
       description,

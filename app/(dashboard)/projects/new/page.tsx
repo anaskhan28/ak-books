@@ -6,6 +6,8 @@ import { createProject } from "@/app/actions/projects";
 import { getClients } from "@/app/actions/clients";
 import PageHeader from "@/components/ui/page-header";
 import type { Client } from "@/app/db/schema";
+import { DatePicker } from "@/components/ui/date-picker";
+import { todayISO } from "@/lib/utils";
 
 const workTypes = [
   "Branch Shifting",
@@ -20,6 +22,7 @@ export default function NewProjectPage() {
   const router = useRouter();
   const [clients, setClients] = useState<Client[]>([]);
   const [saving, setSaving] = useState(false);
+  const [startDate, setStartDate] = useState(todayISO());
 
   useEffect(() => {
     getClients().then(setClients);
@@ -90,7 +93,12 @@ export default function NewProjectPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           <div>
             <label className={labelCls}>Start Date</label>
-            <input name="startDate" type="date" className={fieldCls} />
+            <DatePicker
+              name="startDate"
+              value={startDate}
+              onChange={setStartDate}
+              className={fieldCls}
+            />
           </div>
           <div>
             <label className={labelCls}>Location</label>

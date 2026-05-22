@@ -7,7 +7,7 @@ import { alerts } from "@/lib/alerts";
 import { Plus, ChevronDown, Settings2 } from "lucide-react";
 import { deleteQuotation } from "@/app/actions/quotations";
 import StatusBadge from "@/components/ui/status-badge";
-import { formatINR } from "@/lib/utils";
+import { formatINR, formatDateDMY } from "@/lib/utils";
 import type { QuotationTemplate } from "@/app/db/schema";
 
 import DocumentCard from "@/components/common/document-card";
@@ -34,6 +34,7 @@ type QuotationRow = {
   clientBranch: string | null;
   totalAmount: number;
   status: string;
+  isComparative: boolean;
   createdAt: Date;
 };
 
@@ -245,7 +246,8 @@ export default function QuotationsClient({ quotations, templates }: Props) {
                 key={q.id}
                 data={{
                   ...q,
-                  number: q.quotationNumber
+                  number: q.quotationNumber,
+                  isComparative: q.isComparative,
                 }}
                 mode="quotation"
                 onDelete={handleDelete}
@@ -298,10 +300,17 @@ export default function QuotationsClient({ quotations, templates }: Props) {
                         {formatINR(q.totalAmount)}
                       </td>
                       <td className="px-5 py-3">
-                        <StatusBadge status={q.status} />
+                        <div className="flex items-center gap-1.5">
+                          <StatusBadge status={q.status} />
+                          {q.isComparative && (
+                            <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-50 text-amber-600 border border-amber-200">
+                              Comparative
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-5 py-3 text-foreground">
-                        {new Date(q.createdAt).toLocaleDateString("en-IN")}
+                        {formatDateDMY(q.createdAt)}
                       </td>
                       <td className="px-5 py-3">
                         <QuotationRowActions

@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import type { LineItem, DocumentMode } from "@/lib/types/document";
-import { formatINR } from "@/lib/utils";
+import { formatINR, formatDateDMY } from "@/lib/utils";
 import { getTemplateConfig } from "@/lib/pdf-templates/registry";
 
 export function autoResize(el: HTMLTextAreaElement) {
@@ -15,6 +15,7 @@ interface UseDocumentEditorOptions {
   initialDate: string;
   initialClientName: string;
   initialClientBranch: string;
+  initialClientGstin?: string | null;
   initialSubject: string;
   initialNotes: string;
   initialShowTotal?: boolean;
@@ -39,6 +40,7 @@ export function useDocumentEditor({
   initialDate,
   initialClientName,
   initialClientBranch,
+  initialClientGstin,
   initialSubject,
   initialNotes,
   initialShowTotal = true,
@@ -61,6 +63,7 @@ export function useDocumentEditor({
   const [date, setDate] = useState(initialDate);
   const [clientName, setClientName] = useState(initialClientName);
   const [clientBranch, setClientBranch] = useState(initialClientBranch);
+  const [clientGstin, setClientGstin] = useState(initialClientGstin || null);
   const [subject, setSubject] = useState(initialSubject);
   const [terms, setTerms] = useState(initialNotes);
   const [showTotal, setShowTotal] = useState(initialShowTotal);
@@ -163,20 +166,8 @@ export function useDocumentEditor({
   );
   const subtotal = items.reduce((s, i) => s + i.amount, 0);
 
-  const displayDate = new Date(date + "T00:00:00").toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "2-digit",
-  });
-
-  const displayDateSlash = new Date(date + "T00:00:00").toLocaleDateString(
-    "en-IN",
-    {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    },
-  );
+  const displayDate = formatDateDMY(date);
+  const displayDateSlash = formatDateDMY(date);
 
   // ── PDF download ──────────────────────────────────────────────────────────
   async function handleDownloadPDF(
@@ -310,6 +301,7 @@ export function useDocumentEditor({
         date,
         clientName,
         clientBranch,
+        clientGstin: mode === "invoice" ? (clientGstin || undefined) : undefined,
         subject,
         items: printItems,
         total: subtotal,
@@ -391,6 +383,8 @@ export function useDocumentEditor({
     setClientName,
     clientBranch,
     setClientBranch,
+    clientGstin,
+    setClientGstin,
     subject,
     setSubject,
     terms,

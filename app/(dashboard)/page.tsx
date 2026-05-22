@@ -10,6 +10,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
+import { formatDateDMY } from "@/lib/utils";
 import IncomeExpenseChart from "@/components/dashboard/income-expense-chart";
 import {
   getDashboardStats,
@@ -68,24 +69,34 @@ export default async function DashboardPage() {
   ]);
 
   // Map data to component expected types with pre-formatted strings for hydration safety
-  const invoices = recentInvoicesRaw.map((inv) => ({
-    id: inv.id,
-    invoiceNumber: inv.invoiceNumber || "",
-    clientName: inv.client,
-    totalAmount: inv.total,
-    status: inv.status || "pending",
-    dateDisplay: inv.date.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-    }),
-  }));
+  const invoices = recentInvoicesRaw.map((inv) => {
+    let dateObj = new Date();
+    if (inv.dueDate) {
+      const parts = inv.dueDate.split("-");
+      if (parts.length === 3) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        const d = parseInt(parts[2], 10);
+        dateObj = new Date(y, m, d);
+      } else {
+        dateObj = new Date(inv.dueDate);
+      }
+    } else if (inv.createdAt) {
+      dateObj = new Date(inv.createdAt);
+    }
+    return {
+      id: inv.id,
+      invoiceNumber: inv.invoiceNumber || "",
+      clientName: inv.client,
+      totalAmount: inv.total,
+      status: inv.status || "pending",
+      dateDisplay: formatDateDMY(dateObj),
+    };
+  });
 
   const payments = recentPayments.map((p) => ({
     ...p,
-    dateDisplay: new Date(p.date).toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-    }),
+    dateDisplay: formatDateDMY(p.date),
   }));
 
   const quotationPipeline = quotationPipelineRaw.map((p) => ({
@@ -96,10 +107,7 @@ export default async function DashboardPage() {
 
   const scrapEntries = latestScrap.map((entry) => ({
     ...entry,
-    dateDisplay: new Date(entry.date).toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-    }),
+    dateDisplay: formatDateDMY(entry.date),
   }));
 
   return (
@@ -262,9 +270,7 @@ export default async function DashboardPage() {
         {/* ROW 3: Financial Deep-Dive (Dynamic Income/Expense) */}
         <div className="grid grid-cols-1 xl:grid-cols-2 md:gap-6 gap-4">
           <IncomeExpenseChart
-            data={monthlyChartData}
-            totalIncome={totalIncome}
-            totalExpenses={totalExpenses}
+            rawData={monthlyChartData}
           />
 
           <TopExpenses data={expenseBreakdown} />

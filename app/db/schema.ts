@@ -248,6 +248,7 @@ export const projectConfigInNeonAuth = neonAuth.table(
 export const clients = pgTable("clients", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  gstin: text("gstin"),
   contactPerson: text("contact_person"),
   phone: text("phone"),
   email: text("email"),
@@ -256,6 +257,22 @@ export const clients = pgTable("clients", {
 });
 export type Client = typeof clients.$inferSelect;
 export type NewClient = typeof clients.$inferInsert;
+
+export const clientBranches = pgTable("client_branches", {
+  id: serial("id").primaryKey(),
+  clientId: integer("client_id")
+    .notNull()
+    .references(() => clients.id, { onDelete: "cascade" }),
+  branchName: text("branch_name").notNull(),
+  address: text("address"),
+  contactPerson: text("contact_person"),
+  phone: text("phone"),
+  email: text("email"),
+  gstin: text("gstin"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type ClientBranch = typeof clientBranches.$inferSelect;
+export type NewClientBranch = typeof clientBranches.$inferInsert;
 
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
@@ -369,6 +386,7 @@ export const quotations = pgTable("quotations", {
   notes: text("notes"),
   quotationDate: text("quotation_date"),
   showTotal: boolean("show_total").notNull().default(true),
+  isComparative: boolean("is_comparative").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 export type Quotation = typeof quotations.$inferSelect;

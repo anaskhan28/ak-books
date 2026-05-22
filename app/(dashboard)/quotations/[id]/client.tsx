@@ -82,6 +82,7 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
     initialDate: quotation.quotationDate || new Date(quotation.createdAt).toISOString().split("T")[0],
     initialClientName: quotation.clientName || "",
     initialClientBranch: quotation.clientBranch || "",
+    initialClientGstin: quotation.clientGstin,
     initialSubject: quotation.subject || "",
     initialNotes: defaultTerms,
     initialItems,
@@ -181,6 +182,11 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
           >
             {quotation.status.toUpperCase()}
           </span>
+          {quotation.isComparative && (
+            <span className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-amber-50 text-amber-600 border border-amber-200">
+              Comparative
+            </span>
+          )}
           <input
             value={editor.docNumber}
             readOnly
@@ -283,6 +289,7 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
             setClientName={editor.setClientName}
             clientBranch={editor.clientBranch}
             setClientBranch={editor.setClientBranch}
+            clientGstin={editor.clientGstin}
             qtNumber={editor.docNumber}
             date={editor.date}
             setDate={editor.setDate}

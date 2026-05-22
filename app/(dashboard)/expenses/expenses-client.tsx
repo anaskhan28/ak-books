@@ -6,7 +6,8 @@ import { alerts } from "@/lib/alerts";
 import { Plus, Check, Trash2, Calendar, Tag, FileText } from "lucide-react";
 import { addExpense, deleteExpense } from "@/app/actions/expenses";
 import PageHeader from "@/components/ui/page-header";
-import { formatINR, todayISO } from "@/lib/utils";
+import { formatINR, todayISO, formatDateDMY } from "@/lib/utils";
+import { DatePicker } from "@/components/ui/date-picker";
 import EmptyState from "@/components/ui/empty-state";
 
 const expenseTypes = [
@@ -178,11 +179,9 @@ export default function ExpensesClient({ expenses, projects }: ExpensesClientPro
             </div>
             <div>
               <label className={labelCls}>Date *</label>
-              <input
-                type="date"
+              <DatePicker
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
+                onChange={setDate}
                 className={inputCls}
               />
             </div>
@@ -234,11 +233,7 @@ export default function ExpensesClient({ expenses, projects }: ExpensesClientPro
                     className="hover:bg-gray-50/80 transition-colors group"
                   >
                     <td className="px-4 md:px-5 py-4 text-gray-600 whitespace-nowrap">
-                      {new Date(e.date).toLocaleDateString("en-IN", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
+                      {formatDateDMY(e.date)}
                     </td>
                     <td className="px-4 md:px-5 py-4 text-gray-800 font-medium whitespace-nowrap">{e.projectName}</td>
                     <td className="px-4 md:px-5 py-4 whitespace-nowrap">

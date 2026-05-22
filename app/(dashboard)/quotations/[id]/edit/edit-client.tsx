@@ -16,6 +16,7 @@ type Quotation = {
   notes: string | null;
   status: string;
   showTotal: boolean;
+  isComparative: boolean;
   createdAt: Date;
   items: { description: string; quantity: number; rate: number; taxed: string | null; amount: number }[];
 };
@@ -39,6 +40,7 @@ export default function EditQuotationClient({ quotation }: Props) {
     terms: quotation.notes || "",
     status: quotation.status,
     showTotal: quotation.showTotal,
+    isComparative: quotation.isComparative,
     items: quotation.items.map((i) => ({
       id: generateId(),
       description: i.description,
@@ -50,11 +52,15 @@ export default function EditQuotationClient({ quotation }: Props) {
   };
 
   async function handleSave(values: DocumentFormValues, subtotal: number) {
-    const { createClient, getClients } = await import("@/app/actions/clients");
+    const { createClient, getClients, ensureBranchExists } = await import("@/app/actions/clients");
     const allClients = await getClients();
     let client = allClients.find((c) => c.name.toLowerCase() === values.clientName.toLowerCase());
     if (!client) {
       client = await createClient({ name: values.clientName, contactPerson: null, phone: null, email: null, address: null });
+    }
+
+    if (client && values.clientBranch) {
+      await ensureBranchExists(client.id, values.clientBranch);
     }
 
     await updateQuotation(
@@ -69,6 +75,7 @@ export default function EditQuotationClient({ quotation }: Props) {
         quotationDate: values.date,
         status: values.status,
         showTotal: values.showTotal,
+        isComparative: values.isComparative,
       },
       values.items
         .filter((i) => i.description || i.amount > 0)

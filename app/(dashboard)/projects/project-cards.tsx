@@ -5,7 +5,7 @@ import Link from "next/link";
 import { MapPin, Trash2 } from "lucide-react";
 import { deleteProject } from "@/app/actions/projects";
 import StatusBadge from "@/components/ui/status-badge";
-import { formatINR } from "@/lib/utils";
+import { formatINR, formatDateDMY } from "@/lib/utils";
 
 type CardData = {
   id: number;
@@ -101,8 +101,8 @@ export default function ProjectCards({ cards }: { cards: CardData[] }) {
           </div>
 
           <p className="text-[11px] text-muted">
-            {p.startDate || "No date"}
-            {p.endDate ? ` → ${p.endDate}` : ""}
+            {p.startDate ? formatDateDMY(p.startDate) : "No date"}
+            {p.endDate ? ` → ${formatDateDMY(p.endDate)}` : ""}
           </p>
         </Link>
       ))}

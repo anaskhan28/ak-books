@@ -12,6 +12,7 @@ type Invoice = {
   clientBranch: string | null;
   invoiceNumber: string;
   invoiceDate: string | null;
+  dueDate: string | null;
   subject: string | null;
   notes: string | null;
   accountBankName: string | null;
@@ -37,7 +38,7 @@ export default function EditInvoiceClient({ invoice }: Props) {
     clientBranch: invoice.clientBranch || "",
     docNumber: invoice.invoiceNumber || "",
     date: invoice.invoiceDate || new Date(invoice.createdAt).toISOString().split("T")[0],
-    expiryDate: "",
+    expiryDate: invoice.dueDate || "",
     subject: invoice.subject || "",
     notes: invoice.notes || "",
     terms: invoice.notes || "",
@@ -58,11 +59,15 @@ export default function EditInvoiceClient({ invoice }: Props) {
   };
 
   async function handleSave(values: DocumentFormValues, subtotal: number) {
-    const { createClient, getClients } = await import("@/app/actions/clients");
+    const { createClient, getClients, ensureBranchExists } = await import("@/app/actions/clients");
     const allClients = await getClients();
     let client = allClients.find((c) => c.name.toLowerCase() === values.clientName.toLowerCase());
     if (!client) {
       client = await createClient({ name: values.clientName, contactPerson: null, phone: null, email: null, address: null });
+    }
+
+    if (client && values.clientBranch) {
+      await ensureBranchExists(client.id, values.clientBranch);
     }
 
     await updateInvoice(
@@ -75,6 +80,7 @@ export default function EditInvoiceClient({ invoice }: Props) {
         subject: values.subject || null,
         notes: values.terms || values.notes || null,
         invoiceDate: values.date || undefined,
+        dueDate: values.expiryDate || null,
         accountBankName: values.accountBankName || null,
         accountNumber: values.accountNumber || null,
         accountIfsc: values.accountIfsc || null,

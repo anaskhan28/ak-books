@@ -18,7 +18,7 @@ function NewQuotationContent() {
     : null;
 
   async function handleSave(values: DocumentFormValues, subtotal: number) {
-    const { createClient, getClients } = await import("@/app/actions/clients");
+    const { createClient, getClients, ensureBranchExists } = await import("@/app/actions/clients");
     const allClients = await getClients();
     const matchedClient = allClients.find(
       (c) => c.name.toLowerCase() === values.clientName.toLowerCase(),
@@ -35,6 +35,10 @@ function NewQuotationContent() {
       clientId = newClient.id;
     }
 
+    if (clientId && values.clientBranch) {
+      await ensureBranchExists(clientId, values.clientBranch);
+    }
+
     const q = await createQuotation(
       {
         quotationNumber: values.docNumber || undefined,
@@ -48,6 +52,7 @@ function NewQuotationContent() {
         notes: values.terms || null,
         quotationDate: values.date,
         showTotal: values.showTotal,
+        isComparative: values.isComparative,
       },
       values.items
         .filter((i) => i.description || i.amount > 0)

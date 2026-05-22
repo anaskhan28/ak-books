@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 import {
   Plus,
@@ -12,7 +12,7 @@ import {
   CalendarIcon,
   FileText,
 } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, addDays } from "date-fns";
 import { cn, formatINR, generateId } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -28,13 +28,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getClients } from "@/app/actions/clients";
+import { getClients, getBranches } from "@/app/actions/clients";
 import { getTemplates } from "@/app/actions/templates";
 import { getNextDocumentNumber } from "@/app/actions/quotations";
 import { getTemplateConfig } from "@/lib/pdf-templates/registry";
 import { HSN_PRESETS } from "@/lib/constants";
 import { alerts } from "@/lib/alerts";
-import type { Client, QuotationTemplate } from "@/app/db/schema";
+import type { Client, ClientBranch, QuotationTemplate } from "@/app/db/schema";
+import AddBranchModal from "./AddBranchModal";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -68,6 +69,7 @@ export interface DocumentFormValues {
   accountHolder: string;
   accountPan: string;
   showTotal: boolean;
+  isComparative: boolean;
 }
 
 interface DocumentFormProps {
@@ -169,41 +171,9 @@ function ZohoInput({
     </div>
   );
 }
+import { DatePicker } from "@/components/ui/date-picker";
 
-function ZohoDatePicker({
-  value,
-  onChange,
-  placeholder = "Pick a date",
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-}) {
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn(
-            "w-full max-w-[16rem] justify-start text-left font-normal px-3 py-2 text-[14px] border-border rounded-xl h-auto hover:bg-transparent",
-            !value && "text-muted-foreground/40"
-          )}
-        >
-          <CalendarIcon className="mr-2 h-4 w-4 opacity-50" />
-          {value ? format(parseISO(value), "PPP") : <span>{placeholder}</span>}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          mode="single"
-          selected={value ? parseISO(value) : undefined}
-          onSelect={(d) => onChange(d ? format(d, "yyyy-MM-dd") : "")}
-          initialFocus
-        />
-      </PopoverContent>
-    </Popover>
-  );
-}
+const ZohoDatePicker = DatePicker;
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
@@ -219,7 +189,9 @@ export function DocumentForm({
 
   const [clients, setClients] = useState<Client[]>([]);
   const [templates, setTemplates] = useState<QuotationTemplate[]>([]);
+  const [clientBranchOptions, setClientBranchOptions] = useState<ClientBranch[]>([]);
   const [saving, setSaving] = useState(false);
+  const [addBranchModalOpen, setAddBranchModalOpen] = useState(false);
 
   // Form state
   const [templateId, setTemplateId] = useState<number | null>(
@@ -258,6 +230,20 @@ export function DocumentForm({
   );
   const [accountPan, setAccountPan] = useState(initialValues?.accountPan ?? "");
   const [showTotal, setShowTotal] = useState(initialValues?.showTotal ?? true);
+  const [isComparative, setIsComparative] = useState(initialValues?.isComparative ?? false);
+
+  const matchedClient = useMemo(() => {
+    return clients.find((c) => c.name.toLowerCase() === clientName.toLowerCase());
+  }, [clientName, clients]);
+
+  const selectedBranchId = useMemo(() => {
+    if (!clientBranch) return "";
+    const firstLine = clientBranch.split("\n")[0].trim().toLowerCase();
+    const found = clientBranchOptions.find(
+      (b) => b.branchName.toLowerCase() === firstLine
+    );
+    return found ? found.id.toString() : "";
+  }, [clientBranch, clientBranchOptions]);
 
   const [showBank, setShowBank] = useState(isInvoice);
 
@@ -265,6 +251,37 @@ export function DocumentForm({
     getClients().then(setClients);
     getTemplates().then(setTemplates);
   }, []);
+
+  const isFirstRender = useRef(true);
+
+  // Automatically calculate 30 days after the invoice/quote date as due/expiry date
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      if (initialValues?.expiryDate) {
+        return;
+      }
+    }
+
+    if (date) {
+      try {
+        const parsed = parseISO(date);
+        const thirtyDaysAfter = addDays(parsed, 30);
+        setExpiryDate(format(thirtyDaysAfter, "yyyy-MM-dd"));
+      } catch (err) {
+        console.error("Error calculating due date:", err);
+      }
+    }
+  }, [date, initialValues?.expiryDate]);
+
+  // Load branches when client changes
+  useEffect(() => {
+    if (matchedClient) {
+      getBranches(matchedClient.id).then(setClientBranchOptions);
+    } else {
+      setClientBranchOptions([]);
+    }
+  }, [matchedClient]);
 
   // Sync template defaults when template changes
   useEffect(() => {
@@ -368,6 +385,7 @@ export function DocumentForm({
           accountHolder,
           accountPan,
           showTotal,
+          isComparative,
         },
         subtotal,
       );
@@ -393,8 +411,8 @@ export function DocumentForm({
               <FileText size={18} className="text-muted-foreground" />
             </span>
             <h1 className="text-[14px] md:text-[16px] font-semibold text-foreground">
-              {isEdit 
-                ? (isInvoice ? "Edit Invoice" : "Edit Quote") 
+              {isEdit
+                ? (isInvoice ? "Edit Invoice" : "Edit Quote")
                 : (isInvoice ? "New Invoice" : "New Quote")}
             </h1>
           </div>
@@ -465,21 +483,66 @@ export function DocumentForm({
           </FieldRow>
 
           <FieldRow label="Client Branch">
-            <textarea
-              value={clientBranch}
-              onChange={(e) => setClientBranch(e.target.value)}
-              placeholder="Enter branch name or address"
-              rows={1}
-              className="w-full px-3 py-2 text-[14px] text-foreground bg-white border border-border rounded-xl
-                focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary
-                placeholder:text-muted-foreground/30 transition-all  resize-none"
-              onInput={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.height = "auto";
-                target.style.height = target.scrollHeight + "px";
-              }}
-            />
+            {matchedClient ? (
+              <div className="space-y-2 w-full">
+                <Select
+                  value={selectedBranchId}
+                  onValueChange={(val) => {
+                    if (val === "__new__") {
+                      setAddBranchModalOpen(true);
+                    } else if (val) {
+                      const branch = clientBranchOptions.find((b) => b.id.toString() === val);
+                      if (branch) {
+                        let branchText = branch.branchName;
+                        if (branch.address) {
+                          branchText += `\n${branch.address}`;
+                        }
+                        setClientBranch(branchText);
+                      }
+                    } else {
+                      setClientBranch("");
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full px-3 py-2 h-auto text-[14px] border-border rounded-xl bg-white font-medium">
+                    <SelectValue placeholder="Select a saved branch..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clientBranchOptions.map((b) => (
+                      <SelectItem key={b.id} value={b.id.toString()}>
+                        {b.branchName}{b.address ? ` — ${b.address.replace(/\n/g, ", ")}` : ""}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="__new__" className="text-primary font-semibold hover:text-primary">
+                      + Add New Branch...
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                {clientBranch && (
+                  <textarea
+                    value={clientBranch}
+                    onChange={(e) => setClientBranch(e.target.value)}
+                    placeholder="Branch name & address for this document..."
+                    rows={3}
+                    className="w-full px-3 py-2 text-[14px] text-foreground bg-white border border-border rounded-xl
+                      focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary
+                      placeholder:text-muted-foreground/30 transition-all min-h-[80px]"
+                  />
+                )}
+              </div>
+            ) : (
+              <textarea
+                value={clientBranch}
+                onChange={(e) => setClientBranch(e.target.value)}
+                placeholder="Enter branch name and address"
+                rows={2}
+                className="w-full px-3 py-2 text-[14px] text-foreground bg-white border border-border rounded-xl
+                  focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary
+                  placeholder:text-muted-foreground/30 transition-all resize-none"
+              />
+            )}
           </FieldRow>
+
 
           <FieldRow label="Template" required>
             <Select
@@ -708,6 +771,21 @@ export function DocumentForm({
                   Show total amount on {isInvoice ? "invoice" : "quotation"}
                 </label>
               </div>
+
+              {!isInvoice && (
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    type="checkbox"
+                    id="is-comparative"
+                    checked={isComparative}
+                    onChange={(e) => setIsComparative(e.target.checked)}
+                    className="w-4 h-4 rounded border-amber-400 text-amber-500 focus:ring-amber-400 cursor-pointer accent-amber-500"
+                  />
+                  <label htmlFor="is-comparative" className="text-[13px] text-amber-600 cursor-pointer select-none font-medium">
+                    Comparative quote (exclude from totals)
+                  </label>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -791,6 +869,22 @@ export function DocumentForm({
           </div>
         )}
       </div>
+
+      {addBranchModalOpen && matchedClient && (
+        <AddBranchModal
+          clientId={matchedClient.id}
+          clientName={matchedClient.name}
+          onClose={() => setAddBranchModalOpen(false)}
+          onSuccess={(newBranch) => {
+            setClientBranchOptions((prev) => [...prev, newBranch as any]);
+            let branchText = newBranch.branchName;
+            if (newBranch.address) {
+              branchText += `\n${newBranch.address}`;
+            }
+            setClientBranch(branchText);
+          }}
+        />
+      )}
     </div>
   );
 }

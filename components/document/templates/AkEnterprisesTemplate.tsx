@@ -68,6 +68,7 @@ export function AKEnterpriseTemplate({
   inputCls,
   headerImage,
   showTotal,
+  clientGstin,
 }: TemplateProps) {
   // GST calc for invoice
   const gstRate = 18;
@@ -179,11 +180,10 @@ export function AKEnterpriseTemplate({
             className="w-full max-w-[110px] text-[9px] md:text-[11px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300 mb-0.5 resize-none overflow-y-hidden leading-[1.4]"
           />
           <div className="text-[8px] md:text-[10px] text-gray-400 mt-1">India</div>
-          {isInvoice && (
-            <input
-              placeholder="Client GSTIN"
-              className="w-full text-[8px] md:text-[10px] text-gray-600 bg-transparent border-0 border-b border-dashed border-gray-300 focus:outline-none py-0.5 placeholder:text-gray-200 mt-1"
-            />
+          {isInvoice && clientGstin && (
+            <div className="text-[8px] md:text-[10px] text-gray-600 font-semibold mt-1">
+              GSTIN: {clientGstin}
+            </div>
           )}
         </div>
         <div className="flex-1 p-2 md:p-3">
@@ -191,9 +191,10 @@ export function AKEnterpriseTemplate({
           <div className="md:hidden">
             <div className="text-[9px] font-semibold">{clientName || "Client Name"}</div>
             <div className="text-[8px] max-w-[110px] whitespace-pre-wrap break-words">{clientBranch}</div>
+            {isInvoice && clientGstin && <div className="text-[8px] font-semibold">GSTIN: {clientGstin}</div>}
           </div>
           <div className="hidden md:block">
-            <AddressBlock clientName={clientName} clientBranch={clientBranch} />
+            <AddressBlock clientName={clientName} clientBranch={clientBranch} clientGstin={isInvoice ? (clientGstin || undefined) : undefined} />
           </div>
         </div>
       </div>

@@ -75,6 +75,7 @@ export default function InvoiceDetailClient({ invoice, clients }: Props) {
       new Date(invoice.createdAt).toISOString().split("T")[0],
     initialClientName: invoice.clientName || "",
     initialClientBranch: invoice.clientBranch || "",
+    initialClientGstin: invoice.clientGstin,
     initialSubject: invoice.subject || "",
     initialNotes: invoice.notes || "",
     initialItems,
@@ -320,6 +321,7 @@ export default function InvoiceDetailClient({ invoice, clients }: Props) {
             setClientName={editor.setClientName}
             clientBranch={editor.clientBranch}
             setClientBranch={editor.setClientBranch}
+            clientGstin={editor.clientGstin}
             date={editor.date}
             setDate={editor.setDate}
             subject={editor.subject}
@@ -362,6 +364,7 @@ export default function InvoiceDetailClient({ invoice, clients }: Props) {
           clientName={invoice.clientName || ""}
           totalAmount={invoice.totalAmount}
           paidAmount={invoice.payments?.reduce((s, p) => s + p.amount + (p.TDSAmount || 0), 0) || 0}
+          dueDate={invoice.dueDate}
           onClose={() => setPaymentModalOpen(false)}
           onSuccess={() => {
             setPaymentModalOpen(false);

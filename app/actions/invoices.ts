@@ -8,6 +8,7 @@ import {
   quotationItems,
   quotationTemplates,
   clients,
+  clientBranches,
   payments,
   type NewInvoice,
   type NewInvoiceItem,
@@ -105,6 +106,7 @@ export async function getInvoice(id: number) {
         clientPhone: clients.phone,
         clientEmail: clients.email,
         clientAddress: clients.address,
+        clientGstin: clients.gstin,
         invoiceNumber: invoices.invoiceNumber,
         clientBranch: invoices.clientBranch,
         subject: invoices.subject,
@@ -139,7 +141,26 @@ export async function getInvoice(id: number) {
       : Promise.resolve(null),
   ]);
 
-  return { ...row, items, payments: invoicePayments, template };
+  // Resolve branch-specific GSTIN if present
+  let resolvedGstin = row.clientGstin || null;
+  if (row.clientBranch && row.clientId) {
+    const branchName = row.clientBranch.split("\n")[0].trim();
+    const branchRows = await db
+      .select({ gstin: clientBranches.gstin })
+      .from(clientBranches)
+      .where(
+        and(
+          eq(clientBranches.clientId, row.clientId),
+          sql`lower(${clientBranches.branchName}) = ${branchName.toLowerCase()}`
+        )
+      )
+      .limit(1);
+    if (branchRows[0]?.gstin) {
+      resolvedGstin = branchRows[0].gstin;
+    }
+  }
+
+  return { ...row, clientGstin: resolvedGstin, items, payments: invoicePayments, template };
 }
 
 // ── Mutations ────────────────────────────────────────────────────────────────
@@ -173,7 +194,7 @@ export async function createInvoice(
         invoiceNumber: data.invoiceNumber || invoiceNumber,
         totalAmount,
         invoiceDate: data.invoiceDate || today,
-        dueDate,
+        dueDate: data.dueDate || dueDate,
         showTotal: data.showTotal ?? true,
       })
       .returning();

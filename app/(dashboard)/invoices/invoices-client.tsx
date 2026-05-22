@@ -48,6 +48,7 @@ const STATUS_COLORS: Record<string, string> = {
   orange: "text-[#e67e22]",
   red: "text-[#e74c3c]",
   gray: "text-gray-400",
+  green: "text-emerald-600 font-semibold",
 };
 
 import { alerts } from "@/lib/alerts";
@@ -76,7 +77,6 @@ export default function InvoicesClient({ invoices: initialInvoices, pendingQuota
     alerts.success("Invoice deleted");
     router.refresh();
   }
-
   async function handleDownloadPDF(invoiceId: number) {
     setDownloadingId(invoiceId);
     try {
@@ -231,13 +231,15 @@ export default function InvoicesClient({ invoices: initialInvoices, pendingQuota
                       <th className="px-5 py-4 whitespace-nowrap">Invoice Status</th>
                       <th className="px-5 py-4 text-right whitespace-nowrap">Amount</th>
                       <th className="px-5 py-4 text-right whitespace-nowrap">Paid</th>
-                      <th className="px-5 py-4 whitespace-nowrap">Status</th>
                       <th className="px-5 py-4 w-10" />
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {invoiceList.map((inv) => {
-                      const due = getDueDateStatus(inv.dueDate);
+                      const isPaid = inv.status === "paid" || Number(inv.paidAmount) >= inv.totalAmount;
+                      const due = isPaid
+                        ? { label: "PAID", color: "green" }
+                        : getDueDateStatus(inv.dueDate);
                       return (
                         <tr
                           key={inv.id}
@@ -271,9 +273,6 @@ export default function InvoicesClient({ invoices: initialInvoices, pendingQuota
                             {formatINR(Number(inv.paidAmount))}
                           </td>
                           <td className="px-5 py-4 whitespace-nowrap">
-                            <StatusBadge status={inv.status} />
-                          </td>
-                          <td className="px-5 py-4 whitespace-nowrap">
                             <InvoiceRowActions
                               invoiceId={inv.id}
                               status={inv.status}
@@ -304,6 +303,7 @@ export default function InvoicesClient({ invoices: initialInvoices, pendingQuota
           clientName={paymentTarget.clientName ?? ""}
           totalAmount={paymentTarget.totalAmount}
           paidAmount={Number(paymentTarget.paidAmount)}
+          dueDate={paymentTarget.dueDate}
           onClose={() => setPaymentTarget(null)}
           onSuccess={() => router.refresh()}
         />

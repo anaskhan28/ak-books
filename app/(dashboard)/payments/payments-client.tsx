@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import PageHeader from "@/components/ui/page-header";
 import EmptyState from "@/components/ui/empty-state";
-import { formatINR } from "@/lib/utils";
+import { formatINR, formatDateDMY } from "@/lib/utils";
 import StatusBadge from "@/components/ui/status-badge";
 import dynamic from "next/dynamic";
 
@@ -36,6 +36,7 @@ interface InvoiceRow {
   totalAmount: number;
   paidAmount: number;
   status: string;
+  dueDate: string | null;
 }
 
 interface PaymentsClientProps {
@@ -147,11 +148,7 @@ export default function PaymentsClient({ payments, invoices }: PaymentsClientPro
                     onClick={() => handleViewInvoicePayments(p.invoiceId)}
                   >
                     <td className="px-5 py-4 text-gray-600 whitespace-nowrap">
-                      {new Date(p.paymentDate).toLocaleDateString("en-IN", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
+                      {formatDateDMY(p.paymentDate)}
                     </td>
                     <td className="px-5 py-4 font-medium text-primary hover:underline whitespace-nowrap">
                       {p.invoiceNumber}
@@ -193,6 +190,7 @@ export default function PaymentsClient({ payments, invoices }: PaymentsClientPro
           clientName={paymentTarget.clientName ?? ""}
           totalAmount={paymentTarget.totalAmount}
           paidAmount={Number(paymentTarget.paidAmount)}
+          dueDate={paymentTarget.dueDate}
           onClose={() => setPaymentTarget(null)}
           onSuccess={() => router.refresh()}
         />

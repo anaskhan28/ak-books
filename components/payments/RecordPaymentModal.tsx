@@ -11,7 +11,7 @@ import {
 import { updateInvoiceStatus } from "@/app/actions/invoices";
 
 import { format, parseISO } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn, formatDateDMY } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CalendarIcon } from "lucide-react";
+import { DatePicker } from "@/components/ui/date-picker";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -56,6 +57,7 @@ export interface RecordPaymentProps {
   clientName: string;
   totalAmount: number;
   paidAmount: number;
+  dueDate?: string | null;
   onClose: () => void;
   onSuccess?: () => void;
 }
@@ -68,6 +70,7 @@ export default function RecordPaymentModal({
   invoiceId,
   invoiceNumber,
   totalAmount,
+  dueDate,
   onClose,
   onSuccess,
 }: RecordPaymentProps) {
@@ -82,7 +85,7 @@ export default function RecordPaymentModal({
   const [amount, setAmount] = useState("");
   const [tdsAmount, setTdsAmount] = useState("0");
   const [paymentDate, setPaymentDate] = useState(
-    new Date().toISOString().split("T")[0],
+    dueDate || new Date().toISOString().split("T")[0],
   );
   const [paymentMode, setPaymentMode] = useState("cash");
   const [paymentReceivedOn, setPaymentReceivedOn] = useState("");
@@ -288,12 +291,12 @@ export default function RecordPaymentModal({
                             <tr className={p.notes ? "" : "border-b border-gray-100"}>
                               <td className="px-4 py-2.5 align-top">
                                 <div className="font-medium text-gray-800">
-                                  {new Date(p.paymentDate).toLocaleDateString("en-IN")}
+                                  {formatDateDMY(p.paymentDate)}
                                 </div>
                               </td>
                               <td className="px-4 py-2.5 align-top">
                                 <div className="text-foreground">
-                                  {p.paymentReceivedOn ? new Date(p.paymentReceivedOn).toLocaleDateString("en-IN") : "—"}
+                                  {p.paymentReceivedOn ? formatDateDMY(p.paymentReceivedOn) : "—"}
                                 </div>
                               </td>
                               <td className="px-4 py-2.5 align-top capitalize">
@@ -435,29 +438,13 @@ export default function RecordPaymentModal({
 
                   <div className="grid grid-cols-2 gap-4">
                     <Field label="Payment Date" required>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              fieldCls,
-                              "justify-start text-left font-normal h-auto hover:bg-transparent hover:text-inherit w-full",
-                              !paymentDate && "text-[#c0c4cc]"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4 opacity-50" />
-                            {paymentDate ? format(parseISO(paymentDate), "PPP") : <span>Pick a date</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 z-[60]" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={paymentDate ? parseISO(paymentDate) : undefined}
-                            onSelect={(d) => setPaymentDate(d ? format(d, "yyyy-MM-dd") : "")}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <DatePicker
+                        value={paymentDate}
+                        onChange={setPaymentDate}
+                        placeholder="YYYY-MM-DD"
+                        className={fieldCls}
+                        wrapperClassName="w-full max-w-full"
+                      />
                     </Field>
                     <Field label="Payment Mode">
                       <Select value={paymentMode} onValueChange={setPaymentMode}>
@@ -477,29 +464,13 @@ export default function RecordPaymentModal({
 
                   <div className="grid grid-cols-2 gap-4">
                     <Field label="Payment Received On">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              fieldCls,
-                              "justify-start text-left font-normal h-auto hover:bg-transparent hover:text-inherit w-full",
-                              !paymentReceivedOn && "text-[#c0c4cc]"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4 opacity-50" />
-                            {paymentReceivedOn ? format(parseISO(paymentReceivedOn), "PPP") : <span>Pick a date</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 z-[60]" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={paymentReceivedOn ? parseISO(paymentReceivedOn) : undefined}
-                            onSelect={(d) => setPaymentReceivedOn(d ? format(d, "yyyy-MM-dd") : "")}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <DatePicker
+                        value={paymentReceivedOn}
+                        onChange={setPaymentReceivedOn}
+                        placeholder="YYYY-MM-DD"
+                        className={fieldCls}
+                        wrapperClassName="w-full max-w-full"
+                      />
                     </Field>
                     <Field label="Deposit To" required>
                       <Select value={depositTo} onValueChange={setDepositTo}>

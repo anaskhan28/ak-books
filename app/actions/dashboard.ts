@@ -80,6 +80,7 @@ export async function getQuotationPipeline() {
   const result = await db
     .select({ status: quotations.status, count: count(), total: sum(quotations.totalAmount) })
     .from(quotations)
+    .where(eq(quotations.isComparative, false))
     .groupBy(quotations.status);
 
   return result.map((r) => ({ status: r.status, count: Number(r.count), total: Number(r.total || 0) }));
@@ -181,7 +182,8 @@ export async function getRecentInvoices() {
       total: invoices.totalAmount,
       status: invoices.status,
       client: clients.name,
-      date: invoices.createdAt,
+      dueDate: invoices.dueDate,
+      createdAt: invoices.createdAt,
     })
     .from(invoices)
     .leftJoin(clients, eq(invoices.clientId, clients.id))
@@ -191,35 +193,37 @@ export async function getRecentInvoices() {
   return result.map((inv) => ({
     ...inv,
     client: inv.client || "General Client",
-    date: inv.date || new Date(),
+    dueDate: inv.dueDate,
   }));
 }
 
 export async function getSalesOverview() {
   const [allInvoices, allQuotations, templates] = await Promise.all([
     db.select({ totalAmount: invoices.totalAmount, templateId: invoices.templateId }).from(invoices),
-    db.select({ totalAmount: quotations.totalAmount, templateId: quotations.templateId }).from(quotations),
+    db.select({ totalAmount: quotations.totalAmount, templateId: quotations.templateId, isComparative: quotations.isComparative }).from(quotations),
     db.select().from(quotationTemplates),
   ]);
 
+  // Exclude comparative quotations from totals
+  const primaryQuotations = allQuotations.filter((q) => !q.isComparative);
   const invoiceTotal = allInvoices.reduce((s, inv) => s + Number(inv.totalAmount || 0), 0);
-  const quotationTotal = allQuotations.reduce((s, q) => s + Number(q.totalAmount || 0), 0);
+  const quotationTotal = primaryQuotations.reduce((s, q) => s + Number(q.totalAmount || 0), 0);
 
   let templateStats = templates.map((t) => {
     const tInv = allInvoices.filter((i) => i.templateId === t.id);
-    const tQuot = allQuotations.filter((q) => q.templateId === t.id);
+    const tQuot = primaryQuotations.filter((q) => q.templateId === t.id);
     return {
       name: t.name,
       shortName: shortenTemplateName(t.name),
       invoices: { count: tInv.length, value: tInv.reduce((s, i) => s + Number(i.totalAmount || 0), 0) },
       quotations: { count: tQuot.length, value: tQuot.reduce((s, q) => s + Number(q.totalAmount || 0), 0) },
     };
-  }).filter((s) => s.invoices.count > 0 && s.quotations.count > 0);
+  }).filter((s) => s.invoices.count > 0 || s.quotations.count > 0);
 
   const unassignedInv = allInvoices.filter((i) => !i.templateId);
-  const unassignedQt = allQuotations.filter((q) => !q.templateId);
+  const unassignedQt = primaryQuotations.filter((q) => !q.templateId);
 
-  if (unassignedInv.length > 0 && unassignedQt.length > 0) {
+  if (unassignedInv.length > 0 || unassignedQt.length > 0) {
     templateStats.push({
       name: "General/Unassigned",
       shortName: "GEN",
@@ -230,7 +234,7 @@ export async function getSalesOverview() {
 
   return {
     invoices: { count: allInvoices.length, value: invoiceTotal },
-    quotations: { count: allQuotations.length, value: quotationTotal },
+    quotations: { count: primaryQuotations.length, value: quotationTotal },
     templateStats,
   };
 }
@@ -253,32 +257,45 @@ export async function getRecentInwardPayments() {
 }
 
 export async function getMonthlyExpenseChart() {
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-  // Parallel: expenses, labour, income all at once
-  const [expenseResult, labourResult, incomeResult] = await Promise.all([
+  const [invoicesResult, paymentsResult, expensesResult, labourResult] = await Promise.all([
     db.select({
-      month: sql<string>`TO_CHAR(${expenses.date}::date, 'Mon')`,
-      amount: sql<number>`sum(${expenses.amount})`,
-    }).from(expenses).groupBy(sql`TO_CHAR(${expenses.date}::date, 'Mon')`),
-
+      totalAmount: invoices.totalAmount,
+      invoiceDate: invoices.invoiceDate,
+      createdAt: invoices.createdAt,
+    }).from(invoices),
     db.select({
-      month: sql<string>`TO_CHAR(${labourEntries.date}::date, 'Mon')`,
-      amount: sql<number>`sum(${labourEntries.totalCost})`,
-    }).from(labourEntries).groupBy(sql`TO_CHAR(${labourEntries.date}::date, 'Mon')`),
-
+      amount: payments.amount,
+      paymentDate: payments.paymentDate,
+    }).from(payments),
     db.select({
-      month: sql<string>`TO_CHAR(${invoices.createdAt}::date, 'Mon')`,
-      income: sql<number>`sum(${invoices.totalAmount})`,
-    }).from(invoices).groupBy(sql`TO_CHAR(${invoices.createdAt}::date, 'Mon')`),
+      amount: expenses.amount,
+      date: expenses.date,
+    }).from(expenses),
+    db.select({
+      totalCost: labourEntries.totalCost,
+      date: labourEntries.date,
+    }).from(labourEntries),
   ]);
 
-  return months.map((m) => ({
-    month: m,
-    expense: Number(expenseResult.find((r) => r.month === m)?.amount || 0) +
-             Number(labourResult.find((r) => r.month === m)?.amount || 0),
-    income: Number(incomeResult.find((r) => r.month === m)?.income || 0),
-  }));
+  return {
+    invoices: invoicesResult.map((i) => ({
+      totalAmount: Number(i.totalAmount || 0),
+      invoiceDate: i.invoiceDate,
+      createdAt: i.createdAt,
+    })),
+    payments: paymentsResult.map((p) => ({
+      amount: Number(p.amount || 0),
+      paymentDate: p.paymentDate,
+    })),
+    expenses: expensesResult.map((e) => ({
+      amount: Number(e.amount || 0),
+      date: e.date,
+    })),
+    labour: labourResult.map((l) => ({
+      totalCost: Number(l.totalCost || 0),
+      date: l.date,
+    })),
+  };
 }
 
 export async function getTopClients() {

@@ -1,6 +1,6 @@
 import { getTemplateConfig } from "@/lib/pdf-templates/registry";
 import { type LineItem, type DocumentMode } from "@/lib/types/document";
-
+import { formatDateDMY } from "@/lib/utils";
 import type { QuotationTemplate } from "@/app/db/schema";
 
 export interface DocumentPdfData {
@@ -12,6 +12,7 @@ export interface DocumentPdfData {
   date: string;
   clientName: string;
   clientBranch: string;
+  clientGstin?: string | null;
   subject: string;
   items: LineItem[];
   subtotal: number;
@@ -34,6 +35,7 @@ export async function generateAndDownloadPdf({
   date,
   clientName,
   clientBranch,
+  clientGstin,
   subject,
   items,
   subtotal,
@@ -55,14 +57,8 @@ export async function generateAndDownloadPdf({
   const sig = tplConfig.signatureImage.startsWith("http")
     ? tplConfig.signatureImage
     : `${origin}${tplConfig.signatureImage}`;
-  const displayDate = new Date(date + "T00:00:00").toLocaleDateString(
-    "en-IN",
-    { day: "2-digit", month: "short", year: "2-digit" }
-  );
-  const displayDateSlash = new Date(date + "T00:00:00").toLocaleDateString(
-    "en-IN",
-    { day: "2-digit", month: "2-digit", year: "numeric" }
-  );
+  const displayDate = formatDateDMY(date);
+  const displayDateSlash = formatDateDMY(date);
 
   let blob: Blob;
 
@@ -164,6 +160,7 @@ export async function generateAndDownloadPdf({
       date,
       clientName,
       clientBranch,
+      clientGstin: mode === "invoice" ? (clientGstin || undefined) : undefined,
       subject,
       items,
       total: subtotal,

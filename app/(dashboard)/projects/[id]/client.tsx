@@ -17,7 +17,8 @@ import { addLabourEntry, deleteLabourEntry } from "@/app/actions/labour";
 import { addExpense, deleteExpense } from "@/app/actions/expenses";
 import { addScrapEntry, deleteScrapEntry } from "@/app/actions/scrap";
 import StatusBadge from "@/components/ui/status-badge";
-import { formatINR, todayISO } from "@/lib/utils";
+import { formatINR, todayISO, formatDateDMY } from "@/lib/utils";
+import { DatePicker } from "@/components/ui/date-picker";
 
 type LabourRow = {
   id: number;
@@ -107,6 +108,10 @@ export default function ProjectDetailClient({
   const [notes, setNotes] = useState(project.notes || "");
   const [savingNotes, setSavingNotes] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+
+  const [labourDate, setLabourDate] = useState(todayISO());
+  const [expenseDate, setExpenseDate] = useState(todayISO());
+  const [scrapDate, setScrapDate] = useState(todayISO());
 
   async function handleAddLabour(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -250,7 +255,7 @@ export default function ProjectDetailClient({
           label="Dates"
           value={
             project.startDate
-              ? `${project.startDate}${project.endDate ? ` → ${project.endDate}` : ""}`
+              ? `${formatDateDMY(project.startDate)}${project.endDate ? ` → ${formatDateDMY(project.endDate)}` : ""}`
               : "—"
           }
           icon={<Calendar size={12} className="text-muted" />}
@@ -348,11 +353,10 @@ export default function ProjectDetailClient({
                     <label className="text-[12px] font-medium text-muted block mb-1">
                       Date
                     </label>
-                    <input
+                    <DatePicker
                       name="date"
-                      type="date"
-                      required
-                      defaultValue={todayISO()}
+                      value={labourDate}
+                      onChange={setLabourDate}
                       className={fieldCls}
                     />
                   </div>
@@ -434,7 +438,7 @@ export default function ProjectDetailClient({
                           className="border-b border-border/50 hover:bg-primary-light/20 transition-colors"
                         >
                           <td className="px-5 py-3 text-muted">
-                            {l.date}
+                            {formatDateDMY(l.date)}
                           </td>
                           <td className="px-5 py-3">
                             <span className="bg-primary-light text-primary text-[12px] font-normal px-2 py-0.5 rounded-md">
@@ -544,11 +548,10 @@ export default function ProjectDetailClient({
                     <label className="text-[12px] font-medium text-muted block mb-1">
                       Date
                     </label>
-                    <input
+                    <DatePicker
                       name="date"
-                      type="date"
-                      required
-                      defaultValue={todayISO()}
+                      value={expenseDate}
+                      onChange={setExpenseDate}
                       className={fieldCls}
                     />
                   </div>
@@ -599,7 +602,7 @@ export default function ProjectDetailClient({
                           <td className="px-5 py-3 text-muted capitalize">
                             {e.type}
                           </td>
-                          <td className="px-5 py-3 text-muted">{e.date}</td>
+                          <td className="px-5 py-3 text-muted">{formatDateDMY(e.date)}</td>
                           <td className="px-5 py-3 text-right font-normal text-warning">
                             {formatINR(e.amount)}
                           </td>
@@ -721,11 +724,10 @@ export default function ProjectDetailClient({
                     <label className="text-[12px] font-medium text-muted block mb-1">
                       Date
                     </label>
-                    <input
+                    <DatePicker
                       name="date"
-                      type="date"
-                      required
-                      defaultValue={todayISO()}
+                      value={scrapDate}
+                      onChange={setScrapDate}
                       className={fieldCls}
                     />
                   </div>
@@ -779,7 +781,7 @@ export default function ProjectDetailClient({
                               <td className="px-5 py-3 font-medium text-muted">
                                 {s.description}
                               </td>
-                              <td className="px-5 py-3 text-muted">{s.date}</td>
+                              <td className="px-5 py-3 text-muted">{formatDateDMY(s.date)}</td>
                               <td className="px-5 py-3 text-right font-normal text-neutral-700">
                                 {formatINR(s.amount)}
                               </td>
@@ -841,7 +843,7 @@ export default function ProjectDetailClient({
                               <td className="px-5 py-3 font-medium text-muted">
                                 {s.description}
                               </td>
-                              <td className="px-5 py-3 text-muted">{s.date}</td>
+                              <td className="px-5 py-3 text-muted">{formatDateDMY(s.date)}</td>
                               <td className="px-5 py-3 text-right font-normal text-neutral-700">
                                 {formatINR(s.amount)}
                               </td>

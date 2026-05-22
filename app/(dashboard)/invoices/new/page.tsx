@@ -17,7 +17,7 @@ function NewInvoiceContent() {
     : null;
 
   async function handleSave(values: DocumentFormValues, subtotal: number) {
-    const { createClient, getClients } = await import("@/app/actions/clients");
+    const { createClient, getClients, ensureBranchExists } = await import("@/app/actions/clients");
     const allClients = await getClients();
     const matchedClient = allClients.find(
       (c) => c.name.toLowerCase() === values.clientName.toLowerCase(),
@@ -34,6 +34,10 @@ function NewInvoiceContent() {
       clientId = newClient.id;
     }
 
+    if (clientId && values.clientBranch) {
+      await ensureBranchExists(clientId, values.clientBranch);
+    }
+
     const result = await createInvoice(
       {
         invoiceNumber: values.docNumber || undefined,
@@ -42,6 +46,7 @@ function NewInvoiceContent() {
         subject: values.subject || null,
         clientBranch: values.clientBranch || null,
         invoiceDate: values.date,
+        dueDate: values.expiryDate || null,
         totalAmount: subtotal,
         status: values.status || "unpaid",
         notes: values.terms || values.notes || null,

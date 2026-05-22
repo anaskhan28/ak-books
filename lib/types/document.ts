@@ -19,6 +19,7 @@ export interface TemplateProps {
   setClientName: (v: string) => void;
   clientBranch: string;
   setClientBranch: (v: string) => void;
+  clientGstin?: string | null;
   date: string;
   qtNumber: string;
   setDate: (v: string) => void;
