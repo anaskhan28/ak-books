@@ -16,7 +16,16 @@ import {
   quotationItems,
   invoices,
   payments,
+  salesOrders,
+  salesOrderItems,
+  deliveryChallans,
+  deliveryChallanItems,
+  ewayBills,
+  ewayBillItems,
+  creditNotes,
+  creditNoteItems,
 } from "./schema";
+
 
 // ─── Neon Auth Relations ────────────────────────────────────────────────────
 
@@ -170,3 +179,102 @@ export const paymentRelations = relations(payments, ({ one }) => ({
     references: [invoices.id],
   }),
 }));
+
+export const salesOrderRelations = relations(salesOrders, ({ one, many }) => ({
+  template: one(quotationTemplates, {
+    fields: [salesOrders.templateId],
+    references: [quotationTemplates.id],
+  }),
+  client: one(clients, {
+    fields: [salesOrders.clientId],
+    references: [clients.id],
+  }),
+  quotation: one(quotations, {
+    fields: [salesOrders.quotationId],
+    references: [quotations.id],
+  }),
+  items: many(salesOrderItems),
+  deliveryChallans: many(deliveryChallans),
+}));
+
+export const salesOrderItemRelations = relations(salesOrderItems, ({ one }) => ({
+  salesOrder: one(salesOrders, {
+    fields: [salesOrderItems.salesOrderId],
+    references: [salesOrders.id],
+  }),
+}));
+
+export const deliveryChallanRelations = relations(deliveryChallans, ({ one, many }) => ({
+  template: one(quotationTemplates, {
+    fields: [deliveryChallans.templateId],
+    references: [quotationTemplates.id],
+  }),
+  client: one(clients, {
+    fields: [deliveryChallans.clientId],
+    references: [clients.id],
+  }),
+  salesOrder: one(salesOrders, {
+    fields: [deliveryChallans.salesOrderId],
+    references: [salesOrders.id],
+  }),
+  items: many(deliveryChallanItems),
+  ewayBills: many(ewayBills),
+}));
+
+export const deliveryChallanItemRelations = relations(deliveryChallanItems, ({ one }) => ({
+  deliveryChallan: one(deliveryChallans, {
+    fields: [deliveryChallanItems.deliveryChallanId],
+    references: [deliveryChallans.id],
+  }),
+}));
+
+export const ewayBillRelations = relations(ewayBills, ({ one, many }) => ({
+  template: one(quotationTemplates, {
+    fields: [ewayBills.templateId],
+    references: [quotationTemplates.id],
+  }),
+  client: one(clients, {
+    fields: [ewayBills.clientId],
+    references: [clients.id],
+  }),
+  invoice: one(invoices, {
+    fields: [ewayBills.invoiceId],
+    references: [invoices.id],
+  }),
+  deliveryChallan: one(deliveryChallans, {
+    fields: [ewayBills.deliveryChallanId],
+    references: [deliveryChallans.id],
+  }),
+  items: many(ewayBillItems),
+}));
+
+export const ewayBillItemRelations = relations(ewayBillItems, ({ one }) => ({
+  ewayBill: one(ewayBills, {
+    fields: [ewayBillItems.ewayBillId],
+    references: [ewayBills.id],
+  }),
+}));
+
+export const creditNoteRelations = relations(creditNotes, ({ one, many }) => ({
+  template: one(quotationTemplates, {
+    fields: [creditNotes.templateId],
+    references: [quotationTemplates.id],
+  }),
+  client: one(clients, {
+    fields: [creditNotes.clientId],
+    references: [clients.id],
+  }),
+  invoice: one(invoices, {
+    fields: [creditNotes.invoiceId],
+    references: [invoices.id],
+  }),
+  items: many(creditNoteItems),
+}));
+
+export const creditNoteItemRelations = relations(creditNoteItems, ({ one }) => ({
+  creditNote: one(creditNotes, {
+    fields: [creditNoteItems.creditNoteId],
+    references: [creditNotes.id],
+  }),
+}));
+

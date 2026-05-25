@@ -9,6 +9,10 @@ import {
   clientBranches,
   projects,
   invoices,
+  salesOrders,
+  deliveryChallans,
+  ewayBills,
+  creditNotes,
   type NewQuotation,
   type NewQuotationItem,
 } from "@/app/db/schema";
@@ -174,27 +178,77 @@ export async function getQuotation(id: number) {
 
 // ── Number generation ────────────────────────────────────────────────────────
 
-export async function getNextDocumentNumber(templateId: number | null, isInvoice: boolean) {
+export async function getNextDocumentNumber(templateId: number | null, isInvoiceOrMode: boolean | string) {
   const [dbTemplate] = templateId
     ? await db.select().from(quotationTemplates).where(eq(quotationTemplates.id, templateId))
     : [null];
 
   const cfg = getTemplateConfig(dbTemplate?.name, dbTemplate ?? undefined);
-  const prefix = isInvoice ? cfg.invoicePrefix : cfg.prefix;
+  
+  let mode: string;
+  if (typeof isInvoiceOrMode === "boolean") {
+    mode = isInvoiceOrMode ? "invoice" : "quotation";
+  } else {
+    mode = isInvoiceOrMode;
+  }
 
-  const existing = isInvoice
-    ? await db
-        .select({ num: invoices.invoiceNumber })
-        .from(invoices)
-        .where(like(invoices.invoiceNumber, `${prefix}%`))
-        .orderBy(desc(invoices.id))
-        .limit(50)
-    : await db
-        .select({ num: quotations.quotationNumber })
-        .from(quotations)
-        .where(like(quotations.quotationNumber, `${prefix}%`))
-        .orderBy(desc(quotations.id))
-        .limit(50);
+  let prefix = cfg.prefix;
+  if (mode === "invoice") {
+    prefix = cfg.invoicePrefix;
+  } else if (mode === "sales_order") {
+    prefix = cfg.prefix.replace("QT-", "SO-").replace("Qt-", "SO-");
+  } else if (mode === "delivery_challan") {
+    prefix = cfg.prefix.replace("QT-", "DC-").replace("Qt-", "DC-");
+  } else if (mode === "eway_bill") {
+    prefix = cfg.prefix.replace("QT-", "EWB-").replace("Qt-", "EWB-");
+  } else if (mode === "credit_note") {
+    prefix = cfg.prefix.replace("QT-", "CN-").replace("Qt-", "CN-");
+  }
+
+  let existing: { num: string }[] = [];
+  if (mode === "invoice") {
+    existing = await db
+      .select({ num: invoices.invoiceNumber })
+      .from(invoices)
+      .where(like(invoices.invoiceNumber, `${prefix}%`))
+      .orderBy(desc(invoices.id))
+      .limit(50);
+  } else if (mode === "sales_order") {
+    existing = await db
+      .select({ num: salesOrders.orderNumber })
+      .from(salesOrders)
+      .where(like(salesOrders.orderNumber, `${prefix}%`))
+      .orderBy(desc(salesOrders.id))
+      .limit(50);
+  } else if (mode === "delivery_challan") {
+    existing = await db
+      .select({ num: deliveryChallans.challanNumber })
+      .from(deliveryChallans)
+      .where(like(deliveryChallans.challanNumber, `${prefix}%`))
+      .orderBy(desc(deliveryChallans.id))
+      .limit(50);
+  } else if (mode === "eway_bill") {
+    existing = await db
+      .select({ num: ewayBills.ewayBillNumber })
+      .from(ewayBills)
+      .where(like(ewayBills.ewayBillNumber, `${prefix}%`))
+      .orderBy(desc(ewayBills.id))
+      .limit(50);
+  } else if (mode === "credit_note") {
+    existing = await db
+      .select({ num: creditNotes.creditNoteNumber })
+      .from(creditNotes)
+      .where(like(creditNotes.creditNoteNumber, `${prefix}%`))
+      .orderBy(desc(creditNotes.id))
+      .limit(50);
+  } else {
+    existing = await db
+      .select({ num: quotations.quotationNumber })
+      .from(quotations)
+      .where(like(quotations.quotationNumber, `${prefix}%`))
+      .orderBy(desc(quotations.id))
+      .limit(50);
+  }
 
   let nextSeq = 1;
   const escaped = prefix.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");

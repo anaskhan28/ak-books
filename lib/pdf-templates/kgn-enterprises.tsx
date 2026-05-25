@@ -41,7 +41,7 @@ interface LineItem {
 }
 
 export interface KGNPdfProps {
-  type: "quotation" | "invoice";
+  type: string;
   number?: string;
   date: string;
   clientName: string;
@@ -204,7 +204,13 @@ function KGNDocument({
   );
   const emptyRows = Math.max(0, EMPTY_ROWS - filled.length);
   const displayDate = fmtDate(date);
-  const title = type === "quotation" ? "Quotation" : "Invoice Bill";
+  const title = 
+    type === "quotation" ? "Quotation" :
+    type === "invoice" ? "Invoice Bill" :
+    type === "sales_order" ? "Sales Order" :
+    type === "delivery_challan" ? "Delivery Challan" :
+    type === "eway_bill" ? "e-Way Bill" :
+    type === "credit_note" ? "Credit Note" : "Document";
 
   return (
     <Document>
@@ -311,9 +317,9 @@ function KGNDocument({
           <View style={s.footerWrap}>
             <View>
               <Text style={s.termsLabel}>
-                {type === "invoice" ? "Bank Details" : "Terms and Condition"}
+                {(type === "invoice" || type === "credit_note") ? "Bank Details" : "Terms and Condition"}
               </Text>
-              {type === "invoice" && accountInfo ? (
+              {(type === "invoice" || type === "credit_note") && accountInfo ? (
                 <>
                   {(
                     [

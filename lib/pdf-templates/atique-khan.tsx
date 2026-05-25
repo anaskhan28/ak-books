@@ -32,7 +32,7 @@ interface LineItem {
 }
 
 export interface ATKPdfProps {
-  type: "quotation" | "invoice";
+  type: string;
   number?: string;
   date: string;
   clientName: string;
@@ -203,7 +203,13 @@ function ATKDocument({
     (i) => i.description || Math.abs(i.rate) > 0 || Math.abs(i.qty) > 0 || Math.abs(i.amount) > 0,
   );
   const emptyRows = Math.max(0, EMPTY_ROWS - filled.length);
-  const title = type === "quotation" ? "Quotation" : "Invoice Bill";
+  const title = 
+    type === "quotation" ? "Quotation" :
+    type === "invoice" ? "Invoice Bill" :
+    type === "sales_order" ? "Sales Order" :
+    type === "delivery_challan" ? "Delivery Challan" :
+    type === "eway_bill" ? "e-Way Bill" :
+    type === "credit_note" ? "Credit Note" : "Document";
   const displayDate = fmtDate(date);
 
   return (
@@ -322,9 +328,9 @@ function ATKDocument({
         <View style={s.bottomWrap}>
           <View style={s.leftCol}>
             <Text style={s.bankLabel}>
-              {type === "invoice" ? " Bank Details:" : " Terms & Condition:"}
+              {(type === "invoice" || type === "credit_note") ? " Bank Details:" : " Terms & Condition:"}
             </Text>
-            {type === "invoice" && accountInfo ? (
+            {(type === "invoice" || type === "credit_note") && accountInfo ? (
               <>
                 {(
                   [

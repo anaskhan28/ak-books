@@ -33,7 +33,7 @@ interface LineItem {
 }
 
 export interface VijayPdfProps {
-  type: "quotation" | "invoice";
+  type: string;
   number?: string;
   date: string;
   clientName: string;

@@ -104,3 +104,22 @@ export function parseDateDMYToISO(dmyStr: string | null | undefined): string {
   }
   return dmyStr;
 }
+
+export function getDocumentLabel(mode: string): string {
+  switch (mode) {
+    case "quotation":
+      return "Quotation";
+    case "invoice":
+      return "Tax Invoice";
+    case "sales_order":
+      return "Sales Order";
+    case "delivery_challan":
+      return "Delivery Challan";
+    case "eway_bill":
+      return "e-Way Bill";
+    case "credit_note":
+      return "Credit Note";
+    default:
+      return "Document";
+  }
+}

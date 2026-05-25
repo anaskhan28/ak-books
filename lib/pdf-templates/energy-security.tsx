@@ -33,7 +33,7 @@ interface LineItem {
 }
 
 export interface EnergyPdfProps {
-  type: "quotation" | "invoice";
+  type: string;
   number?: string;
   date: string;
   clientName: string;
@@ -180,7 +180,13 @@ function EnergyDoc({
   );
   const emptyRows = Math.max(0, EMPTY_ROWS - filled.length);
   const displayDate = fmtDate(date);
-  const title = type === "quotation" ? "Shifting Quotation" : "Invoice Bill";
+  const title = 
+    type === "quotation" ? "Shifting Quotation" :
+    type === "invoice" ? "Invoice Bill" :
+    type === "sales_order" ? "Sales Order" :
+    type === "delivery_challan" ? "Delivery Challan" :
+    type === "eway_bill" ? "e-Way Bill" :
+    type === "credit_note" ? "Credit Note" : "Document";
   const hAlign = ["center", "left", "center", "right"] as const;
   const headers = ["Sr No", "Description", "Qty", "Total Price"];
 
@@ -284,7 +290,7 @@ function EnergyDoc({
         </View>
 
           {/* Terms / Bank Details */}
-          {type === "invoice" && accountInfo ? (
+          {(type === "invoice" || type === "credit_note") && accountInfo ? (
             <View style={s.termsWrap}>
               <Text style={s.termsLabel}>Bank Details:</Text>
               {(

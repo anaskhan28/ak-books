@@ -13,7 +13,7 @@ import {
   FileText,
 } from "lucide-react";
 import { format, parseISO, addDays } from "date-fns";
-import { cn, formatINR, generateId } from "@/lib/utils";
+import { cn, formatINR, generateId, getDocumentLabel } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -39,7 +39,7 @@ import AddBranchModal from "./AddBranchModal";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type DocumentMode = "quotation" | "invoice";
+import type { DocumentMode } from "@/lib/types/document";
 
 export interface LineItem {
   id: string;
@@ -71,6 +71,19 @@ export interface DocumentFormValues {
   accountPan: string;
   showTotal: boolean;
   isComparative: boolean;
+  // logistics
+  vehicleNumber?: string;
+  transporterName?: string;
+  transporterId?: string;
+  transportMode?: string;
+  dispatchDate?: string;
+  fromPlace?: string;
+  toPlace?: string;
+  transportDocNumber?: string;
+  transportDocDate?: string;
+  // credit notes
+  reason?: string;
+  invoiceId?: number | null;
 }
 
 interface DocumentFormProps {
@@ -186,7 +199,7 @@ export function DocumentForm({
   backHref,
   backLabel,
 }: DocumentFormProps) {
-  const isInvoice = mode === "invoice";
+  const isInvoice = mode === "invoice" || mode === "credit_note";
 
   const [clients, setClients] = useState<Client[]>([]);
   const [templates, setTemplates] = useState<QuotationTemplate[]>([]);
@@ -233,6 +246,21 @@ export function DocumentForm({
   const [accountPan, setAccountPan] = useState(initialValues?.accountPan ?? "");
   const [showTotal, setShowTotal] = useState(initialValues?.showTotal ?? true);
   const [isComparative, setIsComparative] = useState(initialValues?.isComparative ?? false);
+
+  // Logistics states
+  const [vehicleNumber, setVehicleNumber] = useState(initialValues?.vehicleNumber ?? "");
+  const [transporterName, setTransporterName] = useState(initialValues?.transporterName ?? "");
+  const [transporterId, setTransporterId] = useState(initialValues?.transporterId ?? "");
+  const [transportMode, setTransportMode] = useState(initialValues?.transportMode ?? "road");
+  const [dispatchDate, setDispatchDate] = useState(initialValues?.dispatchDate ?? "");
+  const [fromPlace, setFromPlace] = useState(initialValues?.fromPlace ?? "Mumbai");
+  const [toPlace, setToPlace] = useState(initialValues?.toPlace ?? "");
+  const [transportDocNumber, setTransportDocNumber] = useState(initialValues?.transportDocNumber ?? "");
+  const [transportDocDate, setTransportDocDate] = useState(initialValues?.transportDocDate ?? "");
+
+  // Credit Notes states
+  const [reason, setReason] = useState(initialValues?.reason ?? "");
+  const [invoiceId, setInvoiceId] = useState<number | null>(initialValues?.invoiceId ?? null);
 
   const matchedClient = useMemo(() => {
     return clients.find((c) => c.name.toLowerCase() === clientName.toLowerCase());
@@ -295,7 +323,7 @@ export function DocumentForm({
     const hasInitialNumber = !!initialValues?.docNumber;
 
     if (!hasInitialNumber || !isInitialTemplate) {
-      getNextDocumentNumber(tpl.id, isInvoice).then(setDocNumber);
+      getNextDocumentNumber(tpl.id, mode).then(setDocNumber);
     }
 
     const cfg = getTemplateConfig(tpl.name, tpl);
@@ -389,6 +417,17 @@ export function DocumentForm({
           accountPan,
           showTotal,
           isComparative,
+          vehicleNumber,
+          transporterName,
+          transporterId,
+          transportMode,
+          dispatchDate,
+          fromPlace,
+          toPlace,
+          transportDocNumber,
+          transportDocDate,
+          reason,
+          invoiceId,
         },
         subtotal,
       );
@@ -415,8 +454,8 @@ export function DocumentForm({
             </span>
             <h1 className="text-[14px] md:text-[16px] font-semibold text-foreground">
               {isEdit
-                ? (isInvoice ? "Edit Invoice" : "Edit Quote")
-                : (isInvoice ? "New Invoice" : "New Quote")}
+                ? `Edit ${getDocumentLabel(mode)}`
+                : `New ${getDocumentLabel(mode)}`}
             </h1>
           </div>
 
@@ -424,7 +463,11 @@ export function DocumentForm({
             {!isEdit ? (
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => handleSave(isInvoice ? "unpaid" : "draft")}
+                  onClick={() => handleSave(
+                    mode === "invoice" ? "unpaid" : 
+                    mode === "credit_note" ? "issued" : 
+                    mode === "eway_bill" ? "active" : "draft"
+                  )}
                   disabled={saving || !clientName.trim()}
                   className="px-3 md:px-4 py-2 bg-white border border-border text-foreground rounded-xl text-[13px] font-medium
                     hover:bg-slate-50 active:scale-[0.98] transition-all disabled:opacity-40"
@@ -432,12 +475,18 @@ export function DocumentForm({
                   Draft
                 </button>
                 <button
-                  onClick={() => handleSave(isInvoice ? "unpaid" : "sent")}
+                  onClick={() => handleSave(
+                    mode === "invoice" ? "unpaid" : 
+                    mode === "credit_note" ? "issued" : 
+                    mode === "eway_bill" ? "active" : 
+                    mode === "sales_order" ? "confirmed" : 
+                    mode === "delivery_challan" ? "dispatched" : "sent"
+                  )}
                   disabled={saving || !clientName.trim()}
                   className="px-4 md:px-6 py-2 bg-primary text-white rounded-xl text-[13px] font-medium
                     hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-40 shadow-sm"
                 >
-                  {isInvoice ? "Save" : "Send"}
+                  {["invoice", "sales_order", "delivery_challan", "eway_bill", "credit_note"].includes(mode) ? "Save" : "Send"}
                 </button>
               </div>
             ) : (
@@ -589,41 +638,111 @@ export function DocumentForm({
         {/* Details Section */}
         <section className="space-y-1">
           <FieldRow
-            label={isInvoice ? "Invoice#" : "Quote#"}
+            label={
+              mode === "invoice" ? "Invoice#" :
+              mode === "sales_order" ? "Order#" :
+              mode === "delivery_challan" ? "Challan#" :
+              mode === "eway_bill" ? "e-Way Bill#" :
+              mode === "credit_note" ? "Credit Note#" : "Quote#"
+            }
             required
             info="Automatic numbering is enabled"
           >
             <ZohoInput
               value={docNumber}
               onChange={setDocNumber}
-              placeholder={isInvoice ? "INV-000001" : "QT-000001"}
+              placeholder={
+                mode === "invoice" ? "INV-000001" :
+                mode === "sales_order" ? "SO-000001" :
+                mode === "delivery_challan" ? "DC-000001" :
+                mode === "eway_bill" ? "EWB-000001" :
+                mode === "credit_note" ? "CN-000001" : "QT-000001"
+              }
               icon={Settings}
             />
           </FieldRow>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
-            <FieldRow label={isInvoice ? "Invoice Date" : "Quote Date"} required className="border-0">
+            <FieldRow
+              label={
+                mode === "invoice" ? "Invoice Date" :
+                mode === "sales_order" ? "Order Date" :
+                mode === "delivery_challan" ? "Challan Date" :
+                mode === "eway_bill" ? "e-Way Bill Date" :
+                mode === "credit_note" ? "Credit Note Date" : "Quote Date"
+              }
+              required
+              className="border-0"
+            >
               <ZohoDatePicker value={date} onChange={setDate} />
             </FieldRow>
-            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 py-3">
-              <label className="text-[13px] text-gray-500 font-medium md:min-w-[100px] md:text-right">
-                {isInvoice ? "Due Date" : "Expiry Date"}
-              </label>
-              <ZohoDatePicker value={expiryDate} onChange={setExpiryDate} />
-            </div>
+            {["invoice", "quotation", "sales_order"].includes(mode) && (
+              <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 py-3">
+                <label className="text-[13px] text-gray-500 font-medium md:min-w-[100px] md:text-right">
+                  {mode === "invoice" ? "Due Date" : mode === "sales_order" ? "Expected Delivery" : "Expiry Date"}
+                </label>
+                <ZohoDatePicker value={expiryDate} onChange={setExpiryDate} />
+              </div>
+            )}
           </div>
 
           <FieldRow label="Subject" required>
             <textarea
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              placeholder={isInvoice ? "Let your customer know what this Invoice is for" : "Let your customer know what this Quote is for"}
+              placeholder={"Let your customer know what this " + getDocumentLabel(mode) + " is for"}
               rows={1}
               className="w-full px-3 py-2 text-[14px] text-foreground bg-white border border-border rounded-xl
                 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary
                 placeholder:text-muted-foreground/40 resize-none transition-all"
             />
           </FieldRow>
+
+          {/* Logistics Transport Fields */}
+          {(mode === "delivery_challan" || mode === "eway_bill") && (
+            <div className="border border-border rounded-xl p-4 bg-slate-50/50 space-y-2 mt-4">
+              <h3 className="text-[13px] font-bold text-gray-700 uppercase tracking-wider mb-2">Transport & Dispatch Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FieldRow label="Vehicle Number" className="border-0 py-1">
+                  <ZohoInput value={vehicleNumber} onChange={setVehicleNumber} placeholder="MH-04-GP-1234" />
+                </FieldRow>
+                <FieldRow label="Dispatch Date" className="border-0 py-1">
+                  <ZohoDatePicker value={dispatchDate} onChange={setDispatchDate} />
+                </FieldRow>
+                <FieldRow label="Transporter Name" className="border-0 py-1">
+                  <ZohoInput value={transporterName} onChange={setTransporterName} placeholder="e.g. VRL Logistics" />
+                </FieldRow>
+                <FieldRow label="Transporter ID" className="border-0 py-1">
+                  <ZohoInput value={transporterId} onChange={setTransporterId} placeholder="GSTIN or Transporter ID" />
+                </FieldRow>
+                <FieldRow label="Transport Doc No (LR)" className="border-0 py-1">
+                  <ZohoInput value={transportDocNumber} onChange={setTransportDocNumber} placeholder="LR Number" />
+                </FieldRow>
+                <FieldRow label="Transport Mode" className="border-0 py-1">
+                  <Select value={transportMode} onValueChange={setTransportMode}>
+                    <SelectTrigger className="w-full px-3 py-2 h-auto text-[14px] border-border rounded-xl bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="road">Road</SelectItem>
+                      <SelectItem value="rail">Rail</SelectItem>
+                      <SelectItem value="air">Air</SelectItem>
+                      <SelectItem value="ship">Ship</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FieldRow>
+              </div>
+            </div>
+          )}
+
+          {/* Credit Notes Fields */}
+          {mode === "credit_note" && (
+            <div className="border border-border rounded-xl p-4 bg-slate-50/50 space-y-2 mt-4">
+              <FieldRow label="Reason for Credit Note" className="border-0 py-1">
+                <ZohoInput value={reason} onChange={setReason} placeholder="e.g. Sales Return, Rate Difference, Post-Sale Discount" />
+              </FieldRow>
+            </div>
+          )}
         </section>
 
         {/* Item Table Section */}

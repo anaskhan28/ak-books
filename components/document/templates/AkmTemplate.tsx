@@ -39,7 +39,13 @@ export function AKMTemplate({
   templateName,
   showTotal,
 }: TemplateProps) {
-  const docLabel = mode === "quotation" ? "Quotation" : "Invoice";
+  const docLabel = 
+    mode === "quotation" ? "Quotation" :
+    mode === "invoice" ? "Invoice" :
+    mode === "sales_order" ? "Sales Order" :
+    mode === "delivery_challan" ? "Delivery Challan" :
+    mode === "eway_bill" ? "e-Way Bill" :
+    mode === "credit_note" ? "Credit Note" : "Document";
 
   return (
     <>
@@ -231,9 +237,9 @@ export function AKMTemplate({
               className="inline-block text-white md:text-[10px] text-[8px] font-bold px-2 py-0.5 mb-2"
               style={{ backgroundColor: primaryColor || "#c0392b" }}
             >
-              {mode === "invoice" ? "Account Info" : "Terms & Condition"}
+              {(mode === "invoice" || mode === "credit_note") ? "Account Info" : "Terms & Condition"}
             </div>
-            {mode === "invoice" ? (
+            {(mode === "invoice" || mode === "credit_note") ? (
               <div className="space-y-1 md:text-[11px] text-[8px] text-gray-600 border border-dashed border-gray-200 rounded-lg p-2">
                 {(
                   [

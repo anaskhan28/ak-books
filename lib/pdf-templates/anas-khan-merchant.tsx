@@ -33,7 +33,7 @@ interface LineItem {
 }
 
 export interface AKMPdfProps {
-  type: "quotation" | "invoice";
+  type: string;
   number: string;
   date: string;
   clientName: string;
@@ -247,7 +247,14 @@ function AKMDocument({
         {templateName?.toLowerCase().includes("anas khan merchant") && (
           <View style={s.badgeRow}>
             <Text style={s.badge}>
-              {type === "quotation" ? "Quotation" : "Invoice"}
+              {
+                type === "quotation" ? "Quotation" :
+                type === "invoice" ? "Invoice" :
+                type === "sales_order" ? "Sales Order" :
+                type === "delivery_challan" ? "Delivery Challan" :
+                type === "eway_bill" ? "e-Way Bill" :
+                type === "credit_note" ? "Credit Note" : "Document"
+              }
             </Text>
           </View>
         )}
@@ -336,12 +343,12 @@ function AKMDocument({
         {/* Bottom section */}
         <View style={s.bottom}>
           <View style={s.leftCol}>
-            {type === "quotation" && terms ? (
+            {["quotation", "sales_order", "delivery_challan", "eway_bill"].includes(type) && terms ? (
               <>
                 <Text style={s.sectionBadge}>Terms &amp; Condition</Text>
                 <Text style={s.termsText}>{terms}</Text>
               </>
-            ) : type === "invoice" && accountInfo ? (
+            ) : ["invoice", "credit_note"].includes(type) && accountInfo ? (
               <>
                 <Text style={s.sectionBadge}>Account Info</Text>
                 {[

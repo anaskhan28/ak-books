@@ -1,12 +1,14 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import StatusBadge from "@/components/ui/status-badge";
 import { formatINR, formatDateDMY } from "@/lib/utils";
 import { getDueDateStatus } from "@/lib/due-date";
 import QuotationRowActions from "@/components/quotations/QuotationRowActions";
 import InvoiceRowActions from "@/components/invoices/InvoiceRowActions";
+import { MoreHorizontal, FileText, Trash2 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface DocumentCardProps {
   data: {
@@ -23,9 +25,9 @@ interface DocumentCardProps {
     dueDate?: string | null;
     paidAmount?: number;
   };
-  mode: "quotation" | "invoice";
+  mode: "quotation" | "invoice" | "sales_order" | "delivery_challan" | "eway_bill" | "credit_note";
   onDelete: (e: React.MouseEvent, id: number) => void;
-  // Invoice specific handlers
+  // Shared actions
   onRecordPayment?: () => void;
   onDownloadPDF?: () => void;
   isDownloading?: boolean;
@@ -48,7 +50,19 @@ export default function DocumentCard({
   onSelect,
   selectionMode,
 }: DocumentCardProps) {
-  const href = `/${mode === "quotation" ? "quotations" : "invoices"}/${data.id}`;
+  const getHref = () => {
+    switch (mode) {
+      case "quotation": return `/quotations/${data.id}`;
+      case "invoice": return `/invoices/${data.id}`;
+      case "sales_order": return `/sales-orders/${data.id}`;
+      case "delivery_challan": return `/delivery-challans/${data.id}`;
+      case "eway_bill": return `/eway-bills/${data.id}`;
+      case "credit_note": return `/credit-notes/${data.id}`;
+      default: return "#";
+    }
+  };
+  const href = getHref();
+  
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isLongPress = useRef(false);
 
@@ -134,9 +148,7 @@ export default function DocumentCard({
 
         <div className="flex items-center justify-between mb-3 pt-1 mt-1">
           <div className="flex items-center gap-1.5">
-            {mode === "quotation" ? (
-              <StatusBadge status={data.status} />
-            ) : (() => {
+            {mode === "invoice" ? (() => {
               const isPaid = data.status === "paid" || (data.paidAmount !== undefined && Number(data.paidAmount) >= data.totalAmount);
               if (isPaid) {
                 return (
@@ -157,7 +169,9 @@ export default function DocumentCard({
                   {due.label}
                 </span>
               );
-            })()}
+            })() : (
+              <StatusBadge status={data.status} />
+            )}
             {data.isComparative && (
               <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-50 text-amber-600 border border-amber-200">
                 Comparative
@@ -167,7 +181,6 @@ export default function DocumentCard({
         </div>
       </Link>
 
-      {/* Actions Button or Selection Circle - Positioned absolutely to avoid Link trigger */}
       <div className="absolute right-0 bottom-[10px] z-10">
         {selectionMode ? (
           <button
@@ -196,7 +209,7 @@ export default function DocumentCard({
               onDelete={() => onDelete(null as any, data.id)}
               onRefresh={onRefresh}
             />
-          ) : (
+          ) : mode === "invoice" ? (
             <InvoiceRowActions
               invoiceId={data.id}
               status={data.status}
@@ -206,9 +219,24 @@ export default function DocumentCard({
               onDownloadPDF={onDownloadPDF || (() => { })}
               onRefresh={onRefresh}
             />
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="p-1.5 hover:bg-accent rounded-lg cursor-pointer outline-none">
+                <MoreHorizontal size={16} />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={onDownloadPDF} className="cursor-pointer">
+                  <FileText size={14} className="mr-2" /> Download PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => onDelete(e as any, data.id)} className="cursor-pointer text-red-600">
+                  <Trash2 size={14} className="mr-2" /> Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )
         )}
       </div>
     </div>
   );
 }
+

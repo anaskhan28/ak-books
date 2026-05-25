@@ -1,4 +1,4 @@
-export type DocumentMode = "quotation" | "invoice";
+export type DocumentMode = "quotation" | "invoice" | "sales_order" | "delivery_challan" | "eway_bill" | "credit_note";
 
 export interface LineItem {
   description: string;

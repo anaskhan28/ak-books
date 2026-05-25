@@ -168,7 +168,7 @@ export function VijayTemplate({
       </div>
 
       {/* Bank details (invoice only) */}
-      {mode === "invoice" && (
+      {(mode === "invoice" || mode === "credit_note") && (
         <div className="mt-4 mb-4">
           <div className="text-[11px] font-bold underline text-gray-700 mb-2">
             Bank Details:

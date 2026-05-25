@@ -464,3 +464,149 @@ export const payments = pgTable("payments", {
 });
 export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;
+
+// ─── Sales Orders ───────────────────────────────────────────────────────────
+export const salesOrders = pgTable("sales_orders", {
+  id: serial("id").primaryKey(),
+  quotationId: integer("quotation_id").references(() => quotations.id),
+  templateId: integer("template_id").references(() => quotationTemplates.id),
+  clientId: integer("client_id").references(() => clients.id),
+  orderNumber: text("order_number").notNull().unique(),
+  clientBranch: text("client_branch"),
+  subject: text("subject"),
+  totalAmount: integer("total_amount").notNull().default(0),
+  status: text("status").notNull().default("draft"), // draft, confirmed, invoiced, cancelled
+  orderDate: text("order_date"),
+  expectedDeliveryDate: text("expected_delivery_date"),
+  notes: text("notes"),
+  placeOfSupply: text("place_of_supply").default("Maharashtra (27)"),
+  showTotal: boolean("show_total").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type SalesOrder = typeof salesOrders.$inferSelect;
+export type NewSalesOrder = typeof salesOrders.$inferInsert;
+
+export const salesOrderItems = pgTable("sales_order_items", {
+  id: serial("id").primaryKey(),
+  salesOrderId: integer("sales_order_id")
+    .notNull()
+    .references(() => salesOrders.id, { onDelete: "cascade" }),
+  description: text("description").notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  rate: integer("rate").notNull(),
+  taxed: text("taxed"),
+  amount: integer("amount").notNull(),
+});
+export type SalesOrderItem = typeof salesOrderItems.$inferSelect;
+export type NewSalesOrderItem = typeof salesOrderItems.$inferInsert;
+
+// ─── Delivery Challans ──────────────────────────────────────────────────────
+export const deliveryChallans = pgTable("delivery_challans", {
+  id: serial("id").primaryKey(),
+  salesOrderId: integer("sales_order_id").references(() => salesOrders.id),
+  templateId: integer("template_id").references(() => quotationTemplates.id),
+  clientId: integer("client_id").references(() => clients.id),
+  challanNumber: text("challan_number").notNull().unique(),
+  clientBranch: text("client_branch"),
+  subject: text("subject"),
+  totalAmount: integer("total_amount").notNull().default(0),
+  status: text("status").notNull().default("draft"), // draft, dispatched, delivered, cancelled
+  challanDate: text("challan_date"),
+  dispatchDate: text("dispatch_date"),
+  transportMode: text("transport_mode").default("road"),
+  vehicleNumber: text("vehicle_number"),
+  notes: text("notes"),
+  placeOfSupply: text("place_of_supply").default("Maharashtra (27)"),
+  showTotal: boolean("show_total").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type DeliveryChallan = typeof deliveryChallans.$inferSelect;
+export type NewDeliveryChallan = typeof deliveryChallans.$inferInsert;
+
+export const deliveryChallanItems = pgTable("delivery_challan_items", {
+  id: serial("id").primaryKey(),
+  deliveryChallanId: integer("delivery_challan_id")
+    .notNull()
+    .references(() => deliveryChallans.id, { onDelete: "cascade" }),
+  description: text("description").notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  rate: integer("rate").notNull(),
+  taxed: text("taxed"),
+  amount: integer("amount").notNull(),
+});
+export type DeliveryChallanItem = typeof deliveryChallanItems.$inferSelect;
+export type NewDeliveryChallanItem = typeof deliveryChallanItems.$inferInsert;
+
+// ─── e-Way Bills ────────────────────────────────────────────────────────────
+export const ewayBills = pgTable("eway_bills", {
+  id: serial("id").primaryKey(),
+  invoiceId: integer("invoice_id").references(() => invoices.id),
+  deliveryChallanId: integer("delivery_challan_id").references(() => deliveryChallans.id),
+  templateId: integer("template_id").references(() => quotationTemplates.id),
+  clientId: integer("client_id").references(() => clients.id),
+  ewayBillNumber: text("eway_bill_number").notNull().unique(),
+  ewayBillDate: text("eway_bill_date"),
+  status: text("status").notNull().default("active"), // active, cancelled, expired
+  transporterName: text("transporter_name"),
+  transporterId: text("transporter_id"),
+  transportDocNumber: text("transport_doc_number"),
+  transportDocDate: text("transport_doc_date"),
+  vehicleNumber: text("vehicle_number"),
+  fromPlace: text("from_place").default("Mumbai"),
+  toPlace: text("to_place"),
+  totalAmount: integer("total_amount").notNull().default(0),
+  placeOfSupply: text("place_of_supply").default("Maharashtra (27)"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type EwayBill = typeof ewayBills.$inferSelect;
+export type NewEwayBill = typeof ewayBills.$inferInsert;
+
+export const ewayBillItems = pgTable("eway_bill_items", {
+  id: serial("id").primaryKey(),
+  ewayBillId: integer("eway_bill_id")
+    .notNull()
+    .references(() => ewayBills.id, { onDelete: "cascade" }),
+  description: text("description").notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  rate: integer("rate").notNull(),
+  taxed: text("taxed"),
+  amount: integer("amount").notNull(),
+});
+export type EwayBillItem = typeof ewayBillItems.$inferSelect;
+export type NewEwayBillItem = typeof ewayBillItems.$inferInsert;
+
+// ─── Credit Notes ───────────────────────────────────────────────────────────
+export const creditNotes = pgTable("credit_notes", {
+  id: serial("id").primaryKey(),
+  invoiceId: integer("invoice_id").references(() => invoices.id),
+  templateId: integer("template_id").references(() => quotationTemplates.id),
+  clientId: integer("client_id").references(() => clients.id),
+  creditNoteNumber: text("credit_note_number").notNull().unique(),
+  creditNoteDate: text("credit_note_date"),
+  clientBranch: text("client_branch"),
+  subject: text("subject"),
+  totalAmount: integer("total_amount").notNull().default(0),
+  status: text("status").notNull().default("issued"), // issued, applied, void
+  reason: text("reason"),
+  notes: text("notes"),
+  placeOfSupply: text("place_of_supply").default("Maharashtra (27)"),
+  showTotal: boolean("show_total").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type CreditNote = typeof creditNotes.$inferSelect;
+export type NewCreditNote = typeof creditNotes.$inferInsert;
+
+export const creditNoteItems = pgTable("credit_note_items", {
+  id: serial("id").primaryKey(),
+  creditNoteId: integer("credit_note_id")
+    .notNull()
+    .references(() => creditNotes.id, { onDelete: "cascade" }),
+  description: text("description").notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  rate: integer("rate").notNull(),
+  taxed: text("taxed"),
+  amount: integer("amount").notNull(),
+});
+export type CreditNoteItem = typeof creditNoteItems.$inferSelect;
+export type NewCreditNoteItem = typeof creditNoteItems.$inferInsert;
+

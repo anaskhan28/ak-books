@@ -77,8 +77,14 @@ export function AKEnterpriseTemplate({
   const gstTotal = subtotal * (gstRate / 100);
   const grandTotal = subtotal + gstTotal;
 
-  const isInvoice = mode === "invoice";
-  const docTitle = isInvoice ? "TAX INVOICE" : "Quotation";
+  const isInvoice = mode === "invoice" || mode === "credit_note";
+  const docTitle = 
+    mode === "invoice" ? "TAX INVOICE" :
+    mode === "quotation" ? "Quotation" :
+    mode === "sales_order" ? "Sales Order" :
+    mode === "delivery_challan" ? "Delivery Challan" :
+    mode === "eway_bill" ? "e-Way Bill" :
+    mode === "credit_note" ? "Credit Note" : "Document";
 
   const displayItems = isReadOnly 
     ? items.filter(i => (i.description && i.description.trim()) || i.amount > 0)

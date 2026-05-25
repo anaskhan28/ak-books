@@ -106,7 +106,7 @@ interface LineItem {
 }
 
 export interface AKEnterprisePdfProps {
-  type: "quotation" | "invoice";
+  type: string;
   number?: string;
   date: string;
   clientName: string;
@@ -947,7 +947,7 @@ export async function generateAKEnterprisePdf(
   props: AKEnterprisePdfProps,
 ): Promise<Blob> {
   const doc =
-    props.type === "invoice" ? (
+    (props.type === "invoice" || props.type === "credit_note") ? (
       <AKInvoiceDoc {...props} />
     ) : (
       <AKQuotationDoc {...props} />

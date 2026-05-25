@@ -16,6 +16,10 @@ import {
   Plus,
   ArrowRight,
   Users,
+  ShoppingCart,
+  Truck,
+  FileSpreadsheet,
+  Undo2,
 } from "lucide-react";
 import Image from "next/image";
 import {
@@ -47,10 +51,17 @@ const operationsNav: NavItem[] = [
   { label: "Workers", href: "/workers", icon: Users },
 ];
 
+const logisticsNav: NavItem[] = [
+  { label: "Sales Orders", href: "/sales-orders", icon: ShoppingCart },
+  { label: "Delivery Challans", href: "/delivery-challans", icon: Truck },
+  { label: "e-Way Bills", href: "/eway-bills", icon: FileSpreadsheet },
+];
+
 const billingNav: NavItem[] = [
   { label: "Quotations", href: "/quotations", icon: FileText },
   { label: "Invoices", href: "/invoices", icon: FileCheck },
   { label: "Payments", href: "/payments", icon: IndianRupee },
+  { label: "Credit Notes", href: "/credit-notes", icon: Undo2 },
 ];
 
 export default function AppSidebar() {
@@ -127,7 +138,7 @@ export default function AppSidebar() {
 
         <SidebarGroup className="p-0 mt-6">
           <SidebarGroupLabel className="px-3 text-[13px] font-medium text-muted-foreground/80 mb-2 h-auto capitalize">
-            Billing
+            Billing & Finance
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
@@ -162,6 +173,46 @@ export default function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <SidebarGroup className="p-0 mt-6">
+          <SidebarGroupLabel className="px-3 text-[13px] font-medium text-muted-foreground/80 mb-2 h-auto capitalize">
+            Logistics & Fulfillment
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-1">
+              {logisticsNav.map((item) => {
+                const active = isActive(item.href);
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={active}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[14px] font-medium transition-all duration-150 h-auto",
+                        active
+                          ? "shadow-sm shadow-primary/25"
+                          : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+                      )}
+                    >
+                      <Link
+                        href={item.href}
+                        onClick={() => setOpenMobile(false)}
+                      >
+                        <item.icon
+                          size={18}
+                          strokeWidth={active ? 2.2 : 1.8}
+                        />
+                        <span>{item.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+
 
         <SidebarGroup className="p-0 mt-6">
           <SidebarGroupLabel className="px-3 text-[13px] font-medium text-muted-foreground/80 mb-2 h-auto capitalize">

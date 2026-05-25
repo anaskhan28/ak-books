@@ -36,7 +36,13 @@ export function ATKTemplate({
   headerImage,
   showTotal,
 }: TemplateProps) {
-  const title = mode === "quotation" ? "Quotation" : "Invoice Bill";
+  const title = 
+    mode === "quotation" ? "Quotation" :
+    mode === "invoice" ? "Invoice Bill" :
+    mode === "sales_order" ? "Sales Order" :
+    mode === "delivery_challan" ? "Delivery Challan" :
+    mode === "eway_bill" ? "e-Way Bill" :
+    mode === "credit_note" ? "Credit Note" : "Document";
 
   return (
     <>
@@ -202,7 +208,7 @@ export function ATKTemplate({
             <p className="text-[9px] md:text-[11px] font-bold underline text-gray-700 mb-1">
               {mode === "invoice" ? "Terms & Condition:" : "Terms & Condition:"}
             </p>
-            {mode === "invoice" ? (
+             {(mode === "invoice" || mode === "credit_note") ? (
               <div className="space-y-1 text-[9px] md:text-[11px] text-gray-600 border border-dashed border-gray-200 rounded-lg p-2">
                 {(
                   [

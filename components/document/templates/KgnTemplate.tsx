@@ -37,7 +37,13 @@ export function KGNTemplate({
   headerImage,
   showTotal,
 }: TemplateProps) {
-  const title = mode === "quotation" ? "Quotation" : "Invoice Bill";
+  const title = 
+    mode === "quotation" ? "Quotation" :
+    mode === "invoice" ? "Invoice Bill" :
+    mode === "sales_order" ? "Sales Order" :
+    mode === "delivery_challan" ? "Delivery Challan" :
+    mode === "eway_bill" ? "e-Way Bill" :
+    mode === "credit_note" ? "Credit Note" : "Document";
 
   return (
     <>
@@ -256,9 +262,9 @@ export function KGNTemplate({
         <div className="flex gap-4 md:gap-6">
           <div className="flex-1">
             <p className="text-[9px] md:text-[11px] font-bold underline text-gray-700 mb-1">
-              {mode === "invoice" ? "Bank Details:" : "Terms & Conditions:-"}
+              {(mode === "invoice" || mode === "credit_note") ? "Bank Details:" : "Terms & Conditions:-"}
             </p>
-            {mode === "invoice" ? (
+            {(mode === "invoice" || mode === "credit_note") ? (
               <div className="space-y-1 text-[9px] md:text-[11px] text-gray-600 border border-dashed border-gray-200 rounded-lg p-2">
                 {(
                   [
