@@ -550,12 +550,6 @@ function AKQuotationDoc({
         {/* Bottom: Notes + Terms left | Total + Signature right */}
         <View style={s.bottomRow}>
           <View style={s.bottomLeft}>
-            {notes ? (
-              <>
-                <Text style={s.notesLabel}>Notes</Text>
-                <Text style={s.notesText}>{notes}</Text>
-              </>
-            ) : null}
             {terms ? (
               <>
                 <Text style={s.termsLabel}>Terms & Conditions</Text>

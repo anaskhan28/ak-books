@@ -13,6 +13,7 @@ export interface DocumentPdfData {
   clientName: string;
   clientBranch: string;
   clientGstin?: string | null;
+  placeOfSupply?: string | null;
   subject: string;
   items: LineItem[];
   subtotal: number;
@@ -36,6 +37,7 @@ export async function generateAndDownloadPdf({
   clientName,
   clientBranch,
   clientGstin,
+  placeOfSupply,
   subject,
   items,
   subtotal,
@@ -164,13 +166,13 @@ export async function generateAndDownloadPdf({
       subject,
       items,
       total: subtotal,
-      notes: "Looking forward for your business.",
-      terms,
+      notes: mode === "invoice" ? terms : undefined,
+      terms: mode === "quotation" ? terms : undefined,
       accountInfo: mode === "invoice" ? finalAccountInfo : undefined,
       headerImageUrl: mode === "quotation" ? hdr : undefined,
       signatureImageUrl: sig,
       companyGstin: "27BAPPK9432C1ZJ",
-      placeOfSupply: "Maharashtra (27)",
+      placeOfSupply: placeOfSupply || undefined,
     });
   } else if (tplConfig.generator === "vijay") {
     const { generateVijayPdf } = await import("@/lib/pdf-templates/vijay-enterprises");

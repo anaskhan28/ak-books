@@ -83,6 +83,7 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
     initialClientName: quotation.clientName || "",
     initialClientBranch: quotation.clientBranch || "",
     initialClientGstin: quotation.clientGstin,
+    initialPlaceOfSupply: quotation.placeOfSupply,
     initialSubject: quotation.subject || "",
     initialNotes: defaultTerms,
     initialItems,
@@ -128,6 +129,7 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
         subject: editor.subject || null,
         clientBranch: editor.clientBranch || null,
         notes: editor.terms || null,
+        placeOfSupply: editor.placeOfSupply || null,
         showTotal: editor.showTotal,
       },
       editor.filledItems.map((i) => ({
@@ -290,6 +292,8 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
             clientBranch={editor.clientBranch}
             setClientBranch={editor.setClientBranch}
             clientGstin={editor.clientGstin}
+            placeOfSupply={editor.placeOfSupply}
+            setPlaceOfSupply={editor.setPlaceOfSupply}
             qtNumber={editor.docNumber}
             date={editor.date}
             setDate={editor.setDate}

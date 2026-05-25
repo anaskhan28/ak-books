@@ -16,6 +16,7 @@ interface UseDocumentEditorOptions {
   initialClientName: string;
   initialClientBranch: string;
   initialClientGstin?: string | null;
+  initialPlaceOfSupply?: string | null;
   initialSubject: string;
   initialNotes: string;
   initialShowTotal?: boolean;
@@ -41,6 +42,7 @@ export function useDocumentEditor({
   initialClientName,
   initialClientBranch,
   initialClientGstin,
+  initialPlaceOfSupply,
   initialSubject,
   initialNotes,
   initialShowTotal = true,
@@ -64,6 +66,7 @@ export function useDocumentEditor({
   const [clientName, setClientName] = useState(initialClientName);
   const [clientBranch, setClientBranch] = useState(initialClientBranch);
   const [clientGstin, setClientGstin] = useState(initialClientGstin || null);
+  const [placeOfSupply, setPlaceOfSupply] = useState(initialPlaceOfSupply || "Maharashtra (27)");
   const [subject, setSubject] = useState(initialSubject);
   const [terms, setTerms] = useState(initialNotes);
   const [showTotal, setShowTotal] = useState(initialShowTotal);
@@ -305,14 +308,14 @@ export function useDocumentEditor({
         subject,
         items: printItems,
         total: subtotal,
-        notes: "Looking forward for your business.",
+        notes: mode === "invoice" ? terms : undefined,
         showTotal,
-        terms,
+        terms: mode === "quotation" ? terms : undefined,
         accountInfo: mode === "invoice" ? acct : undefined,
         headerImageUrl: mode === "quotation" ? hdr : undefined,
         signatureImageUrl: sig,
         companyGstin: "27BAPPK9432C1ZJ",
-        placeOfSupply: "Maharashtra (27)",
+        placeOfSupply: placeOfSupply || undefined,
       });
     } else if (tplConfig.generator === "vijay") {
       const { generateVijayPdf } =
@@ -385,6 +388,8 @@ export function useDocumentEditor({
     setClientBranch,
     clientGstin,
     setClientGstin,
+    placeOfSupply,
+    setPlaceOfSupply,
     subject,
     setSubject,
     terms,

@@ -50,6 +50,7 @@ function NewQuotationContent() {
         totalAmount: subtotal,
         status: values.status || "draft",
         notes: values.terms || null,
+        placeOfSupply: values.placeOfSupply || null,
         quotationDate: values.date,
         showTotal: values.showTotal,
         isComparative: values.isComparative,

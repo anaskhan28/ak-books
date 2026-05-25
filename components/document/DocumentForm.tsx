@@ -32,7 +32,7 @@ import { getClients, getBranches } from "@/app/actions/clients";
 import { getTemplates } from "@/app/actions/templates";
 import { getNextDocumentNumber } from "@/app/actions/quotations";
 import { getTemplateConfig } from "@/lib/pdf-templates/registry";
-import { HSN_PRESETS } from "@/lib/constants";
+import { HSN_PRESETS, INDIAN_STATES } from "@/lib/constants";
 import { alerts } from "@/lib/alerts";
 import type { Client, ClientBranch, QuotationTemplate } from "@/app/db/schema";
 import AddBranchModal from "./AddBranchModal";
@@ -62,6 +62,7 @@ export interface DocumentFormValues {
   status: string;
   notes: string;
   terms: string;
+  placeOfSupply?: string | null;
   // account (invoice)
   accountBankName: string;
   accountNumber: string;
@@ -216,6 +217,7 @@ export function DocumentForm({
       : "Looking forward for your business."),
   );
   const [terms, setTerms] = useState(initialValues?.terms ?? "");
+  const [placeOfSupply, setPlaceOfSupply] = useState(initialValues?.placeOfSupply ?? "Maharashtra (27)");
   const [accountBankName, setAccountBankName] = useState(
     initialValues?.accountBankName ?? "",
   );
@@ -379,6 +381,7 @@ export function DocumentForm({
           status: finalStatus,
           notes,
           terms,
+          placeOfSupply,
           accountBankName,
           accountNumber,
           accountIfsc,
@@ -561,6 +564,26 @@ export function DocumentForm({
               </SelectContent>
             </Select>
           </FieldRow>
+
+          {isAKEnterprise && (
+            <FieldRow label="Place of Supply">
+              <Select
+                value={placeOfSupply || "Maharashtra (27)"}
+                onValueChange={(val) => setPlaceOfSupply(val)}
+              >
+                <SelectTrigger className="w-full px-3 py-2 h-auto text-[14px] border-border rounded-xl bg-white font-medium">
+                  <SelectValue placeholder="Select Place of Supply" />
+                </SelectTrigger>
+                <SelectContent>
+                  {INDIAN_STATES.map((state) => (
+                    <SelectItem key={state} value={state}>
+                      {state}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FieldRow>
+          )}
         </section>
 
         {/* Details Section */}
@@ -793,7 +816,7 @@ export function DocumentForm({
         {/* Footer Notes */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 pt-8 border-t border-border">
           <div className="space-y-4">
-            {isAKEnterprise && (
+            {isAKEnterprise && isInvoice && (
               <div className="space-y-1.5">
                 <label className="text-[13px] text-gray-600 font-medium">Customer Notes</label>
                 <textarea
@@ -804,7 +827,7 @@ export function DocumentForm({
                     focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary
                     placeholder:text-muted-foreground/30 transition-all shadow-sm"
                 />
-                <p className="text-[11px] text-muted-foreground/60">Displayed on the {isInvoice ? "invoice" : "quotation"}</p>
+                <p className="text-[11px] text-muted-foreground/60">Displayed on the invoice</p>
               </div>
             )}
           </div>

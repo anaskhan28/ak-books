@@ -27,6 +27,8 @@ export interface TemplateProps {
   setSubject: (v: string) => void;
   terms: string;
   setTerms: (v: string) => void;
+  placeOfSupply?: string | null;
+  setPlaceOfSupply?: (v: string) => void;
   // account info (invoice only)
   accountBankName: string;
   setAccountBankName: (v: string) => void;

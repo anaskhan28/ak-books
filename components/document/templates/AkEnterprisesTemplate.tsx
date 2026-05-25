@@ -4,7 +4,7 @@ import type { TemplateProps } from "@/lib/types/document";
 
 const BDR = "border border-gray-400";
 
-import { HSN_PRESETS } from "@/lib/constants";
+import { HSN_PRESETS, INDIAN_STATES } from "@/lib/constants";
 
 // Shared address block used in both To/Consignee and Bill To/Consignee
 function AddressBlock({
@@ -66,9 +66,11 @@ export function AKEnterpriseTemplate({
   signatureImage,
   formatINR,
   inputCls,
-  headerImage,
   showTotal,
   clientGstin,
+  placeOfSupply,
+  setPlaceOfSupply,
+  headerImage,
 }: TemplateProps) {
   // GST calc for invoice
   const gstRate = 18;
@@ -132,18 +134,38 @@ export function AKEnterpriseTemplate({
           <div className="text-[7px] md:text-[9px] text-gray-400">
             {isInvoice ? "Invoice Date" : "Date"}
           </div>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="font-semibold text-[8px] md:text-[10px] text-gray-700 bg-transparent border-0 focus:outline-none cursor-pointer w-full"
-          />
+          {isReadOnly ? (
+            <div className="font-semibold text-[8px] md:text-[10px] text-gray-700 py-0.5">
+              {date}
+            </div>
+          ) : (
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="font-semibold text-[8px] md:text-[10px] text-gray-700 bg-transparent border-0 focus:outline-none cursor-pointer w-full"
+            />
+          )}
         </div>
         <div className="flex-1 p-1 md:p-2">
           <div className="text-[7px] md:text-[9px] text-gray-400">Place Of Supply</div>
-          <div className="font-semibold text-[8px] md:text-[10px] text-gray-600">
-            Maharashtra (27)
-          </div>
+          {isReadOnly ? (
+            <div className="font-semibold text-[8px] md:text-[10px] text-gray-600 py-0.5">
+              {placeOfSupply || "Maharashtra (27)"}
+            </div>
+          ) : (
+            <select
+              value={placeOfSupply || "Maharashtra (27)"}
+              onChange={(e) => setPlaceOfSupply?.(e.target.value)}
+              className="font-semibold text-[8px] md:text-[10px] text-gray-700 bg-transparent border-0 focus:outline-none cursor-pointer w-full py-0.5"
+            >
+              {INDIAN_STATES.map((state) => (
+                <option key={state} value={state}>
+                  {state}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
 
@@ -154,31 +176,45 @@ export function AKEnterpriseTemplate({
             {isInvoice ? "Bill To" : "Quotation To"}
           </div>
           {/* Client inputs */}
-          <input
-            value={clientName}
-            onChange={(e) => setClientName(e.target.value)}
-            placeholder="Client Name"
-            list="client-names-ak-enterprises"
-            className="w-full text-[9px] md:text-[11px] font-semibold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300 placeholder:font-normal mb-1"
-          />
-          <datalist id="client-names-ak-enterprises">
-            {clients.map((c) => (
-              <option key={c.id} value={c.name} />
-            ))}
-          </datalist>
-          <textarea
-            value={clientBranch}
-            onChange={(e) => {
-              setClientBranch(e.target.value);
-              autoResize(e.target);
-            }}
-            ref={(el) => {
-              if (el && clientBranch) autoResize(el);
-            }}
-            rows={1}
-            placeholder="Branch / Address"
-            className="w-full max-w-[110px] text-[9px] md:text-[11px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300 mb-0.5 resize-none overflow-y-hidden leading-[1.4]"
-          />
+          {isReadOnly ? (
+            <div className="w-full text-[9px] md:text-[11px] font-semibold text-gray-900 py-0.5">
+              {clientName || "Client Name"}
+            </div>
+          ) : (
+            <>
+              <input
+                value={clientName}
+                onChange={(e) => setClientName(e.target.value)}
+                placeholder="Client Name"
+                list="client-names-ak-enterprises"
+                className="w-full text-[9px] md:text-[11px] font-semibold text-gray-900 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300 placeholder:font-normal mb-1"
+              />
+              <datalist id="client-names-ak-enterprises">
+                {clients.map((c) => (
+                  <option key={c.id} value={c.name} />
+                ))}
+              </datalist>
+            </>
+          )}
+          {isReadOnly ? (
+            <div className="w-full max-w-[110px] text-[9px] md:text-[11px] text-gray-700 py-0.5 whitespace-pre-wrap break-words leading-[1.4]">
+              {clientBranch || "Branch / Address"}
+            </div>
+          ) : (
+            <textarea
+              value={clientBranch}
+              onChange={(e) => {
+                setClientBranch(e.target.value);
+                autoResize(e.target);
+              }}
+              ref={(el) => {
+                if (el && clientBranch) autoResize(el);
+              }}
+              rows={1}
+              placeholder="Branch / Address"
+              className="w-full max-w-[110px] text-[9px] md:text-[11px] text-gray-700 bg-transparent border-0 border-b border-dashed border-gray-300 focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300 mb-0.5 resize-none overflow-y-hidden leading-[1.4]"
+            />
+          )}
           <div className="text-[8px] md:text-[10px] text-gray-400 mt-1">India</div>
           {isInvoice && clientGstin && (
             <div className="text-[8px] md:text-[10px] text-gray-600 font-semibold mt-1">
@@ -204,12 +240,18 @@ export function AKEnterpriseTemplate({
         <div className="text-[7px] md:text-[9px] text-gray-400 flex items-center gap-1 shrink-0">
           Subject: <span className="text-red-500 font-bold">*</span>
         </div>
-        <input
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-          placeholder={isInvoice ? "Shifting Invoice" : "Shifting Quotation"}
-          className={`w-full text-[9px] md:text-[11px] text-gray-800 bg-transparent border-0 border-b border-dashed ${!subject ? 'border-red-300' : 'border-gray-300'} focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300 transition-colors`}
-        />
+        {isReadOnly ? (
+          <div className="w-full text-[9px] md:text-[11px] text-gray-800 py-0.5">
+            {subject || (isInvoice ? "Shifting Invoice" : "Shifting Quotation")}
+          </div>
+        ) : (
+          <input
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            placeholder={isInvoice ? "Shifting Invoice" : "Shifting Quotation"}
+            className={`w-full text-[9px] md:text-[11px] text-gray-800 bg-transparent border-0 border-b border-dashed ${!subject ? 'border-red-300' : 'border-gray-300'} focus:border-primary focus:outline-none py-0.5 placeholder:text-gray-300 transition-colors`}
+          />
+        )}
       </div>
 
       {/* ── Table ── */}
@@ -546,16 +588,31 @@ export function AKEnterpriseTemplate({
                   </div>
                 </>
               )}
-              {/* <div className="text-[10px] font-bold text-gray-700 mb-1">
-                Notes
-              </div>
-              <textarea
-                value={terms}
-                onChange={(e) => setTerms(e.target.value)}
-                rows={2}
-                placeholder="Thanks for your business."
-                className="w-full text-[10px] text-gray-600 bg-transparent border border-dashed border-gray-200 rounded p-1 focus:outline-none resize-none mb-3"
-              /> */}
+              {isReadOnly ? (
+                terms ? (
+                  <>
+                    <div className="text-[10px] font-bold text-gray-700 mb-1">
+                      Notes
+                    </div>
+                    <div className="text-[10px] text-gray-600 whitespace-pre-line leading-5 mb-3">
+                      {terms}
+                    </div>
+                  </>
+                ) : null
+              ) : (
+                <>
+                  <div className="text-[10px] font-bold text-gray-700 mb-1">
+                    Notes
+                  </div>
+                  <textarea
+                    value={terms}
+                    onChange={(e) => setTerms(e.target.value)}
+                    rows={2}
+                    placeholder="Thanks for your business."
+                    className="w-full text-[10px] text-gray-600 bg-transparent border border-dashed border-gray-200 rounded p-1 focus:outline-none resize-none mb-3"
+                  />
+                </>
+              )}
               <div className="text-[10px] font-bold text-gray-700 mb-1">
                 Bank Details:
               </div>
@@ -573,35 +630,38 @@ export function AKEnterpriseTemplate({
                     <span className="text-[10px] font-bold text-gray-600 w-[110px] shrink-0">
                       {lbl}
                     </span>
-                    <input
-                      value={val}
-                      onChange={(e) =>
-                        (setter as (v: string) => void)(e.target.value)
-                      }
-                      className="flex-1 bg-transparent border-0 focus:outline-none text-[10px] text-gray-700"
-                    />
+                    {isReadOnly ? (
+                      <span className="text-[10px] text-gray-700">{val || "—"}</span>
+                    ) : (
+                      <input
+                        value={val}
+                        onChange={(e) =>
+                          (setter as (v: string) => void)(e.target.value)
+                        }
+                        className="flex-1 bg-transparent border-0 focus:outline-none text-[10px] text-gray-700"
+                      />
+                    )}
                   </div>
                 ))}
               </div>
             </>
           ) : (
             <>
-              {/* <div className="text-[10px] font-bold text-gray-700 mb-1">
-                Notes
-              </div>
-              <textarea
-                value={terms}
-                onChange={(e) => setTerms(e.target.value)}
-                rows={3}
-                placeholder="Looking forward for your business."
-                className="w-full text-[10px] text-gray-600 bg-transparent border border-dashed border-gray-200 rounded p-1 focus:outline-none resize-none mb-3"
-              /> */}
               <div className="text-[10px] font-bold text-gray-700 mb-1">
                 Terms & Conditions
               </div>
-              <div className="text-[10px] text-gray-500 whitespace-pre-line leading-5">
-                {`1. Authorized work group\n2. GST 18% Extra\n3. Payment 100% Against Work Done .\n4. Warai /Mathadi & Any other Local Charges Extra`}
-              </div>
+              {isReadOnly ? (
+                <div className="text-[10px] text-gray-500 whitespace-pre-line leading-5">
+                  {terms}
+                </div>
+              ) : (
+                <textarea
+                  value={terms}
+                  onChange={(e) => setTerms(e.target.value)}
+                  rows={4}
+                  className="w-full text-[10px] text-gray-600 bg-transparent border border-dashed border-gray-200 rounded p-1 focus:outline-none resize-none leading-5"
+                />
+              )}
             </>
           )}
         </div>

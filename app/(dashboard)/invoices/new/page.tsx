@@ -50,6 +50,7 @@ function NewInvoiceContent() {
         totalAmount: subtotal,
         status: values.status || "unpaid",
         notes: values.terms || values.notes || null,
+        placeOfSupply: values.placeOfSupply || null,
         accountBankName: values.accountBankName || null,
         accountNumber: values.accountNumber || null,
         accountIfsc: values.accountIfsc || null,

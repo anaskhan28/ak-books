@@ -76,6 +76,7 @@ export default function InvoiceDetailClient({ invoice, clients }: Props) {
     initialClientName: invoice.clientName || "",
     initialClientBranch: invoice.clientBranch || "",
     initialClientGstin: invoice.clientGstin,
+    initialPlaceOfSupply: invoice.placeOfSupply,
     initialSubject: invoice.subject || "",
     initialNotes: invoice.notes || "",
     initialItems,
@@ -137,6 +138,7 @@ export default function InvoiceDetailClient({ invoice, clients }: Props) {
         subject: editor.subject || null,
         clientBranch: editor.clientBranch || null,
         notes: editor.terms || null,
+        placeOfSupply: editor.placeOfSupply || null,
         invoiceDate: editor.date,
         accountBankName: editor.accountBankName,
         accountNumber: editor.accountNumber,
@@ -322,6 +324,8 @@ export default function InvoiceDetailClient({ invoice, clients }: Props) {
             clientBranch={editor.clientBranch}
             setClientBranch={editor.setClientBranch}
             clientGstin={editor.clientGstin}
+            placeOfSupply={editor.placeOfSupply}
+            setPlaceOfSupply={editor.setPlaceOfSupply}
             date={editor.date}
             setDate={editor.setDate}
             subject={editor.subject}

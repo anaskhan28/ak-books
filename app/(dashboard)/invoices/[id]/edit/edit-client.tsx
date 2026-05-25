@@ -15,6 +15,7 @@ type Invoice = {
   dueDate: string | null;
   subject: string | null;
   notes: string | null;
+  placeOfSupply: string | null;
   accountBankName: string | null;
   accountNumber: string | null;
   accountIfsc: string | null;
@@ -42,6 +43,7 @@ export default function EditInvoiceClient({ invoice }: Props) {
     subject: invoice.subject || "",
     notes: invoice.notes || "",
     terms: invoice.notes || "",
+    placeOfSupply: invoice.placeOfSupply || "Maharashtra (27)",
     accountBankName: invoice.accountBankName || "",
     accountNumber: invoice.accountNumber || "",
     accountIfsc: invoice.accountIfsc || "",
@@ -79,6 +81,7 @@ export default function EditInvoiceClient({ invoice }: Props) {
         clientBranch: values.clientBranch || null,
         subject: values.subject || null,
         notes: values.terms || values.notes || null,
+        placeOfSupply: values.placeOfSupply || null,
         invoiceDate: values.date || undefined,
         dueDate: values.expiryDate || null,
         accountBankName: values.accountBankName || null,

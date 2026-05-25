@@ -14,6 +14,7 @@ type Quotation = {
   quotationDate: string | null;
   subject: string | null;
   notes: string | null;
+  placeOfSupply: string | null;
   status: string;
   showTotal: boolean;
   isComparative: boolean;
@@ -38,6 +39,7 @@ export default function EditQuotationClient({ quotation }: Props) {
     subject: quotation.subject || "",
     notes: quotation.notes || "",
     terms: quotation.notes || "",
+    placeOfSupply: quotation.placeOfSupply || "Maharashtra (27)",
     status: quotation.status,
     showTotal: quotation.showTotal,
     isComparative: quotation.isComparative,
@@ -72,6 +74,7 @@ export default function EditQuotationClient({ quotation }: Props) {
         clientBranch: values.clientBranch || null,
         subject: values.subject || null,
         notes: values.terms || values.notes || null,
+        placeOfSupply: values.placeOfSupply || null,
         quotationDate: values.date,
         status: values.status,
         showTotal: values.showTotal,
