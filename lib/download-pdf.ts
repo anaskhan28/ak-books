@@ -18,6 +18,7 @@ export interface DocumentPdfData {
   items: LineItem[];
   subtotal: number;
   terms: string;
+  showTotal?: boolean;
   accountInfo?: {
     bankName: string;
     accountNumber: string;
@@ -27,7 +28,7 @@ export interface DocumentPdfData {
   };
 }
 
-export async function generateAndDownloadPdf({
+export async function generatePdfBlob({
   mode,
   templateName,
   dbTemplate,
@@ -42,8 +43,9 @@ export async function generateAndDownloadPdf({
   items,
   subtotal,
   terms,
+  showTotal,
   accountInfo,
-}: DocumentPdfData) {
+}: DocumentPdfData): Promise<Blob> {
   const tplConfig = getTemplateConfig(templateName || undefined, dbTemplate);
   const finalAccountInfo = {
     bankName: accountInfo?.bankName || tplConfig.bank.bankName,
@@ -80,6 +82,7 @@ export async function generateAndDownloadPdf({
       subject,
       items,
       total: subtotal,
+      showTotal: showTotal ?? true,
       terms,
       accountInfo: mode === "invoice" ? finalAccountInfo : undefined,
       headerImageUrl: hdrB64,
@@ -101,6 +104,7 @@ export async function generateAndDownloadPdf({
       subject,
       items,
       total: subtotal,
+      showTotal: showTotal ?? true,
       terms,
       accountInfo: mode === "invoice" ? finalAccountInfo : undefined,
       headerImageUrl: hdrB64,
@@ -117,6 +121,7 @@ export async function generateAndDownloadPdf({
       subject,
       items,
       total: subtotal,
+      showTotal: showTotal ?? true,
       terms,
       accountInfo: mode === "invoice" ? finalAccountInfo : undefined,
       headerImageUrl: hdr,
@@ -133,6 +138,7 @@ export async function generateAndDownloadPdf({
       subject,
       items,
       total: subtotal,
+      showTotal: showTotal ?? true,
       terms,
       accountInfo: mode === "invoice" ? finalAccountInfo : undefined,
       headerImageUrl: hdr,
@@ -149,6 +155,7 @@ export async function generateAndDownloadPdf({
       subject,
       items,
       total: subtotal,
+      showTotal: showTotal ?? true,
       terms,
       accountInfo: mode === "invoice" ? finalAccountInfo : undefined,
       headerImageUrl: hdr,
@@ -166,6 +173,7 @@ export async function generateAndDownloadPdf({
       subject,
       items,
       total: subtotal,
+      showTotal: showTotal ?? true,
       notes: mode === "invoice" ? terms : undefined,
       terms: mode === "quotation" ? terms : undefined,
       accountInfo: mode === "invoice" ? finalAccountInfo : undefined,
@@ -185,8 +193,9 @@ export async function generateAndDownloadPdf({
       subject,
       items,
       total: subtotal,
+      showTotal: showTotal ?? true,
       terms,
-      accountInfo: mode === "invoice" ? accountInfo : undefined,
+      accountInfo: mode === "invoice" ? finalAccountInfo : undefined,
       headerImageUrl: hdr,
       signatureImageUrl: sig,
     });
@@ -201,8 +210,9 @@ export async function generateAndDownloadPdf({
       subject,
       items,
       subtotal,
+      showTotal: showTotal ?? true,
       terms,
-      accountInfo: mode === "invoice" ? accountInfo : undefined,
+      accountInfo: mode === "invoice" ? finalAccountInfo : undefined,
       headerImageUrl: hdr,
       signatureImageUrl: sig,
       primaryColor: tplConfig.primaryColor,
@@ -211,6 +221,33 @@ export async function generateAndDownloadPdf({
     });
   }
 
+  return blob;
+}
+
+export async function generateAndDownloadPdf(data: DocumentPdfData) {
+  const blob = await generatePdfBlob(data);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${data.filenamePrefix}.pdf`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export async function generateAndDownloadMergedPdf(documents: DocumentPdfData[], filenamePrefix: string) {
+  const { PDFDocument } = await import("pdf-lib");
+  const mergedPdf = await PDFDocument.create();
+
+  for (const docData of documents) {
+    const blob = await generatePdfBlob(docData);
+    const pdfBytes = await blob.arrayBuffer();
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+    copiedPages.forEach((page) => mergedPdf.addPage(page));
+  }
+
+  const mergedPdfFile = await mergedPdf.save();
+  const blob = new Blob([mergedPdfFile as any], { type: "application/pdf" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

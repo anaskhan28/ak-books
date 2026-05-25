@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 interface PageHeaderProps {
-  title: string;
+  title: string | ReactNode;
   subtitle?: string;
   action?: ReactNode;
 }
@@ -12,9 +12,13 @@ export default function PageHeader({
   action,
 }: PageHeaderProps) {
   return (
-    <div className="flex  flex-row items-center justify-between gap-3 mb-3 md:mb-6">
+    <div className="flex flex-row items-center justify-between gap-3 mb-3 md:mb-6">
       <div>
-        <h1 className="text-[22px] font-bold text-foreground">{title}</h1>
+        {typeof title === "string" ? (
+          <h1 className="text-[22px] font-bold text-foreground">{title}</h1>
+        ) : (
+          title
+        )}
         {subtitle && (
           <p className="hidden md:block text-[13px] text-muted mt-0.5">{subtitle}</p>
         )}

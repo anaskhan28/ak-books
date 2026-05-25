@@ -12,14 +12,42 @@ import {
   type NewQuotation,
   type NewQuotationItem,
 } from "@/app/db/schema";
-import { eq, desc, like, and, sql } from "drizzle-orm";
+import { eq, desc, like, and, sql, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth/guard";
 import { getTemplateConfig } from "@/lib/pdf-templates/registry";
 
 // ── Queries ──────────────────────────────────────────────────────────────────
 
-export async function getQuotations(templateId?: number) {
+export async function getQuotations(options?: {
+  templateId?: number;
+  status?: string;
+  page?: number;
+  limit?: number;
+  statuses?: string[];
+  all?: boolean;
+}) {
+  const templateId = options?.templateId;
+  const status = options?.status;
+  const page = options?.page ?? 1;
+  const limit = options?.limit ?? 25;
+  const offset = (page - 1) * limit;
+  const statuses = options?.statuses;
+  const all = options?.all ?? false;
+
+  const conditions = [];
+  if (templateId) {
+    conditions.push(eq(quotations.templateId, templateId));
+  }
+  if (status && status !== "all") {
+    conditions.push(eq(quotations.status, status.toLowerCase()));
+  }
+  if (statuses && statuses.length > 0) {
+    conditions.push(inArray(quotations.status, statuses.map(s => s.toLowerCase())));
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
   const query = db
     .select({
       id: quotations.id,
@@ -44,13 +72,40 @@ export async function getQuotations(templateId?: number) {
     .from(quotations)
     .leftJoin(clients, eq(quotations.clientId, clients.id))
     .leftJoin(projects, eq(quotations.projectId, projects.id))
-    .leftJoin(quotationTemplates, eq(quotations.templateId, quotationTemplates.id))
-    .orderBy(desc(quotations.createdAt)); // newest first
+    .leftJoin(quotationTemplates, eq(quotations.templateId, quotationTemplates.id));
 
-  if (templateId) {
-    return query.where(eq(quotations.templateId, templateId));
+  if (whereClause) {
+    query.where(whereClause);
   }
-  return query;
+
+  query.orderBy(desc(quotations.createdAt));
+
+  // If fetching all or fetching for invoices list selection, bypass pagination
+  if (all || (statuses && !options?.page)) {
+    const data = await query;
+    return {
+      data,
+      totalCount: data.length,
+    };
+  }
+
+  const countQuery = db
+    .select({ count: sql<number>`count(*)` })
+    .from(quotations);
+
+  if (whereClause) {
+    countQuery.where(whereClause);
+  }
+
+  const [data, [{ count: totalCount }]] = await Promise.all([
+    query.limit(limit).offset(offset),
+    countQuery,
+  ]);
+
+  return {
+    data,
+    totalCount: Number(totalCount),
+  };
 }
 
 /** Fetches quotation + items + template in a single round-trip (3 parallel queries) */

@@ -29,6 +29,10 @@ interface DocumentCardProps {
   onDownloadPDF?: () => void;
   isDownloading?: boolean;
   onRefresh?: () => void;
+  // Selection handlers
+  isSelected?: boolean;
+  onSelect?: () => void;
+  selectionMode?: boolean;
 }
 
 export default function DocumentCard({
@@ -38,15 +42,29 @@ export default function DocumentCard({
   onRecordPayment,
   onDownloadPDF,
   isDownloading,
-  onRefresh
+  onRefresh,
+  isSelected,
+  onSelect,
+  selectionMode,
 }: DocumentCardProps) {
   const href = `/${mode === "quotation" ? "quotations" : "invoices"}/${data.id}`;
 
   return (
-    <div className="relative border-b border-border/60">
+    <div className={`relative transition-all duration-150 border-b border-border/60 ${
+      selectionMode && isSelected 
+        ? "border-2 border-primary rounded-xl p-3 my-2 mx-1 shadow-sm bg-blue-50/5" 
+        : "p-0"
+    }`}>
       <Link
         href={href}
-        className="block bg-white py-2 active:bg-primary-light/10 transition-all active:scale-[0.98]"
+        onClick={(e) => {
+          if (selectionMode) {
+            e.preventDefault();
+            e.stopPropagation();
+            onSelect?.();
+          }
+        }}
+        className="block bg-transparent py-2 active:bg-primary-light/5 transition-all active:scale-[0.98]"
       >
         <div className="flex justify-between items-start">
           <div className="flex-1 min-w-0">
@@ -117,25 +135,46 @@ export default function DocumentCard({
         </div>
       </Link>
 
-      {/* Actions Button - Positioned absolutely to avoid Link trigger */}
+      {/* Actions Button or Selection Circle - Positioned absolutely to avoid Link trigger */}
       <div className="absolute right-0 bottom-[10px] z-10">
-        {mode === "quotation" ? (
-          <QuotationRowActions
-            quotationId={data.id}
-            status={data.status}
-            onDelete={() => onDelete(null as any, data.id)}
-            onRefresh={onRefresh}
-          />
+        {selectionMode ? (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onSelect?.();
+            }}
+            className="p-2 cursor-pointer outline-none select-none"
+          >
+            {isSelected ? (
+              <div className="w-5.5 h-5.5 rounded-full bg-primary flex items-center justify-center text-white border border-primary shadow-sm">
+                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            ) : (
+              <div className="w-5.5 h-5.5 rounded-full border-2 border-slate-300 bg-white" />
+            )}
+          </button>
         ) : (
-          <InvoiceRowActions
-            invoiceId={data.id}
-            status={data.status}
-            isDownloading={isDownloading}
-            onDelete={() => onDelete(null as any, data.id)}
-            onRecordPayment={onRecordPayment || (() => { })}
-            onDownloadPDF={onDownloadPDF || (() => { })}
-            onRefresh={onRefresh}
-          />
+          mode === "quotation" ? (
+            <QuotationRowActions
+              quotationId={data.id}
+              status={data.status}
+              onDelete={() => onDelete(null as any, data.id)}
+              onRefresh={onRefresh}
+            />
+          ) : (
+            <InvoiceRowActions
+              invoiceId={data.id}
+              status={data.status}
+              isDownloading={isDownloading}
+              onDelete={() => onDelete(null as any, data.id)}
+              onRecordPayment={onRecordPayment || (() => { })}
+              onDownloadPDF={onDownloadPDF || (() => { })}
+              onRefresh={onRefresh}
+            />
+          )
         )}
       </div>
     </div>

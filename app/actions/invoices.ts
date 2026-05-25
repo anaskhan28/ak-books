@@ -66,8 +66,26 @@ function revalidateInvoices(id?: number) {
 
 // ── Queries ──────────────────────────────────────────────────────────────────
 
-export async function getInvoices() {
-  return db
+export async function getInvoices(options?: {
+  status?: string;
+  page?: number;
+  limit?: number;
+  all?: boolean;
+}) {
+  const status = options?.status;
+  const page = options?.page ?? 1;
+  const limit = options?.limit ?? 25;
+  const offset = (page - 1) * limit;
+  const all = options?.all ?? false;
+
+  const conditions = [];
+  if (status && status !== "all") {
+    conditions.push(eq(invoices.status, status.toLowerCase()));
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const query = db
     .select({
       id: invoices.id,
       quotationId: invoices.quotationId,
@@ -88,8 +106,39 @@ export async function getInvoices() {
     })
     .from(invoices)
     .leftJoin(quotations, eq(invoices.quotationId, quotations.id))
-    .leftJoin(clients, eq(invoices.clientId, clients.id))
-    .orderBy(desc(invoices.createdAt));
+    .leftJoin(clients, eq(invoices.clientId, clients.id));
+
+  if (whereClause) {
+    query.where(whereClause);
+  }
+
+  query.orderBy(desc(invoices.createdAt));
+
+  if (all) {
+    const data = await query;
+    return {
+      data,
+      totalCount: data.length,
+    };
+  }
+
+  const countQuery = db
+    .select({ count: sql<number>`count(*)` })
+    .from(invoices);
+
+  if (whereClause) {
+    countQuery.where(whereClause);
+  }
+
+  const [data, [{ count: totalCount }]] = await Promise.all([
+    query.limit(limit).offset(offset),
+    countQuery,
+  ]);
+
+  return {
+    data,
+    totalCount: Number(totalCount),
+  };
 }
 
 /** Single optimized fetch: invoice + items + payments + template in parallel */

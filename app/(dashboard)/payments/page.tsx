@@ -8,9 +8,9 @@ export const metadata = {
 };
 
 export default async function PaymentsPage() {
-  const [paymentList, allInvoices] = await Promise.all([
+  const [paymentList, { data: allInvoices }] = await Promise.all([
     getPayments(),
-    getInvoices(),
+    getInvoices({ all: true }),
   ]);
 
   return (
