@@ -50,6 +50,7 @@ interface InvoicesClientProps {
   currentPage: number;
   limit: number;
   activeStatus: string;
+  activeTemplateId: string;
 }
 
 const STATUSES = [
@@ -78,11 +79,12 @@ export default function InvoicesClient({
   currentPage,
   limit,
   activeStatus,
+  activeTemplateId,
 }: InvoicesClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  function updateParams(newParams: { page?: number; limit?: number; status?: string }) {
+  function updateParams(newParams: { page?: number; limit?: number; status?: string; template?: string }) {
     const params = new URLSearchParams(searchParams.toString());
     if (newParams.page !== undefined) params.set("page", String(newParams.page));
     else params.delete("page");
@@ -90,6 +92,10 @@ export default function InvoicesClient({
     if (newParams.limit !== undefined) params.set("limit", String(newParams.limit));
     if (newParams.status !== undefined) {
       params.set("status", newParams.status);
+      params.set("page", "1");
+    }
+    if (newParams.template !== undefined) {
+      params.set("template", newParams.template);
       params.set("page", "1");
     }
     router.push(`?${params.toString()}`);
@@ -443,6 +449,51 @@ export default function InvoicesClient({
         </div>
       )}
 
+      {/* Template Tabs - Scrollable on mobile, bordered on desktop */}
+      <div className="flex items-center gap-1 pt-1 md:pt-0 mb-0 md:mb-5 overflow-x-auto md:overflow-x-visible custom-scrollbar-hide md:border-b border-border pb-0 whitespace-nowrap">
+        <div className="flex items-center gap-1 min-w-max md:min-w-0">
+          <button
+            onClick={() => updateParams({ template: "all" })}
+            className={`px-2 py-1.5 text-[13px] font-bold border-b-2 whitespace-nowrap transition-all cursor-pointer ${activeTemplateId === "all"
+              ? "text-primary border-primary"
+              : "text-muted border-transparent hover:text-foreground"
+              }`}
+          >
+            All ({totalCount})
+          </button>
+          
+          <button
+            onClick={() => updateParams({ template: "10" })}
+            className={`px-2 py-1.5 text-[13px] font-bold border-b-2 whitespace-nowrap transition-all cursor-pointer ${activeTemplateId === "10"
+              ? "text-primary border-primary"
+              : "text-muted border-transparent hover:text-foreground"
+              }`}
+          >
+            AK Enterprises
+          </button>
+
+          <button
+            onClick={() => updateParams({ template: "3" })}
+            className={`px-2 py-1.5 text-[13px] font-bold border-b-2 whitespace-nowrap transition-all cursor-pointer ${activeTemplateId === "3"
+              ? "text-primary border-primary"
+              : "text-muted border-transparent hover:text-foreground"
+              }`}
+          >
+            Anas Khan Merchant
+          </button>
+
+          <button
+            onClick={() => updateParams({ template: "4" })}
+            className={`px-2 py-1.5 text-[13px] font-bold border-b-2 whitespace-nowrap transition-all cursor-pointer ${activeTemplateId === "4"
+              ? "text-primary border-primary"
+              : "text-muted border-transparent hover:text-foreground"
+              }`}
+          >
+            Atique Khan
+          </button>
+        </div>
+      </div>
+
       {/* ── Invoice Table & Cards ── */}
       {invoiceList.length === 0 && !showGenerate ? (
         <EmptyState
@@ -465,7 +516,7 @@ export default function InvoicesClient({
                   onRefresh={() => router.refresh()}
                   isSelected={selectedIds.includes(inv.id)}
                   onSelect={() => toggleSelect(inv.id)}
-                  selectionMode={true}
+                  selectionMode={selectedIds.length > 0}
                   data={{
                     ...inv,
                     number: inv.invoiceNumber,

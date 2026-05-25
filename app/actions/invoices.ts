@@ -71,16 +71,21 @@ export async function getInvoices(options?: {
   page?: number;
   limit?: number;
   all?: boolean;
+  templateId?: string;
 }) {
   const status = options?.status;
   const page = options?.page ?? 1;
   const limit = options?.limit ?? 25;
   const offset = (page - 1) * limit;
   const all = options?.all ?? false;
+  const templateId = options?.templateId;
 
   const conditions = [];
   if (status && status !== "all") {
     conditions.push(eq(invoices.status, status.toLowerCase()));
+  }
+  if (templateId && templateId !== "all") {
+    conditions.push(eq(invoices.templateId, Number(templateId)));
   }
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;

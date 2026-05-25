@@ -515,7 +515,7 @@ export default function QuotationsClient({
                 onDownloadPDF={() => handleDownloadPDF(q.id)}
                 isSelected={selectedIds.includes(q.id)}
                 onSelect={() => toggleSelect(q.id)}
-                selectionMode={true}
+                selectionMode={selectedIds.length > 0}
               />
             ))}
           </div>

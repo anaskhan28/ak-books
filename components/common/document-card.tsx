@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import Link from "next/link";
 import StatusBadge from "@/components/ui/status-badge";
 import { formatINR, formatDateDMY } from "@/lib/utils";
@@ -48,6 +49,28 @@ export default function DocumentCard({
   selectionMode,
 }: DocumentCardProps) {
   const href = `/${mode === "quotation" ? "quotations" : "invoices"}/${data.id}`;
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const isLongPress = useRef(false);
+
+  const startPress = (e: React.MouseEvent | React.TouchEvent) => {
+    if ("button" in e && e.button !== 0) return;
+    isLongPress.current = false;
+    timerRef.current = setTimeout(() => {
+      isLongPress.current = true;
+      onSelect?.();
+      
+      if (typeof window !== "undefined" && window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(50);
+      }
+    }, 600);
+  };
+
+  const endPress = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  };
 
   return (
     <div className={`relative transition-all duration-150 border-b border-border/60 ${
@@ -58,12 +81,21 @@ export default function DocumentCard({
       <Link
         href={href}
         onClick={(e) => {
-          if (selectionMode) {
+          if (selectionMode || isLongPress.current) {
             e.preventDefault();
             e.stopPropagation();
-            onSelect?.();
+            if (selectionMode && !isLongPress.current) {
+              onSelect?.();
+            }
           }
         }}
+        onMouseDown={startPress}
+        onMouseUp={endPress}
+        onMouseLeave={endPress}
+        onMouseMove={endPress}
+        onTouchStart={startPress}
+        onTouchEnd={endPress}
+        onTouchMove={endPress}
         className="block bg-transparent py-2 active:bg-primary-light/5 transition-all active:scale-[0.98]"
       >
         <div className="flex justify-between items-start">

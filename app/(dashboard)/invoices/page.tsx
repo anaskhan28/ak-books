@@ -7,6 +7,7 @@ interface PageProps {
     page?: string;
     limit?: string;
     status?: string;
+    template?: string;
   }>;
 }
 
@@ -15,6 +16,7 @@ export default async function InvoicesPage({ searchParams }: PageProps) {
   const page = params.page ? parseInt(params.page, 10) : 1;
   const limit = params.limit ? parseInt(params.limit, 10) : 25;
   const status = params.status || "all";
+  const template = params.template || "all";
 
   const [
     { data: invoices, totalCount },
@@ -24,6 +26,7 @@ export default async function InvoicesPage({ searchParams }: PageProps) {
       page,
       limit,
       status,
+      templateId: template,
     }),
     getQuotations({
       statuses: ["accepted", "sent"],
@@ -38,6 +41,7 @@ export default async function InvoicesPage({ searchParams }: PageProps) {
       currentPage={page}
       limit={limit}
       activeStatus={status}
+      activeTemplateId={template}
     />
   );
 }
