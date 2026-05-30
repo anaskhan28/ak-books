@@ -82,7 +82,13 @@ export async function getInvoices(options?: {
 
   const conditions = [];
   if (status && status !== "all") {
-    conditions.push(eq(invoices.status, status.toLowerCase()));
+    if (status.toLowerCase() === "overdue") {
+      const todayStr = new Date().toISOString().split("T")[0];
+      conditions.push(sql`${invoices.status} NOT IN ('paid', 'cancelled')`);
+      conditions.push(sql`${invoices.dueDate} < ${todayStr}::date`);
+    } else {
+      conditions.push(eq(invoices.status, status.toLowerCase()));
+    }
   }
   if (templateId && templateId !== "all") {
     conditions.push(eq(invoices.templateId, Number(templateId)));

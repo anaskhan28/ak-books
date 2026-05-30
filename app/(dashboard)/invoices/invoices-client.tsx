@@ -56,6 +56,7 @@ interface InvoicesClientProps {
 const STATUSES = [
   { value: "all", label: "All Invoices" },
   { value: "unpaid", label: "Unpaid" },
+  { value: "overdue", label: "Overdue" },
   { value: "paid", label: "Paid" },
   { value: "cancelled", label: "Cancelled" },
 ];

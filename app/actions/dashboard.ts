@@ -46,16 +46,27 @@ export async function getDashboardStats() {
     db.select({ total: sum(expenses.amount) }).from(expenses),
     db.select({ total: sum(invoices.totalAmount) }).from(invoices),
     // Only fetch unpaid invoices (not ALL invoices) for receivable calculations
-    db.select({ totalAmount: invoices.totalAmount, status: invoices.status })
+    db.select({ totalAmount: invoices.totalAmount, status: invoices.status, dueDate: invoices.dueDate })
       .from(invoices)
       .where(sql`${invoices.status} NOT IN ('paid', 'cancelled')`),
   ]);
 
   const totalReceivables = unpaidInvoices.reduce((s, inv) => s + Number(inv.totalAmount || 0), 0);
   const unpaidInvoicesCount = unpaidInvoices.length;
-  const overdueInvoicesCount = unpaidInvoices.filter((i) => i.status === "overdue").length;
+
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
+
+  const isOverdue = (dueDateStr: string | null) => {
+    if (!dueDateStr) return false;
+    const due = new Date(dueDateStr);
+    due.setHours(0, 0, 0, 0);
+    return due.getTime() < todayDate.getTime();
+  };
+
+  const overdueInvoicesCount = unpaidInvoices.filter((i) => isOverdue(i.dueDate)).length;
   const overdueInvoicesAmount = unpaidInvoices
-    .filter((i) => i.status === "overdue")
+    .filter((i) => isOverdue(i.dueDate))
     .reduce((s, inv) => s + Number(inv.totalAmount || 0), 0);
 
   return {
