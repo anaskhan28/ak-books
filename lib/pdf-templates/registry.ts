@@ -17,13 +17,15 @@ export interface TemplateConfig {
     | "kgn"
     | "energy"
     | "vijay"
-    | "ak-enterprises";
+    | "ak-enterprises"
+    | "axiom";
   prefix: string;
   invoicePrefix: string;
   bank: BankDefaults;
   displayName: string;
   primaryColor?: string;
   secondaryColor?: string;
+  terms?: string;
 }
 
 import type { QuotationTemplate } from "@/app/db/schema";
@@ -98,6 +100,16 @@ const PRESETS: Record<string, Omit<TemplateConfig, "bank">> = {
     prefix: "QT-AK/26-27/",
     invoicePrefix: "AK/26-27/",
   },
+  "axiom": {
+    displayName: "Axiom Spaceworks",
+    headerImage: "https://res.cloudinary.com/anaskhan/image/upload/v1788841702/templates/axiom_spaceworks_fwxj2z.png",
+    signatureImage: "https://res.cloudinary.com/anaskhan/image/upload/v1788841778/templates/axiom_businesses_ig0vp0.png",
+    generator: "axiom",
+    prefix: "QT-AXM",
+    invoicePrefix: "INV-AXM",
+    terms:
+      "1. Quotation valid for 15 days.\n2. GST extra as applicable.\n3. 100% payment upon completion, unless agreed otherwise.\n4. Additional work beyond the quoted scope will be charged extra.",
+  }
 };
 
 const EMPTY_BANK: BankDefaults = { bankName: "", accountNumber: "", ifsc: "", accountHolder: "", pan: "" };
@@ -116,7 +128,7 @@ export function getTemplateConfig(
     basePreset = PRESETS[dbTemplate.layoutPreset];
   } else if (templateName) {
     const normalized = templateName.toLowerCase().trim();
-    const match = Object.entries(PRESETS).find(([key]) => 
+    const match = Object.entries(PRESETS).find(([key]) =>
       normalized.includes(key) || key.includes(normalized)
     );
     if (match) basePreset = match[1];
@@ -132,6 +144,7 @@ export function getTemplateConfig(
       invoicePrefix: dbTemplate.invoicePrefix || basePreset.invoicePrefix,
       primaryColor: dbTemplate.primaryColor || basePreset.primaryColor,
       secondaryColor: dbTemplate.secondaryColor || basePreset.secondaryColor,
+      terms: dbTemplate.terms || basePreset.terms,
       bank: {
         bankName: dbTemplate.bankName || "",
         accountNumber: dbTemplate.accountNumber || "",

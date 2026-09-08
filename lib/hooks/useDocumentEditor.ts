@@ -58,6 +58,7 @@ export function useDocumentEditor({
   const isENERGY = tplConfig.generator === "energy";
   const isVIJAY = tplConfig.generator === "vijay";
   const isAKE = tplConfig.generator === "ak-enterprises";
+  const isAXIOM = tplConfig.generator === "axiom";
 
   const tableRef = useRef<HTMLTableElement>(null);
 
@@ -83,7 +84,7 @@ export function useDocumentEditor({
   );
   const [accountPan, setAccountPan] = useState(initialAccount.pan);
 
-  const emptyRowCount = isMADHU ? MADHU_EMPTY_ROWS : (isAKE ? 1 : EMPTY_ROWS);
+  const emptyRowCount = isMADHU ? MADHU_EMPTY_ROWS : (isAKE || isAXIOM ? 1 : EMPTY_ROWS);
   const padded: LineItem[] = [
     ...initialItems,
     ...Array.from(
@@ -334,6 +335,25 @@ export function useDocumentEditor({
         accountInfo: (mode === "invoice" || mode === "credit_note") ? acct : undefined,
         headerImageUrl: hdr,
         signatureImageUrl: sig,
+      });
+    } else if (tplConfig.generator === "axiom") {
+      const { generateAxiomPdf } =
+        await import("@/lib/pdf-templates/axiom-spaceworks");
+      blob = await generateAxiomPdf({
+        type: mode,
+        number: docNumberOverride,
+        date,
+        clientName,
+        clientBranch,
+        subject,
+        items: printItems,
+        total: subtotal,
+        showTotal,
+        terms,
+        accountInfo: (mode === "invoice" || mode === "credit_note") ? acct : undefined,
+        headerImageUrl: hdr,
+        signatureImageUrl: sig,
+        primaryColor: tplConfig.primaryColor,
       });
     } else {
       const { generateAKMPdf } =

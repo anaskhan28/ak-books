@@ -67,13 +67,17 @@ export default function QuotationDetailClient({ quotation, clients }: Props) {
   }));
 
   const defaultTerms =
-    tplConfig.generator === "madhu"
-      ? quotation.notes || "GST(18%) is Extra."
-      : tplConfig.generator === "atk"
-        ? quotation.notes ||
-        "1. Authorized work group\n2. Payment 100% Against Work Done .\n3. 18% GST Included"
-        : quotation.notes ||
-        "Payment 100% Against Work Done.\n18% GST Included";
+    tplConfig.generator === "axiom"
+      ? (quotation.notes && !quotation.notes.includes("Authorized work group") && !quotation.notes.includes("Payment 100% Against Work Done")
+          ? quotation.notes
+          : (tplConfig.terms || "1. Quotation valid for 15 days.\n2. GST extra as applicable.\n3. 100% payment upon completion, unless agreed otherwise.\n4. Additional work beyond the quoted scope will be charged extra."))
+      : tplConfig.generator === "madhu"
+        ? quotation.notes || "GST(18%) is Extra."
+        : tplConfig.generator === "atk"
+          ? quotation.notes ||
+          "1. Authorized work group\n2. Payment 100% Against Work Done .\n3. 18% GST Included"
+          : quotation.notes ||
+          "Payment 100% Against Work Done.\n18% GST Included";
 
   const editor = useDocumentEditor({
     mode: "quotation",

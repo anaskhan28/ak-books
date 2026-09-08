@@ -199,6 +199,24 @@ export async function generatePdfBlob({
       headerImageUrl: hdr,
       signatureImageUrl: sig,
     });
+  } else if (tplConfig.generator === "axiom") {
+    const { generateAxiomPdf } = await import("@/lib/pdf-templates/axiom-spaceworks");
+    blob = await generateAxiomPdf({
+      type: mode,
+      number: docNumber,
+      date,
+      clientName,
+      clientBranch,
+      subject,
+      items,
+      total: subtotal,
+      showTotal: showTotal ?? true,
+      terms,
+      accountInfo: (mode === "invoice" || mode === "credit_note") ? finalAccountInfo : undefined,
+      headerImageUrl: hdr,
+      signatureImageUrl: sig,
+      primaryColor: tplConfig.primaryColor,
+    });
   } else {
     const { generateAKMPdf } = await import("@/lib/pdf-templates/anas-khan-merchant");
     blob = await generateAKMPdf({

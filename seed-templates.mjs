@@ -50,6 +50,25 @@ const templates = [
     subject_prefix: "Subject :",
     terms:
       "1. Authorized work group\n2. GST 18% Extra\n3. Payment 100% Against Work Done .\n4. Warai /Mathadi & Any other Local Charges Extra",
+    layout_preset: "ak-enterprises",
+  },
+  {
+    name: "Axiom Spaceworks",
+    company_name: "Axiom Spaceworks",
+    address:
+      "Shop No. 35, Star Market, Phase 2, Opp. New Ekta Weigh Bridge, Dahisar, Thane – 400612",
+    phone: "+91 89289 63329",
+    email: "businessesaxiom@gmail.com",
+    subject_prefix: "QT-AXM",
+    invoice_prefix: "INV-AXM",
+    terms:
+      "1. Quotation valid for 15 days.\n2. GST extra as applicable.\n3. 100% payment upon completion, unless agreed otherwise.\n4. Additional work beyond the quoted scope will be charged extra.",
+    header_image:
+      "https://res.cloudinary.com/anaskhan/image/upload/v1788841702/templates/axiom_spaceworks_fwxj2z.png",
+    signature_image:
+      "https://res.cloudinary.com/anaskhan/image/upload/v1788841778/templates/axiom_businesses_ig0vp0.png",
+    primary_color: "#8a004c",
+    layout_preset: "axiom",
   },
 ];
 
@@ -64,7 +83,7 @@ for (const tpl of templates) {
   } else {
     const inserted = await sql`
       INSERT INTO quotation_templates
-        (name, company_name, address, phone, email, subject_prefix, terms)
+        (name, company_name, address, phone, email, subject_prefix, invoice_prefix, terms, header_image, signature_image, primary_color, layout_preset)
       VALUES
         (
           ${tpl.name},
@@ -73,7 +92,12 @@ for (const tpl of templates) {
           ${tpl.phone},
           ${tpl.email},
           ${tpl.subject_prefix},
-          ${tpl.terms}
+          ${tpl.invoice_prefix || 'INV-'},
+          ${tpl.terms},
+          ${tpl.header_image || null},
+          ${tpl.signature_image || null},
+          ${tpl.primary_color || null},
+          ${tpl.layout_preset || null}
         )
       RETURNING *
     `;

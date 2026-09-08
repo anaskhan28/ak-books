@@ -7,6 +7,8 @@ import { AKMTemplate } from "./templates/AkmTemplate";
 import { EnergyTemplate } from "./templates/EnergyTemplate";
 import { VijayTemplate } from "./templates/VijayTemplate";
 import { AKEnterpriseTemplate } from "./templates/AkEnterprisesTemplate";
+import { AxiomTemplate } from "./templates/AxiomTemplate";
+
 interface TemplateRendererProps extends TemplateProps {
   generator: string;
 
@@ -33,6 +35,8 @@ export function TemplateRenderer({
       return <VijayTemplate {...props} />;
     case "ak-enterprises":
       return <AKEnterpriseTemplate {...props} />;
+    case "axiom":
+      return <AxiomTemplate {...props} />;
     default:
       return <AKMTemplate {...props} />;
   }

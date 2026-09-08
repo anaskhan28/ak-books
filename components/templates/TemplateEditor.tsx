@@ -40,6 +40,7 @@ import { KGNTemplate } from "@/components/document/templates/KgnTemplate";
 import { EnergyTemplate } from "@/components/document/templates/EnergyTemplate";
 import { VijayTemplate } from "@/components/document/templates/VijayTemplate";
 import { AKEnterpriseTemplate } from "@/components/document/templates/AkEnterprisesTemplate";
+import { AxiomTemplate } from "@/components/document/templates/AxiomTemplate";
 
 interface TemplateEditorProps {
   initialData?: QuotationTemplate;
@@ -101,6 +102,13 @@ const PRESETS = [
     description: "Premium large-scale business layout",
     defaultPrimary: "#0066FF",
     defaultSecondary: "#333333"
+  },
+  {
+    id: "axiom",
+    name: "Axiom Spaceworks",
+    description: "Modern plum/magenta corporate layout",
+    defaultPrimary: "#8a004c",
+    defaultSecondary: "#4b5563"
   },
 ];
 
@@ -224,6 +232,7 @@ export default function TemplateEditor({ initialData }: TemplateEditorProps) {
       case "energy": return <EnergyTemplate {...mockTemplateProps} />;
       case "vijay": return <VijayTemplate {...mockTemplateProps} />;
       case "ak-enterprises": return <AKEnterpriseTemplate {...mockTemplateProps} />;
+      case "axiom": return <AxiomTemplate {...mockTemplateProps} />;
       default: return <AKMTemplate {...mockTemplateProps} />;
     }
   };

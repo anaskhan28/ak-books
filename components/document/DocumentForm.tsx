@@ -327,7 +327,8 @@ export function DocumentForm({
     }
 
     const cfg = getTemplateConfig(tpl.name, tpl);
-    if (tpl.terms && !initialValues?.terms) setTerms(tpl.terms);
+    const effectiveTerms = tpl.terms || cfg.terms;
+    if (effectiveTerms && !initialValues?.terms) setTerms(effectiveTerms);
     if (cfg.bank) {
       if (!initialValues?.accountBankName)
         setAccountBankName(cfg.bank.bankName ?? "");
