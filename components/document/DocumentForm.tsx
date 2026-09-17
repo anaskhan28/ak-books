@@ -313,33 +313,73 @@ export function DocumentForm({
     }
   }, [matchedClient]);
 
-  // Sync template defaults when template changes
+  const handleTemplateChange = (newId: number | null) => {
+    setTemplateId(newId);
+    if (!newId) return;
+
+    const tpl = templates.find((t) => t.id === newId);
+    if (!tpl) return;
+
+    const cfg = getTemplateConfig(tpl.name, tpl);
+
+    // 1. Update Terms & Conditions to selected template's terms
+    const effectiveTerms = tpl.terms || cfg.terms || "";
+    setTerms(effectiveTerms);
+
+    // 2. Update Document / Quote Number
+    const isOriginalTemplate = newId === initialValues?.templateId;
+    const originalDocNumber = initialValues?.docNumber?.trim();
+    const templatePrefix = (tpl.subjectPrefix || cfg.prefix || "").trim();
+
+    // If switching back to the initial template AND the original number matches this template's prefix:
+    if (
+      isOriginalTemplate &&
+      originalDocNumber &&
+      templatePrefix &&
+      originalDocNumber.toLowerCase().startsWith(templatePrefix.toLowerCase())
+    ) {
+      setDocNumber(originalDocNumber);
+    } else {
+      getNextDocumentNumber(tpl.id, mode).then((nextNum) => {
+        if (nextNum) setDocNumber(nextNum);
+      });
+    }
+
+    // 3. Update Bank Details if available in the template
+    if (cfg.bank) {
+      setAccountBankName(cfg.bank.bankName ?? "");
+      setAccountNumber(cfg.bank.accountNumber ?? "");
+      setAccountIfsc(cfg.bank.ifsc ?? "");
+      setAccountHolder(cfg.bank.accountHolder ?? "");
+      setAccountPan(cfg.bank.pan ?? "");
+    }
+  };
+
+  // On mount for new documents with a preselected template, populate defaults once templates are loaded
   useEffect(() => {
+    if (isEdit || !templateId || templates.length === 0) return;
     const tpl = templates.find((t) => t.id === templateId);
     if (!tpl) return;
 
-    // Fetch next number only if it's a new document or the template has changed
-    const isInitialTemplate = templateId === initialValues?.templateId;
-    const hasInitialNumber = !!initialValues?.docNumber;
-
-    if (!hasInitialNumber || !isInitialTemplate) {
-      getNextDocumentNumber(tpl.id, mode).then(setDocNumber);
-    }
-
     const cfg = getTemplateConfig(tpl.name, tpl);
     const effectiveTerms = tpl.terms || cfg.terms;
-    if (effectiveTerms && !initialValues?.terms) setTerms(effectiveTerms);
-    if (cfg.bank) {
-      if (!initialValues?.accountBankName)
-        setAccountBankName(cfg.bank.bankName ?? "");
-      if (!initialValues?.accountNumber)
-        setAccountNumber(cfg.bank.accountNumber ?? "");
-      if (!initialValues?.accountIfsc) setAccountIfsc(cfg.bank.ifsc ?? "");
-      if (!initialValues?.accountHolder)
-        setAccountHolder(cfg.bank.accountHolder ?? "");
-      if (!initialValues?.accountPan) setAccountPan(cfg.bank.pan ?? "");
+
+    if (!docNumber) {
+      getNextDocumentNumber(tpl.id, mode).then((nextNum) => {
+        if (nextNum) setDocNumber(nextNum);
+      });
     }
-  }, [templateId, templates, isInvoice]);
+    if (effectiveTerms && (!terms || terms === "Looking forward for your business." || terms === "Thanks for your business.")) {
+      setTerms(effectiveTerms);
+    }
+    if (cfg.bank) {
+      if (!accountBankName) setAccountBankName(cfg.bank.bankName ?? "");
+      if (!accountNumber) setAccountNumber(cfg.bank.accountNumber ?? "");
+      if (!accountIfsc) setAccountIfsc(cfg.bank.ifsc ?? "");
+      if (!accountHolder) setAccountHolder(cfg.bank.accountHolder ?? "");
+      if (!accountPan) setAccountPan(cfg.bank.pan ?? "");
+    }
+  }, [templates, templateId, isEdit]);
 
   // Computed
   const subtotal = items.reduce((s, i) => s + i.amount, 0);
@@ -600,7 +640,7 @@ export function DocumentForm({
           <FieldRow label="Template" required>
             <Select
               value={templateId?.toString() ?? ""}
-              onValueChange={(val) => setTemplateId(val ? Number(val) : null)}
+              onValueChange={(val) => handleTemplateChange(val ? Number(val) : null)}
             >
               <SelectTrigger className="w-full px-3 py-2 h-auto text-[14px] border-border rounded-xl bg-white">
                 <SelectValue placeholder="Select a template" />

@@ -16,7 +16,7 @@ import {
   type NewQuotation,
   type NewQuotationItem,
 } from "@/app/db/schema";
-import { eq, desc, like, and, sql, inArray } from "drizzle-orm";
+import { eq, desc, like, ilike, and, sql, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth/guard";
 import { getTemplateConfig } from "@/lib/pdf-templates/registry";
@@ -210,49 +210,49 @@ export async function getNextDocumentNumber(templateId: number | null, isInvoice
     existing = await db
       .select({ num: invoices.invoiceNumber })
       .from(invoices)
-      .where(like(invoices.invoiceNumber, `${prefix}%`))
+      .where(ilike(invoices.invoiceNumber, `${prefix}%`))
       .orderBy(desc(invoices.id))
       .limit(50);
   } else if (mode === "sales_order") {
     existing = await db
       .select({ num: salesOrders.orderNumber })
       .from(salesOrders)
-      .where(like(salesOrders.orderNumber, `${prefix}%`))
+      .where(ilike(salesOrders.orderNumber, `${prefix}%`))
       .orderBy(desc(salesOrders.id))
       .limit(50);
   } else if (mode === "delivery_challan") {
     existing = await db
       .select({ num: deliveryChallans.challanNumber })
       .from(deliveryChallans)
-      .where(like(deliveryChallans.challanNumber, `${prefix}%`))
+      .where(ilike(deliveryChallans.challanNumber, `${prefix}%`))
       .orderBy(desc(deliveryChallans.id))
       .limit(50);
   } else if (mode === "eway_bill") {
     existing = await db
       .select({ num: ewayBills.ewayBillNumber })
       .from(ewayBills)
-      .where(like(ewayBills.ewayBillNumber, `${prefix}%`))
+      .where(ilike(ewayBills.ewayBillNumber, `${prefix}%`))
       .orderBy(desc(ewayBills.id))
       .limit(50);
   } else if (mode === "credit_note") {
     existing = await db
       .select({ num: creditNotes.creditNoteNumber })
       .from(creditNotes)
-      .where(like(creditNotes.creditNoteNumber, `${prefix}%`))
+      .where(ilike(creditNotes.creditNoteNumber, `${prefix}%`))
       .orderBy(desc(creditNotes.id))
       .limit(50);
   } else {
     existing = await db
       .select({ num: quotations.quotationNumber })
       .from(quotations)
-      .where(like(quotations.quotationNumber, `${prefix}%`))
+      .where(ilike(quotations.quotationNumber, `${prefix}%`))
       .orderBy(desc(quotations.id))
       .limit(50);
   }
 
   let nextSeq = 1;
   const escaped = prefix.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-  const regex = new RegExp(`${escaped}-(\\d+)`);
+  const regex = new RegExp(`${escaped}-(\\d+)`, "i");
 
   for (const row of existing) {
     const match = row.num.match(regex);

@@ -81,7 +81,7 @@ const PRESETS: Record<string, Omit<TemplateConfig, "bank">> = {
     headerImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784331/templates/energy.jpg",
     signatureImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784330/templates/energy-sign.png",
     generator: "energy",
-    prefix: "Qt-Energy",
+    prefix: "QT-ENERGY",
     invoicePrefix: "INV-Energy",
   },
   "vijay": {
@@ -89,7 +89,7 @@ const PRESETS: Record<string, Omit<TemplateConfig, "bank">> = {
     headerImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784346/templates/vijay.png",
     signatureImage: "https://res.cloudinary.com/anaskhan/image/upload/v1776784345/templates/vijay-sign.png",
     generator: "vijay",
-    prefix: "Qt-Vijay",
+    prefix: "QT-VIJAY",
     invoicePrefix: "INV-Vijay",
   },
   "ak-enterprises": {
